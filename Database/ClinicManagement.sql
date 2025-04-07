@@ -85,7 +85,8 @@ SET IDENTITY_INSERT Appointments OFF;
 CREATE TABLE [Services] (
     ServiceID INT IDENTITY(1,1) PRIMARY KEY,
     ServiceName NVARCHAR(100) NOT NULL,
-    Price DECIMAL(15,3) NOT NULL
+    Price DECIMAL(15,3) NOT NULL,
+	ServiceParentID INT NULL FOREIGN KEY REFERENCES [Services](ServiceID),
 );
 
 SET IDENTITY_INSERT [Services] ON; 
@@ -146,21 +147,37 @@ VALUES
 	(3, 2, 3, 4);
 SET IDENTITY_INSERT Prescriptions OFF;
 
+CREATE TABLE Room(
+	RoomID INT IDENTITY(1,1) PRIMARY KEY,
+	RoomName NVARCHAR(50) NOT NULL
+)
+
+SET IDENTITY_INSERT Room ON; 
+INSERT INTO Room (RoomID, RoomName)
+VALUES
+	(1, N'Phòng khám 1'),
+	(2, N'Phòng khám 2'),
+	(3, N'Phòng xét nghiệm máu 1'),
+	(4, N'Phòng xét nghiệm nước tiểu 1'),
+	(5, N'Phòng chụp X-quang 1');
+SET IDENTITY_INSERT Room OFF;
+
 CREATE TABLE Diagnoses_Services(
 	DiagnosisID int NOT NULL FOREIGN KEY REFERENCES Diagnoses(DiagnosisID),
 	ServiceID int NOT NULL FOREIGN KEY REFERENCES Services(ServiceID),
 	CreatedAt DATETIME DEFAULT GETDATE(),
 	ServiceResultReport NVARCHAR(max) NOT NULL,
-	UserIDperformed INT NOT NULL FOREIGN KEY REFERENCES Users(UserID)
+	UserIDperformed INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
+	RoomID INT NOT NULL FOREIGN KEY REFERENCES Room(RoomID),
 )
 
-INSERT INTO Diagnoses_Services (DiagnosisID, ServiceID, CreatedAt, ServiceResultReport, UserIDperformed)
+INSERT INTO Diagnoses_Services (DiagnosisID, ServiceID, CreatedAt, ServiceResultReport, UserIDperformed, RoomID)
 VALUES
-	(1, 1, '2010-06-10 07:35:00', N'Nhịp tim: 200 lần / phút, Huyết áp: 85', 6),
-	(1, 3, '2010-06-10 07:45:00', N'Hông cầu 80%, Bạch cầu 0,05%, ... -> Lượng Bạch cầu trong máu thấp', 7),
-	(1, 4, '2010-06-10 08:45:00', N'Chỉ số SR trong nước tiểu thấp', 8),
-	(2, 1, '2010-05-10 07:20:00', N'Chân sưng có vết đỏ thẩm', 5),
-	(2, 2, '2010-05-10 07:30:00', N'Xương chân gãy', 9);
+	(1, 1, '2010-06-10 07:35:00', N'Nhịp tim: 200 lần / phút, Huyết áp: 85', 6, 1),
+	(1, 3, '2010-06-10 07:45:00', N'Hông cầu 80%, Bạch cầu 0,05%, ... -> Lượng Bạch cầu trong máu thấp', 7, 3),
+	(1, 4, '2010-06-10 08:45:00', N'Chỉ số SR trong nước tiểu thấp', 8, 4),
+	(2, 1, '2010-05-10 07:20:00', N'Chân sưng có vết đỏ thẩm', 5, 2),
+	(2, 2, '2010-05-10 07:30:00', N'Xương chân gãy', 9, 5);
 
 -- Bảng Hóa Đơn
 CREATE TABLE Bills (
@@ -188,3 +205,4 @@ SET IDENTITY_INSERT Bills OFF;
 --SELECT * FROM Prescriptions
 --SELECT * FROM Diagnoses_Services
 --SELECT * FROM Bills
+--SELECT * FROM Room
