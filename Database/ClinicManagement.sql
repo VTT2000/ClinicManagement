@@ -54,15 +54,14 @@ SET IDENTITY_INSERT Patients OFF;
 CREATE TABLE Doctors (
     DoctorID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT UNIQUE FOREIGN KEY REFERENCES Users(UserID),
-    Specialization NVARCHAR(100),
-    WorkSchedule NVARCHAR(255)
+    Specialization NVARCHAR(100)
 );
 
 SET IDENTITY_INSERT Doctors ON; 
-INSERT INTO Doctors (DoctorID, UserID, Specialization, WorkSchedule)
+INSERT INTO Doctors (DoctorID, UserID, Specialization)
 VALUES
-	(1, 3, N'Nội khoa', '2,4,6,CN'),
-	(2, 4, N'Ngoại Khoa', '3,5,7,CN');
+	(1, 3, N'Nội khoa'),
+	(2, 4, N'Ngoại Khoa');
 SET IDENTITY_INSERT Doctors OFF; 
 
 -- Bảng Lịch Khám
@@ -195,6 +194,34 @@ VALUES
 	(2, 2, 570000, N'Đã thanh toán', '2010-05-10 08:00:00');
 SET IDENTITY_INSERT Bills OFF;
 
+-- Bảng Lịch làm việc
+CREATE TABLE WorkSchedules (
+	WorkScheduleID INT IDENTITY(1,1) PRIMARY KEY,
+	StartDate datetime,
+	EndDate datetime,
+	[DayOfWeek] nvarchar(max)
+);
+
+SET IDENTITY_INSERT WorkSchedules ON; 
+INSERT INTO WorkSchedules (WorkScheduleID, StartDate, EndDate, [DayOfWeek])
+VALUES
+	(1, '2010-06-10 10:00:00', '2030-06-10 10:00:00', N'Thứ Hai, Thứ Tư, Thứ Sáu, Chủ Nhật'),
+	(2, '2010-06-10 10:00:00', '2030-06-10 10:00:00', N'Thứ Ba, Thứ Năm, Thứ Bảy, Chủ Nhật');
+SET IDENTITY_INSERT WorkSchedules OFF;
+
+-- Bảng Lịch làm việc bác sĩ
+CREATE TABLE WorkSchedule_Doctor (
+	WorkScheduleID INT FOREIGN KEY REFERENCES WorkSchedules(WorkScheduleID),
+	DoctorID INT FOREIGN KEY REFERENCES Doctors(DoctorID),
+	CONSTRAINT PK_WorkSchedule_Doctor PRIMARY KEY(WorkScheduleID, DoctorID)
+);
+
+INSERT INTO WorkSchedule_Doctor (WorkScheduleID, DoctorID)
+VALUES
+	(1, 1),
+	(2, 2);
+
+
 --SELECT * FROM Users
 --SELECT * FROM Patients
 --SELECT * FROM Doctors
@@ -206,3 +233,5 @@ SET IDENTITY_INSERT Bills OFF;
 --SELECT * FROM Diagnoses_Services
 --SELECT * FROM Bills
 --SELECT * FROM Room
+--SELECT * FROM WorkSchedules
+--SELECT * FROM WorkSchedule_Doctor
