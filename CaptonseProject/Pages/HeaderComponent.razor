@@ -1,0 +1,43 @@
+@inject NavigationManager Navigation
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/">Ebay-Cybersoft</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">Register</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Login</a>
+                </li>
+              
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="/cart">
+                        <i class="fa fa-cart-plus fs-5"></i> 
+                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                            @CartItemCount
+                        </span>
+                    </a>
+                </li>
+                <li class="nav-item ms-2">
+                    <span class="text-muted">Tổng: <strong>@TotalPrice.ToString("N0") ₫</strong></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@code {
+    // Mock dữ liệu - có thể bind từ service/cart state
+    int CartItemCount = 3;
+    decimal TotalPrice = 1250000;
+}

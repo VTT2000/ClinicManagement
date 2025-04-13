@@ -1,0 +1,65 @@
+@page "/login"
+@inject HttpClient _http;
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage;
+@inject IHttpContextAccessor _httpContext;
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <h3 class="text-center mb-4">Đăng nhập</h3>
+        <EditForm Model="userLogin" OnValidSubmit="HandleLogin">
+            <div class="mb-3">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" class="form-control" placeholder="Nhập tên đăng nhập" @bind="@userLogin.Account" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" class="form-control" placeholder="Nhập mật khẩu" @bind="@userLogin.Password"/>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Đăng nhập</button>
+            </div>
+
+            <div class="mt-3 text-center">
+                <span>Chưa có tài khoản? <a href="/register">Đăng ký</a></span>
+            </div>
+        </EditForm>
+    </div>
+</div>
+@code {
+    public UserLoginVM userLogin  = new UserLoginVM() {
+        Account = "",Password=""
+    };
+
+    public async Task HandleLogin() {
+        Console.WriteLine(JsonSerializer.Serialize(userLogin));
+        //Gọi api đăng nhập 
+        try
+        {
+            var response = await _http.PostAsJsonAsync("http://localhost:5208/user/login", userLogin);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<UserLoginResultVM>>();
+            @* Console.WriteLine(JsonSerializer.Serialize(result)); *@
+            //Sau khi đăng nhập thành công lưu localstorage
+            await LocalStorage.SetItemAsStringAsync("accessToken",result.Data.AccessToken);
+            //Lưu về cookie của browser
+             var cookieOption =  new CookieOptions(){
+                HttpOnly = true,
+                Secure = true,
+                Expires = DateTime.Now.AddDays(1)
+            };
+            // var context = _httpContext.HttpContext;
+            //context?.Response.Cookies.Append("accessToken",result.Data.AccessToken,cookieOption ); 
+
+
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"POST error: {ex.Message}");
+        }
+    }
+
+
+
+}
+
