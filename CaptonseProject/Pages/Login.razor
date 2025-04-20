@@ -85,7 +85,7 @@
              if (response.IsSuccessStatusCode)
             {
                  //Lưu token vào client
-                await LocalStorage.SetItemAsync("token", result.AccessToken);
+                await LocalStorage.SetItemAsStringAsync("token", result.AccessToken);
                 NavigationManager.NavigateTo("/", true); 
             }
             else

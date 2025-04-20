@@ -22,7 +22,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     {
         Console.WriteLine("GetAuthenticationStateAsync được gọi");
         // Lấy token từ localStorage
-        var token = await _localStorage.GetItemAsync<string>("token");
+        var token = await _localStorage.GetItemAsStringAsync("token");
         // Trường hợp không có token => Không đăng nhập
         if (string.IsNullOrWhiteSpace(token))
         {
