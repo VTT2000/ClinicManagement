@@ -1,65 +1,106 @@
 @page "/login"
-@inject HttpClient _http;
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IHttpClientFactory HttpClientFactory
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage;
-@inject IHttpContextAccessor _httpContext;
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <h3 class="text-center mb-4">Đăng nhập</h3>
-        <EditForm Model="userLogin" OnValidSubmit="HandleLogin">
-            <div class="mb-3">
-                <label class="form-label">Tên đăng nhập</label>
-                <input type="text" class="form-control" placeholder="Nhập tên đăng nhập" @bind="@userLogin.Account" />
-            </div>
 
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu</label>
-                <input type="password" class="form-control" placeholder="Nhập mật khẩu" @bind="@userLogin.Password"/>
+<div class="container-fluid vh-100">
+    <div class="row h-100">
+        <!-- Left Section -->
+        <div class="col-md-6 d-flex align-items-center justify-content-center bg-primary text-white">
+            <div class="text-center p-4">
+                <h1 class="display-4">Gofinance</h1>
+                <p class="lead">The most popular peer to peer lending at SEA</p>
+                <button class="btn btn-outline-light btn-lg mt-3">Read More</button>
             </div>
+        </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Đăng nhập</button>
+        <!-- Right Section (Login Form) -->
+        <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+            <div class="p-4" style="max-width: 400px; width: 100%;">
+                <h2 class="mb-4">Hello Again!</h2>
+                <h5 class="text-muted mb-4">Welcome Back</h5>
+                <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <InputText type="email" class="form-control" @bind-Value="loginModel.Account"
+                                placeholder="Email" />
+                            <ValidationMessage For="@(() => loginModel.Account)" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <InputText type="password" class="form-control" @bind-Value="loginModel.Password"
+                                placeholder="Password" />
+                            <ValidationMessage For="@(() => loginModel.Password)" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
+                    <div class="text-center">
+                        <a href="/register" class="text-muted">Don't have an account? Register</a>
+                    </div>
+                </EditForm>
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger mt-3">@errorMessage</div>
+                }
             </div>
-
-            <div class="mt-3 text-center">
-                <span>Chưa có tài khoản? <a href="/register">Đăng ký</a></span>
-            </div>
-        </EditForm>
+        </div>
     </div>
 </div>
-@code {
-    public UserLoginVM userLogin  = new UserLoginVM() {
-        Account = "",Password=""
-    };
 
-    public async Task HandleLogin() {
-        Console.WriteLine(JsonSerializer.Serialize(userLogin));
-        //Gọi api đăng nhập 
+@code {
+    private LoginModel loginModel = new();
+    private string errorMessage;
+
+    private class LoginModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Account { get; set; }
+
+        [Required]
+        public string Password { get; set; }
+    }
+
+    private async Task HandleLogin()
+    {
         try
         {
-            var response = await _http.PostAsJsonAsync("http://localhost:5208/user/login", userLogin);
-            response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<UserLoginResultVM>>();
-            @* Console.WriteLine(JsonSerializer.Serialize(result)); *@
-            //Sau khi đăng nhập thành công lưu localstorage
-            await LocalStorage.SetItemAsStringAsync("accessToken",result.Data.AccessToken);
-            //Lưu về cookie của browser
-             var cookieOption =  new CookieOptions(){
-                HttpOnly = true,
-                Secure = true,
-                Expires = DateTime.Now.AddDays(1)
-            };
-            // var context = _httpContext.HttpContext;
-            //context?.Response.Cookies.Append("accessToken",result.Data.AccessToken,cookieOption ); 
+            // Lấy HttpClient từ HttpClientFactory
+            var client = HttpClientFactory.CreateClient("LocalApi");
 
+            // Sử dụng URI tương đối vì BaseAddress đã được cấu hình
+            var response = await client.PostAsJsonAsync("/api/User/Login", loginModel);
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            Console.WriteLine($@"Response: {response}");
 
+             if (response.IsSuccessStatusCode)
+            {
+                 //Lưu token vào client
+                await LocalStorage.SetItemAsync("token", result.AccessToken);
+                NavigationManager.NavigateTo("/", true); 
+            }
+            else
+            {
+                errorMessage = "Invalid email or password.";
+            } 
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"POST error: {ex.Message}");
+            errorMessage = $"Error: {ex.Message}";
         }
     }
 
-
-
+    private class LoginResponse
+    {   
+        public string AccessToken { get; set; }
+    }
 }
-

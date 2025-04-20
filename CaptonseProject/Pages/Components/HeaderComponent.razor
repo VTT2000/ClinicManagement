@@ -1,0 +1,57 @@
+
+@inject NavigationManager Navigation
+
+<div class="header">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <!-- Logo -->
+            <a class="navbar-brand" href="/">
+                <span class="logo-text">MEDLAB HOSPITAL</span>
+            </a>
+
+            <!-- Toggle button for mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navigation links -->
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/" ActiveClass="active">Home</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/appointment" ActiveClass="active">Appointment</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/services" ActiveClass="active">Services</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/about" ActiveClass="active">About Us</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/contact" ActiveClass="active">Contact Us</NavLink>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Sign In and Register buttons -->
+            <div class="d-flex">
+                <button class="btn btn-outline-primary me-2" @onclick="() => NavigateToSignIn()">Sign In</button>
+                <button class="btn btn-primary" @onclick="() => NavigateToRegister()">Register</button>
+            </div>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private void NavigateToSignIn()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+}

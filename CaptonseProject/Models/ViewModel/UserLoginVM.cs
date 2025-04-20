@@ -1,3 +1,5 @@
+using web_api_base.Models.ClinicManagement;
+
 namespace web_api_base.Models.ViewModel
 {
     public class UserLoginVM
@@ -12,7 +14,7 @@ namespace web_api_base.Models.ViewModel
 
     public class UserLoginResultVM
     {
-        public string Account { get; set; }
+        public User User { get; set; } 
         public string AccessToken { get; set; }
     }
 
