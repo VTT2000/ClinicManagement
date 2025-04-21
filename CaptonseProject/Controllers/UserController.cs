@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using web_api_base.Models.ClinicManagement;
 using web_api_base.Models.ViewModel;
 //using CaptonseProject.Models;
 
@@ -68,6 +69,21 @@ namespace CaptonseProject.Controllers
 
             var result = await _userService.AdminCreateUser(newUser);
             return Ok(result);
+        } 
+           
+        [HttpGet("GetAllStaff")]
+        public async Task<ActionResult<HTTPResponseClient<IEnumerable<User>>>> GetAllStaff()
+        {
+            var result = await _userService.GetAllUserIsStaffAsync();
+            return result;
+        }
+
+        [HttpGet("GetAllPatient")]
+        public async Task<ActionResult<HTTPResponseClient<IEnumerable<User>>>> GetAllPatient()
+        {
+            var result = await _userService.GetAllUserIsPatientAsync();
+            return result;
+        }
         }
 
         [Authorize]

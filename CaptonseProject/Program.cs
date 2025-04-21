@@ -120,13 +120,13 @@ builder.Services.AddScoped<JwtAuthService>();
 // Thêm dịch vụ Authorization để hỗ trợ phân quyền người dùng
 builder.Services.AddAuthorization();
 
-//DI Repository,Service
+//Repository pattern & unit of work pattern
 //repo
-builder.Services.AddScoped<IUserRepository,UserRepository>();
-//unitofwork
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+//unit
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 //service
-builder.Services.AddScoped<IUserService,UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 
 var app = builder.Build();
