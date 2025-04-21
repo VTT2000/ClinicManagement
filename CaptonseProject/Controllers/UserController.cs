@@ -84,7 +84,7 @@ namespace CaptonseProject.Controllers
             var result = await _userService.GetAllUserIsPatientAsync();
             return result;
         }
-        }
+        
 
         [Authorize]
         [HttpGet("/user/GetProfile")]
