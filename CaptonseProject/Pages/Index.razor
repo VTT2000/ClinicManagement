@@ -1,8 +1,202 @@
+
 @page "/"
+@layout MainLayout
 
-<h1>Trang chủ</h1>
-<p>Chào mừng đến với Blazor Server!</p>
+<div class="container-fluid">
+  <!-- Header Section -->
+  <div class="row bg-light py-5">
+    <div class="col-md-6 d-flex align-items-center">
+      <div class="p-4">
+        <h1 class="display-4">We help people to get appointment in online</h1>
+        <p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut
+          labore et dolore magna aliqua.</p>
+        <button class="btn btn-primary btn-lg">Get Started</button>
+      </div>
+    </div>
+    <div class="col-md-6 d-flex justify-content-center align-items-center">
+      <img src="images/home1.png" alt="Illustration" class="img-fluid d-inline-block"
+        style="height: auto; width: 300px;" />
+      <img src="images/home2.png" alt="Illustration" class="img-fluid d-inline-block"
+        style="height: 300px;position: relative; left: -150px; object-fit: contain ;width: 300px;" />
+    </div>
+  </div>
 
+  <!-- Who We Are Section -->
+  <div class="row py-5 align-items-center">
+    <!-- Hình ảnh bên trái -->
+    <div class="col-md-6 text-center">
+      <img src="images/home3.png" alt="Who We Are Illustration" class="img-fluid"
+        style="max-width: 100%; height: auto;" />
+    </div>
 
+    <!-- Nội dung bên phải -->
+    <div class="col-md-6">
+      <h6 class="text-primary">Biography</h6>
+      <h2 class="fw-bold">Who We Are</h2>
+      <p>Lorem Media is a full-service social media agency. We offer businesses innovative solutions that deliver the
+        right set of audiences to you in the most effective strategic methods. We strive to develop a community around
+        your business, polishing your branding and improving your public relations.</p>
+      <p>Social Media is now one of the most powerful marketing tools with the ability to communicate with a target
+        audience in real time.</p>
+      <p>It’s 2025 time to sink or swim.</p>
+      <p>We are your Social Media Marketing Agency.</p>
+      <button class="btn btn-primary">See More</button>
+    </div>
+  </div>
 
+  <!-- Our Services Section -->
+  <div class="row py-5 bg-light">
+    <div class="col-12 text-center mb-4">
+      <h2>Our Services</h2>
+      <p class="text-muted">Explore our specialized services tailored for your needs.</p>
+    </div>
+    <div class="col-12">
+      <div class="d-flex justify-content-center gap-4 flex-wrap">
+        @for (int i = 0; i < 3; i++) // Hiển thị 3 dịch vụ
+        {
+          <div class="service-card text-center">
+            <img src="images/home4.png" alt="Service Image" class="img-fluid rounded mb-3" />
+            <h5 class="fw-bold">NEUROSCIENCES</h5>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
 
+  <!-- Our Doctors Section -->
+  <div class="row py-5">
+    <div class="col-12 text-center mb-4">
+      <h2>Our Doctors</h2>
+    </div>
+    <div class="col-12">
+      <div class="d-flex justify-content-center gap-4 flex-wrap">
+        @for (int i = 0; i < 12; i++) // Hiển thị 12 bác sĩ
+        {
+          <div class="doctor-card text-center">
+            <img src="images/home5.png" alt="Doctor Image" class="img-fluid rounded-circle mb-3" />
+            <h6 class="fw-bold">Silva A.D.M.P</h6>
+            <p class="text-muted">MEDICAL DOCTOR</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <style>
+
+  </style>
+
+  <!-- Contact Section -->
+  <div class="row py-5">
+    <div class="col-12 text-center">
+      <h2>Send us a message</h2>
+    </div>
+    <div class="col-md-8 mx-auto">
+      <form class="contact-form">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <input type="text" class="form-control" placeholder="First Name" />
+          </div>
+          <div class="col-md-6 mb-3">
+            <input type="text" class="form-control" placeholder="Last Name" />
+          </div>
+          <div class="col-md-6 mb-3">
+            <input type="text" class="form-control" placeholder="Mobile Number" />
+          </div>
+          <div class="col-md-6 mb-3">
+            <input type="email" class="form-control" placeholder="Email" />
+          </div>
+          <div class="col-12 mb-3">
+            <textarea class="form-control" rows="4" placeholder="Message"></textarea>
+          </div>
+          <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary w-50">Send</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  /* Service */
+  .service-card {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 250px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .service-card img {
+    border-radius: 10px;
+    width: 100%;
+    height: auto;
+  }
+
+  .service-card h5 {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #333;
+  }
+
+  /* Doctor Card Styles */
+  .doctor-card {
+    width: 150px;
+  }
+
+  .doctor-card img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+  }
+
+  .doctor-card h6 {
+    font-size: 16px;
+    margin-top: 10px;
+  }
+
+  .doctor-card p {
+    font-size: 14px;
+    color: #6c757d;
+  }
+
+  /* Contact Form Styles */
+  .contact-form input,
+  .contact-form textarea {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .contact-form input::placeholder,
+  .contact-form textarea::placeholder {
+    color: #aaa;
+  }
+
+  .contact-form button {
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background 0.3s ease;
+  }
+
+  .contact-form button:hover {
+    background: linear-gradient(to right, #2575fc, #6a11cb);
+  }
+</style>
+
+@code {
+  
+}

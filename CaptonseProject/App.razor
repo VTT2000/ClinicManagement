@@ -1,10 +1,20 @@
-<Router AppAssembly="@typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="typeof(MainLayout)" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout="typeof(MainLayout)">
-            <p>Không tìm thấy trang</p>
+@using Microsoft.AspNetCore.Components.Authorization
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" />
+            @* <NotAuthorized>
+                <div class="text-center">
+                    <h3>Bạn không có quyền truy cập vào trang này !</h3>
+                    <NavLink href="/login">Login</NavLink>
+                </div>
+            </NotAuthorized> *@
+        </Found>
+        @* <NotFound>
+        <LayoutView Layout="@typeof(HomeMasterPage)">
+            <p>Sorry, there's nothing at this address.</p>
         </LayoutView>
-    </NotFound>
-</Router>
+    </NotFound> *@
+    </Router>
+</CascadingAuthenticationState>
+

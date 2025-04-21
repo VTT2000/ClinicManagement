@@ -1,0 +1,181 @@
+@page "/admin"
+@inject IJSRuntime JSRuntime
+@layout AdminLayout
+@attribute [Authorize(Roles = @$"{RoleConstant.Admin},{RoleConstant.Receptionist}")]
+
+<div class="container-fluid admin-container">
+    <!-- Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Patient</h5>
+                    <p class="card-text display-4">20</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Total Days</h5>
+                    <p class="card-text display-4">20</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Appointments</h5>
+                    <p class="card-text display-4">20</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">Accept</h5>
+                    <p class="card-text display-4">20</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="patientChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Doctors Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Recent Doctors
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Consulting Charge</th>
+                                <th>Education</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Dr. John Smith</td>
+                                <td>0123456789</td>
+                                <td>Kolkata</td>
+                                <td>2000</td>
+                                <td>MBBS</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary">Edit</button>
+                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                </td>
+                            </tr>
+                            <!-- Thêm các dòng khác tương tự -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Out of Stock Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Out of Stock
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Drug Name</th>
+                                <th>Scope Date</th>
+                                <th>Manufactured Date</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Paracetamol</td>
+                                <td>2023-12-12</td>
+                                <td>2022-12-12</td>
+                                <td>100.00</td>
+                                <td>0</td>
+                            </tr>
+                            <!-- Thêm các dòng khác tương tự -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+  .admin-container {
+        height: calc(100vh - 70px); /* Chiều cao của viewport trừ đi chiều cao của header */
+        overflow-y: auto; /* Cho phép cuộn dọc khi nội dung vượt quá chiều cao */
+        padding: 20px;
+        scrollbar-width: thin; /* Thanh cuộn mỏng cho Firefox */
+        scrollbar-color: #aaa #f5f5f5; /* Màu thanh cuộn cho Firefox */
+    }
+    
+    /* Tùy chỉnh thanh cuộn cho Chrome, Edge, và Safari */
+    .admin-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .admin-container::-webkit-scrollbar-track {
+        background: #f5f5f5;
+        border-radius: 10px;
+    }
+    
+    .admin-container::-webkit-scrollbar-thumb {
+        background: #aaa;
+        border-radius: 10px;
+    }
+    
+    .admin-container::-webkit-scrollbar-thumb:hover {
+        background: #888;
+    }
+    
+    /* Thêm hiệu ứng smooth scrolling */
+    .admin-container {
+        scroll-behavior: smooth;
+    }
+</style>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DrawChart();
+        }
+    }
+
+    private async Task DrawChart()
+    {
+        await JSRuntime.InvokeVoidAsync("drawChart");
+    }
+}
