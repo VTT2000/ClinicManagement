@@ -1,6 +1,21 @@
-
 @page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 @layout MainLayout
+
+
+@* <AuthorizeView Roles="Admin">
+  <Authorized>
+    <div>Admin view</div>
+  </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Bệnh nhân">
+  <Authorized>
+    <div>Bệnh nhân view</div>
+  </Authorized>
+</AuthorizeView> *@
 
 <div class="container-fluid">
   <!-- Header Section -->
@@ -198,5 +213,5 @@
 </style>
 
 @code {
-  
+
 }

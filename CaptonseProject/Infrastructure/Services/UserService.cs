@@ -13,13 +13,20 @@ public interface IUserService
   Task<dynamic> AdminCreateUser(AdminRegisterUserVM newUser);
 
   UserLoginResultVM Login(UserLoginVM userLogin);
+
+  Task<User> GetUserById(int id);
+
+  Task<dynamic> GetProfileUser(string authorization);
+  Task<dynamic> ChangePassword(ChangePasswordVM model, string authorization);
+
+
 }
 
 public class UserService : IUserService
 {
   public IUnitOfWork _unitOfWork;
   public JwtAuthService _JwtAuthService;
-
+  private readonly ClinicContext _context;
   public UserService(IUnitOfWork unitOfWork, JwtAuthService JwtAuthService)
   {
     _unitOfWork = unitOfWork;
@@ -28,7 +35,7 @@ public class UserService : IUserService
 
   public async Task<dynamic> AdminCreateUser(AdminRegisterUserVM newUser)
   {
-        var user = new User()
+    var user = new User()
     {
       FullName = newUser.FullName,
       Email = newUser.Email,
@@ -46,7 +53,7 @@ public class UserService : IUserService
     return users;
   }
 
-  public  UserLoginResultVM Login(UserLoginVM userLogin)
+  public UserLoginResultVM Login(UserLoginVM userLogin)
   {
     //Tìm user trong db có  email
     var userCheckLogin = _unitOfWork._userRepository.GetAllAsync().Result.FirstOrDefault(x => x.Email == userLogin.Account);
@@ -75,5 +82,43 @@ public class UserService : IUserService
     await _unitOfWork._userRepository.AddAsync(user);
     await _unitOfWork.SaveChangesAsync();
     return user;
+  }
+
+  public async Task<User> GetUserById(int id)
+  {
+    var user = await _unitOfWork._userRepository.GetByIdAsync(id);
+    return user;
+  }
+
+  public async Task<dynamic> ChangePassword(ChangePasswordVM model, string authorization)
+  {
+    //Lấy thông tin user từ token
+    var user = GetProfileUser(authorization);
+    //Kiểm tra mật khẩu cũ có đúng không
+    if (user == null || !PasswordHelper.VerifyPassword(model.OldPassword, user.Result.PasswordHash))
+    {
+      return null;
+    }
+    //Nếu đúng thì cập nhật mật khẩu mới
+    user.Result.PasswordHash = PasswordHelper.HashPassword(model.NewPassword);
+    //Cập nhật vào db
+    var userResult = await user as User;
+    _unitOfWork._userRepository.Update(userResult);
+    await _unitOfWork.SaveChangesAsync();
+
+    return user;
+  }
+
+  public async Task<dynamic> GetProfileUser(string authorization)
+  {
+      string token = authorization.Replace("Bearer ", "");
+      string name = _JwtAuthService.DecodePayloadToken(token);
+      var users = await _unitOfWork._userRepository.GetAllAsync();
+      var user = users.FirstOrDefault(x => x.FullName == name);
+      if (user == null)
+      {
+          return null;
+      }
+      return user;
   }
 }

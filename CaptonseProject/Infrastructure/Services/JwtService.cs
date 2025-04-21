@@ -39,6 +39,7 @@ public class JwtAuthService
             new Claim("Email", userLogin.Email),               // Claim mặc định cho username
             // new Claim(ClaimTypes.Role, userLogin.Role),                   // Claim mặc định cho Role
             new Claim(JwtRegisteredClaimNames.Sub, userLogin.FullName),   // Subject của token
+            
             new Claim("Name", userLogin.FullName),   // Subject của token          
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique ID của token
             new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()), // Thời gian tạo token
@@ -84,11 +85,11 @@ public class JwtAuthService
             var jwtToken = handler.ReadJwtToken(token);
 
             // Lấy username từ claims (thường nằm trong claim "sub" hoặc "name")
-            var usernameClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "UserName"); // Common in some identity providers
+            var usernameClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "Name"); // Common in some identity providers
 
             if (usernameClaim == null)
             {
-                throw new InvalidOperationException("Không tìm thấy username trong payload");
+                throw new InvalidOperationException("Không tìm thấy Name trong payload");
             }
 
             return usernameClaim.Value;

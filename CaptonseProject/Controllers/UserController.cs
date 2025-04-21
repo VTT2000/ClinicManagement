@@ -17,7 +17,7 @@ namespace CaptonseProject.Controllers
         public UserController(IUserService userService)
         {
             _userService = userService;
-        }   
+        }
 
 
 
@@ -26,7 +26,7 @@ namespace CaptonseProject.Controllers
         public async Task<IActionResult> GetAllUser()
         {
             // Simulate fetching data from a database or service
-           var users = await _userService.GetAllAsync();
+            var users = await _userService.GetAllAsync();
             return Ok(users);
         }
         [HttpPost("Login")]
@@ -68,8 +68,46 @@ namespace CaptonseProject.Controllers
 
             var result = await _userService.AdminCreateUser(newUser);
             return Ok(result);
-        } 
-           
+        }
+
+        [Authorize]
+        [HttpGet("/user/GetProfile")]
+        public async Task<ActionResult> GetProfile([FromHeader] string authorization)
+        {
+            var user = await _userService.GetProfileUser(authorization);
+            Console.WriteLine("User profile: " + user);
+            return Ok(user);
+        }
+
+        [Authorize]
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordVM model, [FromHeader] string authorization)
+        {
+            if (model == null)
+            {
+                return BadRequest("Invalid password data.");
+            }
+
+            var result = await _userService.ChangePassword(model, authorization);
+            if (result == null)
+            {
+                return BadRequest("Failed to change password.");
+            }
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Admin)]
+        [HttpGet("GetUserById/{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            var user = await _userService.GetUserById(id);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+            return Ok(user);
+        }
+
 
     }
 }
