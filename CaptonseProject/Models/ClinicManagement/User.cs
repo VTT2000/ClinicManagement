@@ -17,6 +17,8 @@ public partial class User
 
     public DateTime? CreatedAt { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual Doctor? Doctor { get; set; }
 
     public virtual Patient? Patient { get; set; }

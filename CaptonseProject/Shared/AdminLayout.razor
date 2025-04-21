@@ -1,0 +1,37 @@
+@inherits LayoutComponentBase
+
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-primary text-white p-3" style="width: 250px; height: 100vh;">
+        <h4 class="text-center">MedLab</h4>
+        <hr />
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link text-white" href="/">Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="/staff">Staff</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="/lab">Lab</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="/ward">Ward</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="/therapy">Therapy</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="/patient">Patient</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow-1 p-4">
+        <header class="mb-4">
+            <h2>Dashboard</h2>
+        </header>
+        @Body
+    </div>
+</div>
