@@ -30,6 +30,7 @@ public class JwtAuthService
             RoleConstant.User => RoleConstant.User,
             RoleConstant.Doctor => RoleConstant.Doctor,
             RoleConstant.Technician => RoleConstant.Technician,
+            RoleConstant.Receptionist => RoleConstant.Receptionist,
             _ => throw new Exception("Invalid role") // Xử lý nếu role không hợp lệ
         };
         // Tạo danh sách các claims cho token

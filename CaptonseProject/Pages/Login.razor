@@ -42,7 +42,17 @@
                             <ValidationMessage For="@(() => loginModel.Password)" />
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
+                    <button type="submit" class="btn btn-primary w-100 mb-3" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="ms-2">Loading...</span>
+                        }
+                        else
+                        {
+                            <span>Login</span>
+                        }
+                    </button>
                     <div class="text-center">
                         <a href="/register" class="text-muted">Don't have an account? Register</a>
                     </div>
@@ -59,7 +69,7 @@
 @code {
     private LoginModel loginModel = new();
     private string errorMessage;
-
+      private bool isLoading = false;
     private class LoginModel
     {
         [Required]
@@ -71,7 +81,9 @@
     }
 
     private async Task HandleLogin()
-    {
+    {   
+        isLoading = true;
+        errorMessage = string.Empty;
         try
         {
             // Lấy HttpClient từ HttpClientFactory
@@ -82,25 +94,29 @@
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
             Console.WriteLine($@"Response: {response}");
 
-             if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
-                 //Lưu token vào client
+                //Lưu token vào client
                 await LocalStorage.SetItemAsStringAsync("token", result.AccessToken);
-                NavigationManager.NavigateTo("/", true); 
+                NavigationManager.NavigateTo("/", true);
             }
             else
             {
                 errorMessage = "Invalid email or password.";
-            } 
+            }
         }
         catch (Exception ex)
         {
             errorMessage = $"Error: {ex.Message}";
         }
+         finally
+        {
+            isLoading = false; // Kết thúc hiệu ứng loading
+        }
     }
 
     private class LoginResponse
-    {   
+    {
         public string AccessToken { get; set; }
     }
 }

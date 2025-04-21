@@ -3,12 +3,12 @@
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" />
-            <NotAuthorized>
+            @* <NotAuthorized>
                 <div class="text-center">
                     <h3>Bạn không có quyền truy cập vào trang này !</h3>
-                    <NavLink href="/login-page">Login</NavLink>
+                    <NavLink href="/login">Login</NavLink>
                 </div>
-            </NotAuthorized>
+            </NotAuthorized> *@
         </Found>
         @* <NotFound>
         <LayoutView Layout="@typeof(HomeMasterPage)">

@@ -1,5 +1,8 @@
 
+@using Microsoft.AspNetCore.Components.Authorization
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <div class="header">
     <nav class="navbar navbar-expand-lg">
@@ -35,16 +38,31 @@
                 </ul>
             </div>
 
-            <!-- Sign In and Register buttons -->
+           <!-- Sign In and Register buttons -->
             <div class="d-flex">
-                <button class="btn btn-outline-primary me-2" @onclick="() => NavigateToSignIn()">Sign In</button>
-                <button class="btn btn-primary" @onclick="() => NavigateToRegister()">Register</button>
+                @if (!isAuthenticated)
+                {
+                    <button class="btn btn-outline-primary me-2" @onclick="() => NavigateToSignIn()">Sign In</button>
+                    <button class="btn btn-primary" @onclick="() => NavigateToRegister()">Register</button>
+                }
+                else
+                {
+                    <button class="btn btn-outline-danger" @onclick="Logout">Logout</button>
+                }
             </div>
         </div>
     </nav>
 </div>
 
 @code {
+     private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+    }
+
     private void NavigateToSignIn()
     {
         Navigation.NavigateTo("/login");
@@ -53,5 +71,20 @@
     private void NavigateToRegister()
     {
         Navigation.NavigateTo("/register");
+    }
+
+    private async Task Logout()
+    {
+         // Xóa token khỏi LocalStorage
+        await LocalStorage.RemoveItemAsync("token");
+
+        // Thông báo trạng thái đăng xuất
+        if (AuthenticationStateProvider is CustomAuthStateProvider customAuthStateProvider)
+        {
+            await customAuthStateProvider.MarkUserAsLoggedOut();
+        }
+
+        // Chuyển hướng về trang đăng nhập
+        Navigation.NavigateTo("/login", true);
     }
 }
