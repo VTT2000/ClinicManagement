@@ -13,6 +13,9 @@ public interface IUserService
   Task<dynamic> AdminCreateUser(AdminRegisterUserVM newUser);
 
   UserLoginResultVM Login(UserLoginVM userLogin);
+
+  public Task<HTTPResponseClient<IEnumerable<User>>> GetAllUserIsStaffAsync();
+  public Task<HTTPResponseClient<IEnumerable<User>>> GetAllUserIsPatientAsync();
 }
 
 public class UserService : IUserService
@@ -28,7 +31,7 @@ public class UserService : IUserService
 
   public async Task<dynamic> AdminCreateUser(AdminRegisterUserVM newUser)
   {
-        var user = new User()
+    var user = new User()
     {
       FullName = newUser.FullName,
       Email = newUser.Email,
@@ -46,7 +49,7 @@ public class UserService : IUserService
     return users;
   }
 
-  public  UserLoginResultVM Login(UserLoginVM userLogin)
+  public UserLoginResultVM Login(UserLoginVM userLogin)
   {
     //Tìm user trong db có  email
     var userCheckLogin = _unitOfWork._userRepository.GetAllAsync().Result.FirstOrDefault(x => x.Email == userLogin.Account);
@@ -76,4 +79,40 @@ public class UserService : IUserService
     await _unitOfWork.SaveChangesAsync();
     return user;
   }
+
+  public async Task<HTTPResponseClient<IEnumerable<User>>> GetAllUserIsStaffAsync()
+    {
+        var result = new HTTPResponseClient<IEnumerable<User>>();
+        try
+        {
+            var data = await _unitOfWork._userRepository.WhereAsync(p => !p.Role.Equals(RoleUser.ADMIN) && !p.Role.Equals(RoleUser.BENH_NHAN));
+            result.Data = data;
+        }
+        catch (Exception ex)
+        {
+            result.Message = ex.Message;
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+
+    public async Task<HTTPResponseClient<IEnumerable<User>>> GetAllUserIsPatientAsync()
+    {
+        var result = new HTTPResponseClient<IEnumerable<User>>();
+        try
+        {
+            var data = await _unitOfWork._userRepository.WhereAsync(p => p.Role.Equals(RoleUser.BENH_NHAN));
+            result.Data = data;
+        }
+        catch (Exception ex)
+        {
+            result.Message = ex.Message;
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+
+        result.DateTime = DateTime.Now;
+        return result;
+    }
 }

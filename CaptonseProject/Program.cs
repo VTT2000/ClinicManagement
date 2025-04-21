@@ -131,7 +131,6 @@ builder.Services.AddScoped<IUserService,UserService>();
 //Repository pattern & unit of work pattern
 //repo
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 //unit
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 //service
