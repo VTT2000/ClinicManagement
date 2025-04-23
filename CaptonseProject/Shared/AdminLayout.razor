@@ -3,38 +3,35 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
-
+@using System.Security.Claims
 <div class="admin-layout d-flex">
     <!-- Sidebar -->
     <div class="sidebar text-white p-3" style="width: 250px; height: 100vh;">
         <h4 class="text-center">MedLab</h4>
         <hr />
         <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin">Dashboard</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/staff">Staff</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/lab">Lab</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/ward">Ward</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/therapy">Therapy</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/patient">Patient</a>
-            </li>
+            @if (@userRole == RoleConstant.Admin)
+            {
+                <li class="nav-item">
+                    <NavLink class="nav-link text-white" href="/admin" ActiveClass="active" Match="NavLinkMatch.All">Thống kê</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link text-white" href="/user-management" ActiveClass="active" Match="NavLinkMatch.All">Quản lí người dùng</NavLink>
+                </li>
+            }
+            @if (@userRole == RoleConstant.Receptionist)
+            {
+                <li class="nav-item">
+                    <NavLink class="nav-link text-white" href="/receptionist">Receptionist</NavLink>
+                </li>
+            }
         </ul>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
         <header class="content-header d-flex justify-content-between align-items-center">
-            <h2>Dashboard</h2>
+            <h2>@pageTitle</h2>
 
             <!-- User Info and Dropdown -->
             <div class="d-flex align-items-center">
@@ -64,7 +61,7 @@
                             </li>
 
                             <!-- Menu Items -->
-                            @if (userRole != RoleConstant.User)
+                            @if (userRole != RoleConstant.Patient)
                             {
                                 <li><a class="dropdown-item custom-dropdown-item" href="/">
                                         <i class="bi bi-house-door-fill me-2"></i>Quay lại trang chủ
@@ -98,6 +95,10 @@
         overflow: hidden;
         margin: 0;
         padding: 0;
+    }
+    .active {
+        background-color: #6c757d !important;
+        color: white !important;
     }
 
     /* Layout cho admin */
@@ -238,8 +239,17 @@
     private string username;
     private string userRole;
 
+    private string pageTitle = "Thống kê";
+
     protected override async Task OnInitializedAsync()
     {
+
+        // Subscribe vào sự kiện NavigationManager.LocationChanged
+        Navigation.LocationChanged += OnLocationChanged;
+
+        // Khởi tạo tiêu đề dựa trên URL hiện tại
+        SetPageTitleFromUri(Navigation.Uri);
+
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -253,7 +263,7 @@
             ?? "User";
 
             // Lấy role từ claim "role"
-            userRole = user.FindFirst(c => c.Type == "role")?.Value ?? "";
+            userRole = user.FindFirst(c => c.Type == ClaimTypes.Role)?.Value ?? "";
         }
     }
 
@@ -271,6 +281,7 @@
     {
         // Xóa token khỏi LocalStorage
         await LocalStorage.RemoveItemAsync("token");
+        await LocalStorage.RemoveItemAsync("userInfo");
 
         // Thông báo trạng thái đăng xuất
         if (AuthenticationStateProvider is CustomAuthStateProvider customAuthStateProvider)
@@ -281,4 +292,37 @@
         // Chuyển hướng về trang đăng nhập
         Navigation.NavigateTo("/login", true);
     }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        SetPageTitleFromUri(e.Location);
+
+        // Cần gọi StateHasChanged để cập nhật UI
+        InvokeAsync(StateHasChanged);
+    }
+
+    // Phương thức để thiết lập tiêu đề dựa trên URL
+    private void SetPageTitleFromUri(string uri)
+    {
+        // Lấy phần path từ URI
+        var path = new Uri(uri).PathAndQuery.ToLower();
+
+        // Ánh xạ từ path đến tiêu đề
+        pageTitle = path switch
+        {
+            "/" or "/admin" or "/admin/" => "Thống kê",
+            "/user-management" or "/user-management/" => "Quản lí người dùng",
+            "/receptionist" or "/receptionist/" => "Tiếp tân",
+            "/profile" or "/profile/" => "Hồ sơ cá nhân",
+            _ => "Hệ thống quản lý"
+        };
+    }
+
+    // Thêm phương thức để giải phóng sự kiện khi component bị hủy
+    public void Dispose()
+    {
+        // Bỏ đăng ký sự kiện khi component bị hủy để tránh memory leak
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
 }

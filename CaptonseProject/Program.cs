@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.JSInterop;
 using Microsoft.OpenApi.Models;
 using web_api_base.Models.ClinicManagement;
+using web_api_base.Service_FE.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
-
     // 🔥 Thêm hỗ trợ Authorization header tất cả api
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -49,7 +49,6 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-
 builder.Services.AddControllers();
 
 // Thêm dịch vụ cho Blazor Server
@@ -124,10 +123,13 @@ builder.Services.AddAuthorization();
 //repo
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 //unit
-builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
+builder.Services.AddScoped<UnitOfWork>();
 //service
 builder.Services.AddScoped<IUserService, UserService>();
 
+
+//service FE
+builder.Services.AddScoped<ILoginService, LoginService>();
 
 var app = builder.Build();
 
@@ -138,10 +140,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
 
-//blazor    
+// Phục vụ file tĩnh từ wwwroot (mặc định)
 app.UseStaticFiles();
+
+// Cấu hình phục vụ file từ uploads
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images")),
+    RequestPath = "/images" // Đường dẫn này sẽ tương ứng với thư mục wwwroot/images
+});
+
 app.UseRouting();
 
 //Phân quyền

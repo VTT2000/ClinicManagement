@@ -1,9 +1,9 @@
 @using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims;
+@using System.Security.Claims
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
-
+@inject ILoginService LoginService
 <div class="header">
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
@@ -67,7 +67,7 @@
                             </li>
 
                             <!-- Menu Items -->
-                            @if (userRole != RoleConstant.User)
+                            @if (userRole != RoleConstant.Patient)
                             {
                                 <li><a class="dropdown-item custom-dropdown-item" href="/admin">
                                         <i class="bi bi-gear me-2"></i>Quản trị
@@ -181,10 +181,8 @@
     }
 
     private async Task Logout()
-    {
-        // Xóa token khỏi LocalStorage
-        await LocalStorage.RemoveItemAsync("token");
-
+    {      
+        await LoginService.LogoutAsync();
         // Thông báo trạng thái đăng xuất
         if (AuthenticationStateProvider is CustomAuthStateProvider customAuthStateProvider)
         {

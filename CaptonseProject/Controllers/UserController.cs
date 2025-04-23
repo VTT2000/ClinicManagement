@@ -10,8 +10,8 @@ using web_api_base.Models.ViewModel;
 
 namespace CaptonseProject.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -27,49 +27,27 @@ namespace CaptonseProject.Controllers
         public async Task<IActionResult> GetAllUser()
         {
             // Simulate fetching data from a database or service
-            var users = await _userService.GetAllAsync();
+            var users = await _userService.GetAllUserAsync();
             return Ok(users);
         }
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] UserLoginVM userLogin)
+        public async Task<HTTPResponseClient<UserLoginResultVM>> Login([FromBody] UserLoginVM userLogin)
         {
-            if (userLogin == null)
-            {
-                return BadRequest("Invalid login data.");
-            }
-
-            var result = _userService.Login(userLogin);
-            if (result == null)
-            {
-                return Unauthorized("Invalid email or password!.");
-            }
-            return Ok(result);
+       
+            var result = await _userService.Login(userLogin);
+           
+            return result;
         }
 
         [HttpPost("Register")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterVM newUser)
+        public async Task<HTTPResponseClient<dynamic>> Register([FromBody] UserRegisterVM newUser)
         {
-            if (newUser == null)
-            {
-                return BadRequest("Invalid user data.");
-            }
 
             var result = await _userService.Register(newUser);
-            return Ok(result);
+            return result;
         }
 
-        [Authorize(Roles = RoleConstant.Admin)]
-        [HttpPost("AdminCreateUser")]
-        public async Task<IActionResult> AdminCreateUser([FromBody] AdminRegisterUserVM newUser)
-        {
-            if (newUser == null)
-            {
-                return BadRequest("Invalid user data.");
-            }
 
-            var result = await _userService.AdminCreateUser(newUser);
-            return Ok(result);
-        } 
            
         [HttpGet("GetAllStaff")]
         public async Task<ActionResult<HTTPResponseClient<IEnumerable<User>>>> GetAllStaff()

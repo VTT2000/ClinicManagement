@@ -1,0 +1,171 @@
+@inject IJSRuntime JSRuntime
+
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">@(IsNewUser ? "Thêm người dùng mới" : "Cập nhật thông tin người dùng")</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Họ và tên</label>
+            <input type="text" class="form-control" placeholder="Nhập họ và tên" @bind="CurrentUser.FullName">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" placeholder="Nhập email" @bind="CurrentUser.Email">
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Mật khẩu</label>
+            <div class="input-group">
+              <input type="@(showPassword ? "text" : "password")" class="form-control" 
+                     placeholder="@(IsNewUser ? "Nhập mật khẩu" : "Nhập để thay đổi mật khẩu")"
+                     value="@PasswordInput"
+                     @oninput="HandlePasswordInput" />
+              <button class="btn btn-outline-secondary" type="button" @onclick="TogglePasswordVisibility">
+                <i class="bi bi-@(showPassword ? "eye-slash" : "eye")"></i>
+              </button>
+            </div>
+            @if (!IsNewUser)
+            {
+              <small class="form-text text-muted">Để trống nếu không muốn thay đổi mật khẩu</small>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Vai trò</label>
+            <select class="form-select" @bind="CurrentUser.Role">
+              <option disabled value="">Chọn vai trò</option>
+              <option value="@RoleConstant.Admin">Admin</option>
+              <option value="@RoleConstant.Doctor">Bác sĩ</option>
+              <option value="@RoleConstant.Receptionist">Lễ tân</option>
+              <option value="@RoleConstant.Technician">Kỹ thuật viên</option>
+              <option value="@RoleConstant.Patient">Bệnh nhân</option>
+            </select>
+          </div>
+        </div>
+       <div class="mb-3">
+    <label class="form-label">Ảnh đại diện</label>
+    <InputFile OnChange="HandleFileSelected" class="form-control" accept="image/*" />
+    
+    @if (imagePreviewUrl != null)
+    {
+      <div class="mt-2">
+        <img src="@imagePreviewUrl" alt="Preview" style="max-width: 100px; max-height: 100px;" class="img-thumbnail" />
+        <button type="button" class="btn btn-sm btn-outline-danger ms-2" @onclick="RemoveSelectedImage">
+          <i class="bi bi-x"></i> Xóa
+        </button>
+      </div>
+    }
+    else if (!string.IsNullOrEmpty(CurrentUser.ImageUrl))
+    {
+      <div class="mt-2">
+        <img src="@CurrentUser.ImageUrl" alt="Profile picture" style="max-width: 100px; max-height: 100px;" class="img-thumbnail" />
+      </div>
+    }
+  </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary" @onclick="SaveClicked">Lưu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public UserModel CurrentUser { get; set; } = new UserModel();
+
+    [Parameter]
+    public bool IsNewUser { get; set; } = true;
+
+    [Parameter]
+    public string PasswordInput { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> PasswordChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback<IBrowserFile> FileChanged { get; set; }
+    
+
+    private string imagePreviewUrl;
+    private IBrowserFile selectedFile;
+
+    private bool showPassword = false;
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
+    public async Task Show()
+    {
+        await JSRuntime.InvokeVoidAsync("showModal", "userModal");
+        selectedFile = null;
+        imagePreviewUrl = null;
+    }
+
+    public async Task Hide()
+    {
+        await JSRuntime.InvokeVoidAsync("hideModal", "userModal");
+    }
+
+    private async Task HandlePasswordInput(ChangeEventArgs e)
+    {
+        string value = e.Value?.ToString() ?? "";
+        await PasswordChanged.InvokeAsync(value);
+    }
+
+    // Thêm phương thức mới để xử lý sự kiện click nút Lưu
+    private async Task SaveClicked()
+    {
+        // Kiểm tra dữ liệu trước khi gọi OnSave
+        if (IsNewUser && string.IsNullOrEmpty(PasswordInput))
+        {
+            // Có thể hiển thị thông báo lỗi trong modal
+            return;
+        }
+
+        // Gọi sự kiện OnSave trên component cha
+        await OnSave.InvokeAsync();
+    }
+
+      
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File; 
+            // Tạo preview
+            var imageType = file.ContentType;
+            var format = "image/png";
+            var resizedImage = await file.RequestImageFileAsync(format, 100, 100);
+            var buffer = new byte[resizedImage.Size];
+            await resizedImage.OpenReadStream().ReadAsync(buffer);
+            imagePreviewUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";           
+            // Gửi file về component cha
+            await FileChanged.InvokeAsync(file);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error handling file: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", $"Lỗi khi xử lý file: {ex.Message}");
+        }
+    }
+
+     private async Task RemoveSelectedImage()
+    {
+        selectedFile = null;
+        imagePreviewUrl = null;
+        await FileChanged.InvokeAsync(null);
+    }
+}

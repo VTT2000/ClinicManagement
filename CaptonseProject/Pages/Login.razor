@@ -1,8 +1,7 @@
 @page "/login"
-@inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
-@inject IHttpClientFactory HttpClientFactory
-@inject Blazored.LocalStorage.ILocalStorageService LocalStorage;
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ILoginService   LoginService
 
 <div class="container-fluid vh-100">
     <div class="row h-100">
@@ -69,8 +68,38 @@
 @code {
     private LoginModel loginModel = new();
     private string errorMessage;
-      private bool isLoading = false;
-    private class LoginModel
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+        
+        try
+        {
+            var result = await LoginService.LoginAsync(loginModel.Account, loginModel.Password);
+            
+            if (result.IsSuccess)
+            {
+                // Chuyển hướng đến trang chính
+                NavigationManager.NavigateTo("/", true);
+            }
+            else
+            {
+                errorMessage = result.ErrorMessage;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false; // Kết thúc hiệu ứng loading
+        }
+    }
+
+    public class LoginModel
     {
         [Required]
         [EmailAddress]
@@ -78,45 +107,5 @@
 
         [Required]
         public string Password { get; set; }
-    }
-
-    private async Task HandleLogin()
-    {   
-        isLoading = true;
-        errorMessage = string.Empty;
-        try
-        {
-            // Lấy HttpClient từ HttpClientFactory
-            var client = HttpClientFactory.CreateClient("LocalApi");
-
-            // Sử dụng URI tương đối vì BaseAddress đã được cấu hình
-            var response = await client.PostAsJsonAsync("/api/User/Login", loginModel);
-            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            Console.WriteLine($@"Response: {response}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                //Lưu token vào client
-                await LocalStorage.SetItemAsStringAsync("token", result.AccessToken);
-                NavigationManager.NavigateTo("/", true);
-            }
-            else
-            {
-                errorMessage = "Invalid email or password.";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error: {ex.Message}";
-        }
-         finally
-        {
-            isLoading = false; // Kết thúc hiệu ứng loading
-        }
-    }
-
-    private class LoginResponse
-    {
-        public string AccessToken { get; set; }
     }
 }

@@ -18,6 +18,7 @@ namespace web_api_base.Models.ViewModel
     public class AdminRegisterUserVM : UserRegisterVM
     {
         public  required string Role { get; set; } ="";
+       public IFormFile ImageFile { get; set; }
     }
 
     public class UserRegisterResultVM

@@ -27,7 +27,7 @@ public class JwtAuthService
         string role = userLogin.Role switch
         {
             RoleConstant.Admin => RoleConstant.Admin,
-            RoleConstant.User => RoleConstant.User,
+            RoleConstant.Patient => RoleConstant.Patient,
             RoleConstant.Doctor => RoleConstant.Doctor,
             RoleConstant.Technician => RoleConstant.Technician,
             RoleConstant.Receptionist => RoleConstant.Receptionist,
