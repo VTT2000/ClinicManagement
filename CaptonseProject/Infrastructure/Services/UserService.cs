@@ -29,10 +29,10 @@ public interface IUserService
 public class UserService : IUserService
 {
 
-  public UnitOfWork _unitOfWork;
+  public IUnitOfWork _unitOfWork;
   public JwtAuthService _JwtAuthService;
   private readonly ClinicContext _context;
-  public UserService(UnitOfWork unitOfWork, JwtAuthService JwtAuthService, ClinicContext context)
+  public UserService(IUnitOfWork unitOfWork, JwtAuthService JwtAuthService, ClinicContext context)
   {
     _unitOfWork = unitOfWork;
     _JwtAuthService = JwtAuthService;

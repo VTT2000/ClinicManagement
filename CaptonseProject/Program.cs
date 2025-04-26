@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.JSInterop;
 using Microsoft.OpenApi.Models;
 using web_api_base.Models.ClinicManagement;
+using web_api_base.Pages.Receptionist;
 using web_api_base.Service_FE.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -122,14 +123,18 @@ builder.Services.AddAuthorization();
 //Repository pattern & unit of work pattern
 //repo
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 //unit
-builder.Services.AddScoped<UnitOfWork>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 //service
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 //service FE
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IReceptionistService, ReceptionistService>();
 
 var app = builder.Build();
 

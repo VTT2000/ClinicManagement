@@ -13,18 +13,26 @@
             @if (@userRole == RoleConstant.Admin)
             {
                 <li class="nav-item">
-                    <NavLink class="nav-link text-white" href="/admin" ActiveClass="active" Match="NavLinkMatch.All">Thống kê</NavLink>
+                    <NavLink class="nav-link text-white" href="/admin" ActiveClass="active" Match="NavLinkMatch.All">Thống
+                        kê</NavLink>
                 </li>
                 <li class="nav-item">
-                    <NavLink class="nav-link text-white" href="/user-management" ActiveClass="active" Match="NavLinkMatch.All">Quản lí người dùng</NavLink>
+                    <NavLink class="nav-link text-white" href="/user-management" ActiveClass="active"
+                        Match="NavLinkMatch.All">Quản lí người dùng</NavLink>
                 </li>
             }
-            @if (@userRole == RoleConstant.Receptionist)
+
+            @if (!string.IsNullOrEmpty(userRole))
             {
-                <li class="nav-item">
-                    <NavLink class="nav-link text-white" href="/receptionist">Receptionist</NavLink>
-                </li>
+                if (userRole.Equals(RoleConstant.Receptionist))
+                {
+                    <li class="nav-item">
+                        <NavLink class="nav-link text-white" href="/receptionist">Quản lý danh sách chờ khám</NavLink>
+                    </li>
+                }
+                
             }
+
         </ul>
     </div>
 
@@ -96,6 +104,7 @@
         margin: 0;
         padding: 0;
     }
+
     .active {
         background-color: #6c757d !important;
         color: white !important;
