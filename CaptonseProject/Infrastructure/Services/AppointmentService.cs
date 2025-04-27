@@ -4,8 +4,8 @@ using StackExchange.Redis;
 public interface IAppointmentService
 {
     // Task CreateAppointmentForPatient(Patient patient, User user, Appointment appointment);
-    public Task<HTTPResponseClient<IEnumerable<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
-    public Task<HTTPResponseClient<IEnumerable<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(string date);
+    public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
+    public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(string date);
 }
 
 public class AppointmentService : IAppointmentService
@@ -21,9 +21,9 @@ public class AppointmentService : IAppointmentService
 
     // Implement methods for admin functionalities here
 
-    public async Task<HTTPResponseClient<IEnumerable<AppointmentPatientVM>>> GetAllAppointmentPatientAsync()
+    public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync()
     {
-        var result = new HTTPResponseClient<IEnumerable<AppointmentPatientVM>>();
+        var result = new HTTPResponseClient<List<AppointmentPatientVM>>();
         try
         {
             var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentForReceptionistAsync();
@@ -43,16 +43,17 @@ public class AppointmentService : IAppointmentService
         }
         catch (Exception ex)
         {
-            result.Message = ex.Message;
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
             result.StatusCode = StatusCodes.Status500InternalServerError;
         }
         result.DateTime = DateTime.Now;
         return result;
     }
 
-    public async Task<HTTPResponseClient<IEnumerable<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(string date)
+    public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(string date)
     {
-        var result = new HTTPResponseClient<IEnumerable<AppointmentPatientVM>>();
+        var result = new HTTPResponseClient<List<AppointmentPatientVM>>();
         if (DateTime.TryParse(date, out DateTime condition))
         {
             //Console.WriteLine($"Giá trị hợp lệ: {condition}");
@@ -75,14 +76,15 @@ public class AppointmentService : IAppointmentService
             }
             catch (Exception ex)
             {
-                result.Message = ex.Message;
+                Console.WriteLine(ex.Message);
+                result.Message = "Thất bại";
                 result.StatusCode = StatusCodes.Status500InternalServerError;
             }
         }
         else
         {
             //Console.WriteLine($"Giá trị không hợp lệ, không thể chuyển sang DateTime.");
-            result.Message = "Giá trị không hợp lệ, không thể chuyển sang DateTime.";
+            result.Message = "Thất bại";
             result.StatusCode = StatusCodes.Status400BadRequest;
         }
         result.DateTime = DateTime.Now;

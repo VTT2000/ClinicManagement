@@ -9,25 +9,25 @@ namespace CaptonseProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AppoinmentController : ControllerBase
+    public class AppointmentController : ControllerBase
     {
-        private readonly IAppointmentService _appoinmentService;
-        public AppoinmentController(IAppointmentService appoinmentService)
+        private readonly IAppointmentService _appointmentService;
+        public AppointmentController(IAppointmentService appoinmentService)
         {
-            _appoinmentService = appoinmentService;
+            _appointmentService = appoinmentService;
         }
 
         [HttpGet("GetAllAppointmentPatientAsync")]
         public async Task<IActionResult> GetAllAppointmentPatientAsync()
         {
-            var result = await _appoinmentService.GetAllAppointmentPatientAsync();
+            var result = await _appointmentService.GetAllAppointmentPatientAsync();
             return Ok(result);
         }
 
         [HttpGet("GetAllAppointmentPatientAsync/{date}")]
         public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute]string date)
         {
-            var result = await _appoinmentService.GetAllAppointmentPatientForDateAsync(date);
+            var result = await _appointmentService.GetAllAppointmentPatientForDateAsync(date);
             return Ok(result);
         }
 
