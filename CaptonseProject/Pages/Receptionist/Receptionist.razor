@@ -73,7 +73,7 @@
                             @{
                                 var i = 1;
                             }
-                            @foreach (var item in list.OrderByDescending(p=>p.AppointmentDate))
+                            @foreach (var item in list.OrderBy(p=>p.AppointmentDate))
                             {
                                 <tr>
                                     <td>@i</td>

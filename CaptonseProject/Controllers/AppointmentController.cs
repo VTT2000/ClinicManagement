@@ -31,6 +31,11 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        
+        [HttpGet("CreateAppointmentFromReceptionist")]
+        public async Task<IActionResult> CreateAppointmentFromReceptionist([FromBody]AppointmentReceptionistCreateVM item)
+        {
+            var result = await _appointmentService.CreateAppointmentFromReceptionist(item);
+            return Ok(result);
+        }
     }
 }
