@@ -1,7 +1,7 @@
 @page "/receptionist"
 @using System.Text;
 @layout AdminLayout
-@inject IReceptionistService ReceptionistService
+@inject ReceptionistService receptionistService
 
 <div class="container-fluid">
     <!-- Phần tiêu đề và tìm kiếm -->
@@ -25,15 +25,11 @@
             </select>
         </div>
         <div class="col-md-2">
-            <button class="btn btn-primary w-100" 
-            @* @onclick="() => OpenUserModal()" *@
-            >
-                <i class="bi bi-plus-circle me-2"></i>Thêm mới
-            </button>
+            <button class="btn btn-primary w-100" @onclick="ShowModal"><i class="bi bi-plus-circle me-2"></i>Thêm mới</button>
         </div>
     </div>
     <!-- Loading spinner -->
-    @if (isLoading)
+    @if (!receptionistService.isLoaded)
     {
         <div class="d-flex justify-content-center my-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -41,11 +37,11 @@
             </div>
         </div>
     }
-    else if (!string.IsNullOrEmpty(errorMessage))
+    else if (!string.IsNullOrEmpty(receptionistService.ErrorMessage))
     {
         <div class="alert alert-danger" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            @errorMessage
+            @receptionistService.ErrorMessage
         </div>
     }
     else
@@ -73,7 +69,7 @@
                             @{
                                 var i = 1;
                             }
-                            @foreach (var item in list.OrderBy(p=>p.AppointmentDate))
+                            @foreach (var item in receptionistService.listAppointment.OrderBy(p=>p.AppointmentDate))
                             {
                                 <tr>
                                     <td>@i</td>
@@ -109,352 +105,37 @@
     }
 </div>
 
-<!-- Sử dụng các component modal -->
-@* <UserEditModal @ref="userEditModal" CurrentUser="currentUser" IsNewUser="isNewUser" PasswordInput="@passwordInput"
-    PasswordChanged="HandlePasswordChanged" FileChanged="HandleFileChanged" OnSave="SaveUser" />
-
-<UserDeleteModal @ref="userDeleteModal" UserToDelete="userToDelete" OnDelete="DeleteUser" /> *@
+<ReceptionistModalAppointmentDetail Title="Thêm Dữ Liệu" IsVisible="@isModalVisible" OnClose="HideModal" />
 
 @code {
-    private List<AppointmentPatientVM> list = new List<AppointmentPatientVM>();
+    
+    private bool isModalVisible = false;
 
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
 
-    // Empty code block - static UI only
-    [Inject]
-    private IHttpClientFactory? HttpClientFactory { get; set; }
-
-    [Inject]
-    private IJSRuntime? JSRuntime { get; set; }
-
-    [Inject]
-    private NavigationManager? Navigation { get; set; }
-
-    [Inject]
-    private ILocalStorageService _localStorage { get; set; }
-
-
-    // UI state
-    private List<UserModel> users = new List<UserModel>();
-    private UserModel currentUser = new UserModel();
-
-    private UserModel userToDelete;
-
-    private string passwordInput = "";
-    private bool isNewUser = true;
-    private bool isLoading = true;
-    private string errorMessage;
-    private string searchTerm = "";
-    private string selectedRole = "";
-
-    private IBrowserFile selectedImageFile;
-
-    // Reference đến các component modal
-    @* private UserEditModal userEditModal; *@
-    @* private UserDeleteModal userDeleteModal; *@
-
-
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        list = await ReceptionistService.GetAllAppointmentPatientAsync();
-        await LoadUsers();
+        receptionistService.OnChange += StateHasChanged;
+        await receptionistService.GetAllAppointmentPatientAsync();
     }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            await JSRuntime.InvokeVoidAsync("eval", @"
-window.showModal = function(modalId) {
-var modal = new bootstrap.Modal(document.getElementById(modalId));
-modal.show();
-}
-
-window.hideModal = function(modalId) {
-var modalEl = document.getElementById(modalId);
-var modal = bootstrap.Modal.getInstance(modalEl);
-if (modal) {
-modal.hide();
-}
-}
-");
-        }
         await base.OnAfterRenderAsync(firstRender);
     }
-    // Thêm phương thức xử lý khi file thay đổi
-    private void HandleFileChanged(IBrowserFile file)
+
+    public void Dispose()
     {
-        selectedImageFile = file;
+        // Hủy lắng nghe khi component bị hủy
+        receptionistService.OnChange -= StateHasChanged;
     }
-
-    private async Task LoadUsers()
-    {
-        try
-        {
-            // Lấy HttpClient từ HttpClientFactory
-            var client = HttpClientFactory?.CreateClient("LocalApi");
-            if (client == null)
-            {
-                errorMessage = "Không thể tạo HttpClient";
-                return;
-            }
-
-            // Lấy token từ localStorage
-            var token = await _localStorage.GetItemAsStringAsync("token");
-
-            if (string.IsNullOrEmpty(token))
-            {
-                errorMessage = "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.";
-                Navigation?.NavigateTo("/login");
-                return;
-            }
-
-            // Tạo request với header Authorization
-            var request = new HttpRequestMessage(HttpMethod.Get, "api/User/GetAllUser");
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            // Gửi request
-            var response = await client.SendAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                // Đọc nội dung response
-                var content = await response.Content.ReadAsStringAsync();
-
-                // Deserialize JSON
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var result = JsonSerializer.Deserialize<HTTPResponseClient<List<UserModel>>>(content, options);
-
-                if (result != null && result.StatusCode == 200)
-                {
-                    users = result.Data;
-                    Console.WriteLine($"Loaded {users.Count} users");
-                }
-                else
-                {
-                    errorMessage = result?.Message ?? "Không thể tải dữ liệu người dùng.";
-                }
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                // Xử lý khi token hết hạn hoặc không hợp lệ
-                errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-                await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "token");
-                Navigation?.NavigateTo("/login");
-            }
-            else
-            {
-                errorMessage = $"Lỗi {(int)response.StatusCode}: {response.ReasonPhrase}";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Lỗi: {ex.Message}";
-            Console.WriteLine($"Error loading users: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task OpenUserModal(UserModel user = null)
-    {
-        selectedImageFile = null; // Reset file đã chọn
-        if (user == null)
-        {
-            // Thêm mới - khởi tạo user rỗng
-            currentUser = new UserModel();
-            isNewUser = true;
-        }
-        else
-        {
-            // Sửa - gán user hiện tại
-            currentUser = user;
-            isNewUser = false;
-        }
-
-        // Mở modal qua component
-        @* await userEditModal.Show(); *@
-    }
-    private async Task OpenDeleteModal(UserModel user)
-    {
-        // Lưu thông tin người dùng cần xóa
-        userToDelete = user;
-
-        // Mở modal qua component
-        @* await userDeleteModal.Show(); *@
-    }
-    private async Task DeleteUser()
-    {
-        if (userToDelete == null) return;
-
-        try
-        {
-            isLoading = true;
-
-            // Lấy HttpClient từ HttpClientFactory
-            var client = HttpClientFactory?.CreateClient("LocalApi");
-            if (client == null)
-            {
-                errorMessage = "Không thể tạo HttpClient";
-                return;
-            }
-
-            // Lấy token từ localStorage
-            var token = await _localStorage.GetItemAsStringAsync("token");
-
-            if (string.IsNullOrEmpty(token))
-            {
-                errorMessage = "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.";
-                return;
-            }
-
-            // Tạo request với header Authorization
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"api/User/DeleteUser/{userToDelete.UserId}");
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            // Gửi request
-            var response = await client.SendAsync(request);
-
-            // Đóng modal
-            await JSRuntime.InvokeVoidAsync("hideModal", "deleteModal");
-
-            if (response.IsSuccessStatusCode)
-            {
-                // Nếu xóa thành công, tải lại danh sách người dùng
-                await LoadUsers();
-            }
-            else
-            {
-                errorMessage = $"Lỗi khi xóa người dùng: {response.ReasonPhrase}";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Lỗi: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-
-    private async Task SaveUser()
-    {
-        try
-        {
-            // Kiểm tra mật khẩu khi tạo người dùng mới
-            if (isNewUser && string.IsNullOrEmpty(passwordInput))
-            {
-                errorMessage = "Mật khẩu không được để trống khi tạo người dùng mới";
-                return;
-            }
-
-            isLoading = true;
-
-            // Lấy HttpClient từ HttpClientFactory
-            var client = HttpClientFactory?.CreateClient("LocalApi");
-            if (client == null)
-            {
-                errorMessage = "Không thể tạo HttpClient";
-                return;
-            }
-
-            // Lấy token từ localStorage
-            var token = await _localStorage.GetItemAsStringAsync("token");
-            if (string.IsNullOrEmpty(token))
-            {
-                errorMessage = "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.";
-                return;
-            }
-
-            // Sử dụng MultipartFormDataContent thay vì StringContent
-            var content = new MultipartFormDataContent();
-
-            // Thêm các trường form data
-            content.Add(new StringContent(isNewUser ? "0" : currentUser.UserId.ToString()), "UserId");
-            content.Add(new StringContent(currentUser.FullName ?? ""), "FullName");
-            content.Add(new StringContent(currentUser.Email ?? ""), "Email");
-
-
-            if (isNewUser)
-            {
-                content.Add(new StringContent(passwordInput), "Password");
-            }
-            // Khi cập nhật, chỉ thêm password nếu có giá trị
-            else if (!string.IsNullOrEmpty(passwordInput))
-            {
-                content.Add(new StringContent(passwordInput), "Password");
-            }
-
-            content.Add(new StringContent(currentUser.Role ?? ""), "Role");
-
-            // Thêm file ảnh nếu người dùng đã chọn file mới
-            if (selectedImageFile != null)
-            {
-                var imageContent = new StreamContent(selectedImageFile.OpenReadStream(5 * 1024 * 1024)); // giới hạn 5MB
-                imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedImageFile.ContentType);
-                content.Add(imageContent, "ImageFile", selectedImageFile.Name);
-            }
-            else
-            {
-                // Nếu không có file mới, gửi file trống để tránh lỗi
-                var emptyImageContent = new ByteArrayContent(new byte[0]);
-                content.Add(emptyImageContent, "ImageFile", "empty.png");
-            }
-
-            HttpResponseMessage response;
-
-            if (isNewUser)
-            {
-                // Thêm mới user
-                var request = new HttpRequestMessage(HttpMethod.Post, "api/Admin/AdminCreateUser");
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                request.Content = content;
-                response = await client.SendAsync(request);
-            }
-            else
-            {
-                // Cập nhật user
-                var request = new HttpRequestMessage(HttpMethod.Put, "api/User/UpdateUser");
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                request.Content = content;
-                response = await client.SendAsync(request);
-            }
-
-            // Đóng modal
-            await JSRuntime.InvokeVoidAsync("hideModal", "userModal");
-
-            if (response.IsSuccessStatusCode)
-            {
-                // Nếu thêm/sửa thành công, tải lại danh sách người dùng
-                await LoadUsers();
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Lỗi: {response.ReasonPhrase}. {errorContent}";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Lỗi: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private void HandlePasswordChanged(string newValue)
-    {
-        passwordInput = newValue;
-    }
-
-
 }
 

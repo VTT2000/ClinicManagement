@@ -126,15 +126,20 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IWorkScheduleRepository, WorkScheduleRepository>();
+
 //unit
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 //service
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IWorkScheduleService, WorkScheduleService>();
 
 //service FE
 builder.Services.AddScoped<ILoginService, LoginService>();
-builder.Services.AddScoped<IReceptionistService, ReceptionistService>();
+
+//service FE
+builder.Services.AddScoped<ReceptionistService>();
 
 var app = builder.Build();
 

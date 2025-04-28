@@ -5,6 +5,7 @@ public interface IUnitOfWork : IAsyncDisposable
   public IPatientRepository _patientRepository { get; }
   public IDoctorRepository _doctorRepository { get; }
   public IAppointmentRepository _appointmentRepository { get; }
+  public IWorkScheduleRepository _workScheduleRepository { get; }
 
   Task<int> SaveChangesAsync();
 
@@ -14,7 +15,7 @@ public interface IUnitOfWork : IAsyncDisposable
   Task RollBack();
 
 #pragma warning disable CS0108 // Member hides inherited member; missing new keyword
-    ValueTask DisposeAsync();
+  ValueTask DisposeAsync();
 #pragma warning restore CS0108 // Member hides inherited member; missing new keyword
 }
 
@@ -24,17 +25,19 @@ public class UnitOfWork : IUnitOfWork
   public IPatientRepository _patientRepository { get; }
   public IDoctorRepository _doctorRepository { get; }
   public IAppointmentRepository _appointmentRepository { get; }
+  public IWorkScheduleRepository _workScheduleRepository { get; }
 
   private readonly ClinicContext _context;
 
 
-  public UnitOfWork(ClinicContext context, IUserRepository userRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IDoctorRepository doctorRepository)
+  public UnitOfWork(ClinicContext context, IUserRepository userRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IDoctorRepository doctorRepository, IWorkScheduleRepository workScheduleRepository)
   {
     _context = context;
     _userRepository = userRepository;
     _patientRepository = patientRepository;
     _doctorRepository = doctorRepository;
     _appointmentRepository = appointmentRepository;
+    _workScheduleRepository = workScheduleRepository;
   }
   public async Task BeginTransaction()
   {

@@ -4,43 +4,29 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.OpenApi.MicrosoftExtensions;
 
-
-public interface IReceptionistService
+public class ReceptionistService
 {
-    public Task<List<AppointmentPatientVM>> GetAllAppointmentPatientAsync(string date = "");
-}
-public class ReceptionistService : IReceptionistService
-{
+    public bool isLoaded = false;
     public string ErrorMessage = string.Empty;
+    public List<AppointmentPatientVM> listAppointment = new List<AppointmentPatientVM>();
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILocalStorageService _localStorage;
-    private readonly NavigationManager _navigationManager;
 
-    public ReceptionistService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage, NavigationManager navigationManager)
+    public event Action? OnChange;
+    private void NotifyStateChanged() => OnChange?.Invoke();
+
+    public ReceptionistService(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
-        _localStorage = localStorage;
-        _navigationManager = navigationManager;
     }
 
-    public async Task<List<AppointmentPatientVM>> GetAllAppointmentPatientAsync(string date = "")
+    public async Task GetAllAppointmentPatientAsync(string date = "")
     {
         string query = "api/Appointment/GetAllAppointmentPatientAsync";
         try
         {
             if (!string.IsNullOrEmpty(date))
             {
-                if (DateTime.TryParse(date, out DateTime result))
-                {
-                    //Console.WriteLine($"Giá trị hợp lệ: {result}");
-                    query += $"/{date}";
-                }
-                else
-                {
-                    //Console.WriteLine($"Giá trị không hợp lệ, không thể chuyển sang DateTime.");
-                    ErrorMessage = "Giá trị không hợp lệ!";
-                    return new List<AppointmentPatientVM>();
-                }
+                query += $"/{date}";
             }
             var client = _httpClientFactory.CreateClient("LocalApi");
             var response = await client.GetAsync(query);
@@ -50,24 +36,23 @@ public class ReceptionistService : IReceptionistService
                 var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<AppointmentPatientVM>>>();
                 if(result == null){
                     ErrorMessage = "Lỗi dữ liệu!";
-                    return new List<AppointmentPatientVM>();
                 }
                 else{
-                    ErrorMessage = result.Message;
-                    return result.Data ?? new List<AppointmentPatientVM>();
+                    //ErrorMessage = result.Message;
+                    listAppointment = result.Data ?? new List<AppointmentPatientVM>();
                 }
             }
             else
             {
                 ErrorMessage = response.StatusCode.ToString();
-                return new List<AppointmentPatientVM>();
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = "Thất bại!";
             Console.WriteLine(ex.Message);
-            return new List<AppointmentPatientVM>();
         }
+        isLoaded = true;
+        NotifyStateChanged();
     }
 }

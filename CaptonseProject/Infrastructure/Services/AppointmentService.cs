@@ -14,12 +14,10 @@ public interface IAppointmentService
 public class AppointmentService : IAppointmentService
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly JwtAuthService _jwtAuthService;
 
     public AppointmentService(IUnitOfWork unitOfWork, JwtAuthService jwtAuthService)
     {
         _unitOfWork = unitOfWork;
-        _jwtAuthService = jwtAuthService;
     }
 
     // Implement methods for admin functionalities here
