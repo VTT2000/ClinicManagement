@@ -10,15 +10,19 @@ public class ReceptionistService
     public bool isLoaded = false;
     public string ErrorMessage = string.Empty;
     public List<AppointmentPatientVM> listAppointment = new List<AppointmentPatientVM>();
-    private readonly IHttpClientFactory _httpClientFactory;
+    public AppointmentReceptionistCreateVM appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
 
+    private readonly IHttpClientFactory _httpClientFactory;
     public event Action? OnChange;
     private void NotifyStateChanged() => OnChange?.Invoke();
+    
 
     public ReceptionistService(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
     }
+    
+    // Xử lý tạo lịch khám tại đâyđây
 
     public async Task<dynamic> GetDoctorByNameForReceptionistAsync(string searchKey)
     {

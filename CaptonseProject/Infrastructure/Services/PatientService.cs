@@ -40,7 +40,8 @@ public class PatientService : IPatientService
                     Dob = x.Dob,
                     Phone = x.Phone,
                     Email = x.User!.Email,
-                    Address = x.Address
+                    Address = x.Address,
+                    PasswordHash = x.User.PasswordHash
                 }).ToList();
                 result.Data = data;
             }

@@ -5,10 +5,12 @@
     <div class="modal-dialog modal-lg" @onclick:stopPropagation>
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">@Title</h5>
+                <h5 class="modal-title">Tạo lịch khám</h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
+                <EditForm Model="@appointmentReceptionistCreateVM" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
                 @* Nội dung ở đây *@
                 <div class="container">
                     <div class="row mb-3">
@@ -50,37 +52,44 @@
                         <div class="col-md-6">
                             <label class="form-label">Họ và tên</label>
                             <input type="text" class="form-control" placeholder="Nhập họ và tên" readonly="@IsPatientOld"
-                            @bind-value="appointmentReceptionistCreateVM.PatientFullName" >
+                            @bind="appointmentReceptionistCreateVM.PatientFullName" >
+                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.PatientFullName)" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Ngày sinh</label>
                             <input type="date" class="form-control" readonly="@IsPatientOld"
-                            @bind-value="appointmentReceptionistCreateVM.Dob">
+                            @bind="appointmentReceptionistCreateVM.Dob">
+                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Dob)" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Số điện thoại</label>
                             <input type="tel" class="form-control" placeholder="Nhập số điện thoại" readonly="@IsPatientOld"
-                            @bind-value="appointmentReceptionistCreateVM.Phone" >
+                            @bind="appointmentReceptionistCreateVM.Phone" >
+                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Phone)" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Địa chỉ</label>
                             <input type="text" class="form-control" placeholder="Nhập địa chỉ" readonly="@IsPatientOld"
-                            @bind-value="appointmentReceptionistCreateVM.Address">
+                            @bind="appointmentReceptionistCreateVM.Address">
+                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Address)" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
                             <input type="email" class="form-control" placeholder="Nhập email" readonly="@IsPatientOld"
-                            @bind-value="appointmentReceptionistCreateVM.Email">
+                            @bind="appointmentReceptionistCreateVM.Email">
+                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Email)" />
                         </div>
                         @if (!IsPatientOld){
                             <div class="col-md-6">
                                 <label class="form-label">Mật khẩu</label>
                                 <div class="input-group">
                                     <input type="@(!showPassword ? "text" : "password")" class="form-control" 
-                                    placeholder="Nhập mật khẩu" readonly="@IsPatientOld" />
+                                    placeholder="Nhập mật khẩu" readonly="@IsPatientOld"
+                                    @bind="appointmentReceptionistCreateVM.PasswordHash" />
                                     <button class="btn btn-outline-secondary" type="button" @onclick="TogglePasswordVisibility">
                                         <i class="bi bi-@(showPassword ? "eye-slash" : "eye")"></i>
                                     </button>
+                                    <ValidationMessage For="@(() => appointmentReceptionistCreateVM.PasswordHash)" />
                                     @code{
                                         private bool showPassword = true;
 
@@ -101,6 +110,8 @@
                                 <input type="text" class="form-control" id="doctorSearch" placeholder="Tìm kiếm theo họ và tên"
                                     @oninput="SearchInputDoctorName" autocomplete="off" />
                                     <!-- Danh sách kết quả tìm kiếm (Dropdown) -->
+                                    <input type="number" class="form-control d-none" @bind="appointmentReceptionistCreateVM.DoctorId" />
+                                    <ValidationMessage For="@(() => appointmentReceptionistCreateVM.DoctorId)" />
                                 @if (doctorSearcheds.Any())
                                 {
                                     <ul class="dropdown-menu show" style="max-height: 200px; overflow-y: auto;">
@@ -117,24 +128,24 @@
                         <div class="col-md-6">
                             <label class="form-label">Họ và tên</label>
                             <input type="text" class="form-control" placeholder="Nhập họ và tên" readonly="true"
-                            @bind-value="doctorSelected.FullName">
+                            @bind="doctorSelected.FullName">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Chuyên môn</label>
                             <input type="text" class="form-control" placeholder="Nhập chuyên môn" readonly="true"
-                            @bind-value="doctorSelected.Specialization">
+                            @bind="doctorSelected.Specialization">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <h3>Thông tin lịch khám</h3>
                         <div class="col-md-6">
                             <label class="form-label">Ngày khám</label>
-                            <input type="datetime-local" class="form-control">
+                            <input type="datetime-local" class="form-control" @bind="appointmentReceptionistCreateVM.AppointmentDate">
+                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.AppointmentDate)" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Trạng thái</label>
                             <select class="form-select" @bind="appointmentReceptionistCreateVM.Status">
-                                <option disabled value="">Chọn trạng thái</option>
                                 <option value="@StatusConstant.AppointmentStatus.Booked" >@StatusConstant.AppointmentStatus.Booked</option>
                                 <option value="@StatusConstant.AppointmentStatus.Waiting" >@StatusConstant.AppointmentStatus.Waiting</option>
                             </select>
@@ -142,13 +153,18 @@
                         
                     </div>
                     <div class="row mb-3">
-                        
+                        <div class="offset-md-6 col-md-6">
+                            <button type="submit" class="btn btn-primary w-100">Lưu</button>
+                            @* <button @onclick="HandleValidSubmit" class="btn btn-primary w-100">Lưu thử nghiệm</button> *@
+                        </div>
                     </div>
                 </div>
+                </EditForm>
+
             </div>
-            <div class="modal-footer">
+            @* <div class="modal-footer">
                 <button class="btn btn-secondary" @onclick="Close">Đóng</button>
-            </div>
+            </div> *@
         </div>
     </div>
 </div>
@@ -156,6 +172,13 @@
 @code {
     private AppointmentReceptionistCreateVM appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
 
+    private void HandleValidSubmit()
+    {
+        // Xử lý khi form hợp lệ
+        Console.WriteLine(JsonSerializer.Serialize(appointmentReceptionistCreateVM));
+
+
+    }
     private List<DoctorSearchedForCreateAppointmentVM> doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
     private DoctorSearchedForCreateAppointmentVM doctorSelected = new DoctorSearchedForCreateAppointmentVM();
     private async Task SearchInputDoctorName(ChangeEventArgs e)
@@ -172,6 +195,7 @@
     }
     private void SelectedDoctor(DoctorSearchedForCreateAppointmentVM item){
         doctorSelected.DoctorId = item.DoctorId;
+        appointmentReceptionistCreateVM.DoctorId = item.DoctorId;
         doctorSelected.FullName = item.FullName;
         doctorSelected.Specialization = item.Specialization;
 
@@ -198,6 +222,7 @@
         appointmentReceptionistCreateVM.Phone = item.Phone;
         appointmentReceptionistCreateVM.Address = item.Address;
         appointmentReceptionistCreateVM.Email = item.Email;
+        appointmentReceptionistCreateVM.PasswordHash = item.PasswordHash;
 
         patientSearcheds.Clear();
     }
@@ -213,11 +238,9 @@
             appointmentReceptionistCreateVM.Phone = null;
             appointmentReceptionistCreateVM.Address = null;
             appointmentReceptionistCreateVM.Email = string.Empty;
+            appointmentReceptionistCreateVM.PasswordHash = string.Empty;
         }
     }
-
-    [Parameter]
-    public string Title { get; set; }
 
     [Parameter]
     public EventCallback OnClose { get; set; }
