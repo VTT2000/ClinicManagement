@@ -17,6 +17,7 @@ namespace CaptonseProject.Controllers
             _appointmentService = appoinmentService;
         }
 
+        // role receptionist
         [HttpGet("GetAllAppointmentPatientAsync")]
         public async Task<IActionResult> GetAllAppointmentPatientAsync()
         {
@@ -24,6 +25,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
+        // role receptionist
         [HttpGet("GetAllAppointmentPatientAsync/{date}")]
         public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute]string date)
         {
@@ -31,6 +33,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
+        // role receptionist
         [HttpGet("CreateAppointmentFromReceptionist")]
         public async Task<IActionResult> CreateAppointmentFromReceptionist([FromBody]AppointmentReceptionistCreateVM item)
         {

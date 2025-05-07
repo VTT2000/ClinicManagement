@@ -5,7 +5,6 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IAppointmentService
 {
-    // Task CreateAppointmentForPatient(Patient patient, User user, Appointment appointment);
     public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
     public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(string date);
     public Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);

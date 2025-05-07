@@ -17,6 +17,7 @@ namespace CaptonseProject.Controllers
             _workScheduleService = workScheduleService;
         }
 
+        // role receptionist
         [HttpGet("GetAllWorkScheduleDortorAsync")]
         public async Task<IActionResult> GetAllWorkScheduleDortorAsync()
         {
