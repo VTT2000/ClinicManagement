@@ -10,19 +10,52 @@ public class ReceptionistService
     public bool isLoaded = false;
     public string ErrorMessage = string.Empty;
     public List<AppointmentPatientVM> listAppointment = new List<AppointmentPatientVM>();
-    public AppointmentReceptionistCreateVM appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
 
     private readonly IHttpClientFactory _httpClientFactory;
     public event Action? OnChange;
     private void NotifyStateChanged() => OnChange?.Invoke();
-    
+
 
     public ReceptionistService(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
     }
-    
-    // Xử lý tạo lịch khám tại đâyđây
+
+    // Xử lý tạo lịch khám tại đây
+    public async Task<dynamic> CreateAppointmentAsync(AppointmentReceptionistCreateVM appointmentReceptionistCreateVM)
+    {
+        string query = $"api/Appointment/CreateAppointmentFromReceptionist";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+
+            var response = await client.PostAsJsonAsync(query, appointmentReceptionistCreateVM);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<bool>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage = result.Message;
+                    return result.Data;
+                }
+            }
+            else{
+                Console.WriteLine(response.StatusCode + "/" + response.ReasonPhrase);
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return false;
+    }
 
     public async Task<dynamic> GetDoctorByNameForReceptionistAsync(string searchKey)
     {

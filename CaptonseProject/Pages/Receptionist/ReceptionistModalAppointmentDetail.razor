@@ -33,14 +33,15 @@
                                 <div class="dropdown">
                                     <label class="form-check-label" for="patientSearch">Tìm kiếm</label>
                                     <input type="text" class="form-control" id="patientSearch" placeholder="Tìm kiếm theo họ và tên"
+                                        value="@patientSearchText" 
                                         @oninput="SearchInputPatientName" autocomplete="off" />
                                     <!-- Danh sách kết quả tìm kiếm (Dropdown) -->
-                                    @if (patientSearcheds.Any())
+                                    @if (isDropdownVisible)
                                     {
                                         <ul class="dropdown-menu show" style="max-height: 200px; overflow-y: auto;">
                                             @foreach (var item in patientSearcheds)
                                             {
-                                                <li class="dropdown-item" @onclick="()=>SelectedPatient(item)">
+                                                <li class="dropdown-item" style="cursor: pointer;" @onclick="()=>SelectedPatient(item)">
                                                     @(item.FullName) , @(item.Dob.HasValue ? item.Dob.Value.ToShortDateString() : "") , @(item.Phone)
                                                 </li>
                                             }
@@ -108,7 +109,7 @@
                             <div class="dropdown">
                                 <label class="form-check-label" for="doctordoctorSearch">Tìm kiếm</label>
                                 <input type="text" class="form-control" id="doctorSearch" placeholder="Tìm kiếm theo họ và tên"
-                                    @oninput="SearchInputDoctorName" autocomplete="off" />
+                                    value="@doctorSearchText" @oninput="SearchInputDoctorName" autocomplete="off" />
                                     <!-- Danh sách kết quả tìm kiếm (Dropdown) -->
                                     <input type="number" class="form-control d-none" @bind="appointmentReceptionistCreateVM.DoctorId" />
                                     <ValidationMessage For="@(() => appointmentReceptionistCreateVM.DoctorId)" />
@@ -153,9 +154,13 @@
                         
                     </div>
                     <div class="row mb-3">
-                        <div class="offset-md-6 col-md-6">
+                        <div class="col-md-6">
+                            @if(!string.IsNullOrWhiteSpace(MessageErrorResult)){
+                                <div class="alert alert-danger">@MessageErrorResult</div>
+                            }
+                        </div>
+                        <div class="col-md-6">
                             <button type="submit" class="btn btn-primary w-100">Lưu</button>
-                            @* <button @onclick="HandleValidSubmit" class="btn btn-primary w-100">Lưu thử nghiệm</button> *@
                         </div>
                     </div>
                 </div>
@@ -172,46 +177,68 @@
 @code {
     private AppointmentReceptionistCreateVM appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
 
-    private void HandleValidSubmit()
+    private string MessageErrorResult = string.Empty;
+
+    private string doctorSearchText = string.Empty;
+    private async Task HandleValidSubmit()
     {
         // Xử lý khi form hợp lệ
         Console.WriteLine(JsonSerializer.Serialize(appointmentReceptionistCreateVM));
-
-
+        var result = true;
+        @* await receptionistService.CreateAppointmentAsync(appointmentReceptionistCreateVM); *@
+        if(result){
+            string chuoi = 
+                appointmentReceptionistCreateVM.AppointmentDate.ToLongDateString() + " " + 
+                appointmentReceptionistCreateVM.PatientFullName + " " +
+                appointmentReceptionistCreateVM.Phone;
+            appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+            doctorSelected = new DoctorSearchedForCreateAppointmentVM();
+            MessageErrorResult = "Tạo lịch khám thành công! " + chuoi;
+        }
+        else{
+            MessageErrorResult = "Tạo lịch khám thất bại! ";
+        }
     }
     private List<DoctorSearchedForCreateAppointmentVM> doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
     private DoctorSearchedForCreateAppointmentVM doctorSelected = new DoctorSearchedForCreateAppointmentVM();
+
     private async Task SearchInputDoctorName(ChangeEventArgs e)
     {
-        var searchQuery = e.Value?.ToString()?.ToLower();
-        if (string.IsNullOrWhiteSpace(searchQuery))
+        doctorSearchText = e.Value?.ToString()?.ToLower()??"";
+        if (string.IsNullOrWhiteSpace(doctorSearchText))
         {
             doctorSearcheds.Clear();
         }
         else
         {
-            doctorSearcheds = await receptionistService.GetDoctorByNameForReceptionistAsync(searchQuery);
+            doctorSearcheds = await receptionistService.GetDoctorByNameForReceptionistAsync(doctorSearchText);
         }
     }
     private void SelectedDoctor(DoctorSearchedForCreateAppointmentVM item){
-        doctorSelected.DoctorId = item.DoctorId;
+        //doctorSelected.DoctorId = item.DoctorId;
         appointmentReceptionistCreateVM.DoctorId = item.DoctorId;
         doctorSelected.FullName = item.FullName;
         doctorSelected.Specialization = item.Specialization;
 
         doctorSearcheds.Clear();
+        doctorSearchText = "";
     }
+
+    private bool isDropdownVisible = false;
+    private string patientSearchText = string.Empty;
     private List<PatientSearchedForCreateAppointmentVM> patientSearcheds = new List<PatientSearchedForCreateAppointmentVM>();
     private async Task SearchInputPatientName(ChangeEventArgs e)
     {
-        var searchQuery = e.Value?.ToString()?.ToLower();
-        if (string.IsNullOrWhiteSpace(searchQuery))
+        patientSearchText = e.Value?.ToString()?.ToLower()??"";
+        if (string.IsNullOrWhiteSpace(patientSearchText))
         {
             patientSearcheds.Clear();
+            isDropdownVisible = false;
         }
         else
         {
-            patientSearcheds = await receptionistService.GetPatientByNameForReceptionistAsync(searchQuery);
+            patientSearcheds = await receptionistService.GetPatientByNameForReceptionistAsync(patientSearchText);
+            isDropdownVisible = patientSearcheds.Any();
         }
     }
 
@@ -224,22 +251,21 @@
         appointmentReceptionistCreateVM.Email = item.Email;
         appointmentReceptionistCreateVM.PasswordHash = item.PasswordHash;
 
-        patientSearcheds.Clear();
+        patientSearchText = string.Empty;
+        isDropdownVisible = false;
     }
 
     private bool IsPatientOld = false;
     private void IsPatientOldOnChanged(ChangeEventArgs e)
     {
         IsPatientOld = bool.Parse(e.Value?.ToString() ?? "false");
-        if(!IsPatientOld){
-            appointmentReceptionistCreateVM.PatientId = null;
-            appointmentReceptionistCreateVM.PatientFullName = string.Empty;
-            appointmentReceptionistCreateVM.Dob = null;
-            appointmentReceptionistCreateVM.Phone = null;
-            appointmentReceptionistCreateVM.Address = null;
-            appointmentReceptionistCreateVM.Email = string.Empty;
-            appointmentReceptionistCreateVM.PasswordHash = string.Empty;
-        }
+        appointmentReceptionistCreateVM.PatientId = null;
+        appointmentReceptionistCreateVM.PatientFullName = string.Empty;
+        appointmentReceptionistCreateVM.Dob = null;
+        appointmentReceptionistCreateVM.Phone = null;
+        appointmentReceptionistCreateVM.Address = null;
+        appointmentReceptionistCreateVM.Email = string.Empty;
+        appointmentReceptionistCreateVM.PasswordHash = string.Empty;
     }
 
     [Parameter]
@@ -250,6 +276,16 @@
 
     private async Task Close()
     {
+        patientSearchText = string.Empty;
+        isDropdownVisible = false;
+        doctorSearchText = string.Empty;
+
+        IsPatientOld = false;
+        patientSearcheds = new List<PatientSearchedForCreateAppointmentVM>();
+        doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
+        appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+        doctorSelected = new DoctorSearchedForCreateAppointmentVM();
+        MessageErrorResult = string.Empty;
         await OnClose.InvokeAsync();
     }
 }
