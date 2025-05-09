@@ -32,7 +32,8 @@ public class WorkScheduleService : IWorkScheduleService
                 WorkScheduleId = x.WorkScheduleId,
                 StartDate = x.StartDate,
                 EndDate = x.EndDate,
-                DayOfWeek = x.DayOfWeek,
+                StartTime = x.StartTime,
+                EndTime = x.EndTime,
                 ListDoctorName = x.Doctors.Select(p => p.User!.FullName).ToList()
             }).ToList();
             result.Data = data;

@@ -47,7 +47,7 @@ public partial class ClinicContext : DbContext
     {
         modelBuilder.Entity<Appointment>(entity =>
         {
-            entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA2C8DA5D49");
+            entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA24E5DFB25");
 
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
             entity.Property(e => e.AppointmentDate).HasColumnType("datetime");
@@ -59,16 +59,16 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.DoctorId)
-                .HasConstraintName("FK__Appointme__Docto__44FF419A");
+                .HasConstraintName("FK__Appointme__Docto__68487DD7");
 
             entity.HasOne(d => d.Patient).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.PatientId)
-                .HasConstraintName("FK__Appointme__Patie__440B1D61");
+                .HasConstraintName("FK__Appointme__Patie__6754599E");
         });
 
         modelBuilder.Entity<Bill>(entity =>
         {
-            entity.HasKey(e => e.BillId).HasName("PK__Bills__11F2FC4AB5A994BD");
+            entity.HasKey(e => e.BillId).HasName("PK__Bills__11F2FC4AEBB563DD");
 
             entity.Property(e => e.BillId).HasColumnName("BillID");
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
@@ -82,7 +82,7 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.Appointment).WithMany(p => p.Bills)
                 .HasForeignKey(d => d.AppointmentId)
-                .HasConstraintName("FK__Bills__Appointme__5CD6CB2B");
+                .HasConstraintName("FK__Bills__Appointme__693CA210");
         });
 
         modelBuilder.Entity<DiagnosesService>(entity =>
@@ -102,27 +102,27 @@ public partial class ClinicContext : DbContext
             entity.HasOne(d => d.Diagnosis).WithMany()
                 .HasForeignKey(d => d.DiagnosisId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Diagnoses__Diagn__5629CD9C");
+                .HasConstraintName("FK__Diagnoses__Diagn__6B24EA82");
 
             entity.HasOne(d => d.Room).WithMany()
                 .HasForeignKey(d => d.RoomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Diagnoses__RoomI__59FA5E80");
+                .HasConstraintName("FK__Diagnoses__RoomI__6E01572D");
 
             entity.HasOne(d => d.Service).WithMany()
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Diagnoses__Servi__571DF1D5");
+                .HasConstraintName("FK__Diagnoses__Servi__6C190EBB");
 
             entity.HasOne(d => d.UserIdperformedNavigation).WithMany()
                 .HasForeignKey(d => d.UserIdperformed)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Diagnoses__UserI__59063A47");
+                .HasConstraintName("FK__Diagnoses__UserI__6D0D32F4");
         });
 
         modelBuilder.Entity<Diagnosis>(entity =>
         {
-            entity.HasKey(e => e.DiagnosisId).HasName("PK__Diagnose__0C54CB9301359292");
+            entity.HasKey(e => e.DiagnosisId).HasName("PK__Diagnose__0C54CB93475B4BBD");
 
             entity.Property(e => e.DiagnosisId).HasColumnName("DiagnosisID");
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
@@ -133,14 +133,14 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.Appointment).WithMany(p => p.Diagnoses)
                 .HasForeignKey(d => d.AppointmentId)
-                .HasConstraintName("FK__Diagnoses__Appoi__4CA06362");
+                .HasConstraintName("FK__Diagnoses__Appoi__6A30C649");
         });
 
         modelBuilder.Entity<Doctor>(entity =>
         {
-            entity.HasKey(e => e.DoctorId).HasName("PK__Doctors__2DC00EDFB973D3F1");
+            entity.HasKey(e => e.DoctorId).HasName("PK__Doctors__2DC00EDF32E06797");
 
-            entity.HasIndex(e => e.UserId, "UQ__Doctors__1788CCAD8D6ECC4E").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__Doctors__1788CCADF30BC368").IsUnique();
 
             entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
             entity.Property(e => e.Specialization).HasMaxLength(100);
@@ -148,12 +148,12 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.User).WithOne(p => p.Doctor)
                 .HasForeignKey<Doctor>(d => d.UserId)
-                .HasConstraintName("FK__Doctors__UserID__412EB0B6");
+                .HasConstraintName("FK__Doctors__UserID__6EF57B66");
         });
 
         modelBuilder.Entity<Medicine>(entity =>
         {
-            entity.HasKey(e => e.MedicineId).HasName("PK__Medicine__4F2128F084E675DC");
+            entity.HasKey(e => e.MedicineId).HasName("PK__Medicine__4F2128F033C87AEC");
 
             entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
             entity.Property(e => e.MedicineName).HasMaxLength(100);
@@ -163,9 +163,9 @@ public partial class ClinicContext : DbContext
 
         modelBuilder.Entity<Patient>(entity =>
         {
-            entity.HasKey(e => e.PatientId).HasName("PK__Patients__970EC346A4E4A0B2");
+            entity.HasKey(e => e.PatientId).HasName("PK__Patients__970EC34626FC3D5B");
 
-            entity.HasIndex(e => e.UserId, "UQ__Patients__1788CCAD234A6006").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__Patients__1788CCAD911A3D07").IsUnique();
 
             entity.Property(e => e.PatientId).HasColumnName("PatientID");
             entity.Property(e => e.Address).HasMaxLength(255);
@@ -175,12 +175,12 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.User).WithOne(p => p.Patient)
                 .HasForeignKey<Patient>(d => d.UserId)
-                .HasConstraintName("FK__Patients__UserID__3D5E1FD2");
+                .HasConstraintName("FK__Patients__UserID__6FE99F9F");
         });
 
         modelBuilder.Entity<Prescription>(entity =>
         {
-            entity.HasKey(e => e.PrescriptionId).HasName("PK__Prescrip__4013081265472B03");
+            entity.HasKey(e => e.PrescriptionId).HasName("PK__Prescrip__4013081246B3B494");
 
             entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
             entity.Property(e => e.DiagnosisId).HasColumnName("DiagnosisID");
@@ -188,16 +188,16 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.Diagnosis).WithMany(p => p.Prescriptions)
                 .HasForeignKey(d => d.DiagnosisId)
-                .HasConstraintName("FK__Prescript__Diagn__5165187F");
+                .HasConstraintName("FK__Prescript__Diagn__70DDC3D8");
 
             entity.HasOne(d => d.Medicine).WithMany(p => p.Prescriptions)
                 .HasForeignKey(d => d.MedicineId)
-                .HasConstraintName("FK__Prescript__Medic__52593CB8");
+                .HasConstraintName("FK__Prescript__Medic__71D1E811");
         });
 
         modelBuilder.Entity<Room>(entity =>
         {
-            entity.HasKey(e => e.RoomId).HasName("PK__Room__32863919DC8304A7");
+            entity.HasKey(e => e.RoomId).HasName("PK__Room__328639193B4C2E43");
 
             entity.ToTable("Room");
 
@@ -207,7 +207,7 @@ public partial class ClinicContext : DbContext
 
         modelBuilder.Entity<Service>(entity =>
         {
-            entity.HasKey(e => e.ServiceId).HasName("PK__Services__C51BB0EAB95A9644");
+            entity.HasKey(e => e.ServiceId).HasName("PK__Services__C51BB0EAC2B643FF");
 
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
             entity.Property(e => e.Price).HasColumnType("decimal(15, 3)");
@@ -216,14 +216,14 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.ServiceParent).WithMany(p => p.InverseServiceParent)
                 .HasForeignKey(d => d.ServiceParentId)
-                .HasConstraintName("FK__Services__Servic__49C3F6B7");
+                .HasConstraintName("FK__Services__Servic__72C60C4A");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCAC10E558DD");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCAC8D124F83");
 
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D105345C5273C6").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534E3A6E70D").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.CreatedAt)
@@ -238,11 +238,9 @@ public partial class ClinicContext : DbContext
 
         modelBuilder.Entity<WorkSchedule>(entity =>
         {
-            entity.HasKey(e => e.WorkScheduleId).HasName("PK__WorkSche__C6AC635EBF8B08D0");
+            entity.HasKey(e => e.WorkScheduleId).HasName("PK__WorkSche__C6AC635E6C7080E1");
 
             entity.Property(e => e.WorkScheduleId).HasColumnName("WorkScheduleID");
-            entity.Property(e => e.EndDate).HasColumnType("datetime");
-            entity.Property(e => e.StartDate).HasColumnType("datetime");
 
             entity.HasMany(d => d.Doctors).WithMany(p => p.WorkSchedules)
                 .UsingEntity<Dictionary<string, object>>(
@@ -250,11 +248,11 @@ public partial class ClinicContext : DbContext
                     r => r.HasOne<Doctor>().WithMany()
                         .HasForeignKey("DoctorId")
                         .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__WorkSched__Docto__656C112C"),
+                        .HasConstraintName("FK__WorkSched__Docto__74AE54BC"),
                     l => l.HasOne<WorkSchedule>().WithMany()
                         .HasForeignKey("WorkScheduleId")
                         .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__WorkSched__WorkS__6477ECF3"),
+                        .HasConstraintName("FK__WorkSched__WorkS__73BA3083"),
                     j =>
                     {
                         j.HasKey("WorkScheduleId", "DoctorId");

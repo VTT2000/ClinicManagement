@@ -7,11 +7,13 @@ public partial class WorkSchedule
 {
     public int WorkScheduleId { get; set; }
 
-    public DateTime? StartDate { get; set; }
+    public TimeOnly? StartTime { get; set; }
 
-    public DateTime? EndDate { get; set; }
+    public TimeOnly? EndTime { get; set; }
 
-    public string? DayOfWeek { get; set; }
+    public DateOnly? StartDate { get; set; }
+
+    public DateOnly? EndDate { get; set; }
 
     public virtual ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
 }
