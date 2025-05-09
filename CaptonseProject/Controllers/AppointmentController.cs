@@ -34,7 +34,7 @@ namespace CaptonseProject.Controllers
         }
 
         // role receptionist
-        [HttpGet("CreateAppointmentFromReceptionist")]
+        [HttpPost("CreateAppointmentFromReceptionist")]
         public async Task<IActionResult> CreateAppointmentFromReceptionist([FromBody]AppointmentReceptionistCreateVM item)
         {
             var result = await _appointmentService.CreateAppointmentFromReceptionist(item);

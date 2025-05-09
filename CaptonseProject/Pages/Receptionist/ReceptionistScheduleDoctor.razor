@@ -1,5 +1,5 @@
-@page "/receptionist"
-@using System.Text;
+@page "/receptionist/schedule/doctor"
+
 @layout AdminLayout
 @inject ReceptionistService receptionistService
 
@@ -54,7 +54,7 @@
                         @* gắn dữ liệu ở đây *@
                         <thead>
                             <tr>
-                                <th>Số thứ tự</th>
+                                <th>Số thứ tự 00000</th>
                                 <th>Thời gian khám</th>
                                 <th>Bệnh nhân</th>
                                 <th>Ngày sinh</th>
@@ -105,7 +105,7 @@
     }
 </div>
 
-<ReceptionistModalAppointmentDetail IsVisible="@isModalVisible" OnClose="HideModal" />
+@* <ReceptionistModalAppointmentDetail IsVisible="@isModalVisible" OnClose="HideModal" /> *@
 
 @code {
     
@@ -125,7 +125,7 @@
     protected override async Task OnInitializedAsync()
     {
         receptionistService.OnChange += StateHasChanged;
-        await receptionistService.GetAllAppointmentPatientAsync();
+        @* await receptionistService.GetAllAppointmentPatientAsync(); *@
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

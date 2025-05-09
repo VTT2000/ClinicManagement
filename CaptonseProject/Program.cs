@@ -61,7 +61,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 
 // Đọc connection string từ appsettings.json
-var connectionString = builder.Configuration.GetConnectionString("ConnectionString");
+var connectionString = builder.Configuration.GetConnectionString("ConnectionString0");
 //Kết nối db
 builder.Services.AddDbContext<ClinicContext>(options => options.UseLazyLoadingProxies(false).UseSqlServer(connectionString));
 

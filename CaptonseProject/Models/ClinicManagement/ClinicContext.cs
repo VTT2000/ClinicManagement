@@ -39,8 +39,9 @@ public partial class ClinicContext : DbContext
 
     public virtual DbSet<WorkSchedule> WorkSchedules { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionString");
+    // Khi cấu hình program rồi không cần cấu hình ở đây 3h lãng phí
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //     => optionsBuilder.UseSqlServer("Name=ConnectionString");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

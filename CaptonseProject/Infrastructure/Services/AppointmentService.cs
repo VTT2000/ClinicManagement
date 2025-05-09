@@ -114,7 +114,10 @@ public class AppointmentService : IAppointmentService
                 await _unitOfWork.SaveChangesAsync();
                 Patient newPatient = new Patient()
                 {
-                    UserId = newUser.UserId
+                    UserId = newUser.UserId,
+                    Dob = item.Dob,
+                    Phone = item.Phone,
+                    Address = item.Address
                 };
                 await _unitOfWork._patientRepository.AddAsync(newPatient);
                 await _unitOfWork.SaveChangesAsync();

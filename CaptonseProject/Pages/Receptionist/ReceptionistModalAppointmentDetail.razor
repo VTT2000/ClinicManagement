@@ -113,12 +113,12 @@
                                     <!-- Danh sách kết quả tìm kiếm (Dropdown) -->
                                     <input type="number" class="form-control d-none" @bind="appointmentReceptionistCreateVM.DoctorId" />
                                     <ValidationMessage For="@(() => appointmentReceptionistCreateVM.DoctorId)" />
-                                @if (doctorSearcheds.Any())
+                                @if (isDropdownVisible2)
                                 {
                                     <ul class="dropdown-menu show" style="max-height: 200px; overflow-y: auto;">
                                         @foreach (var item in doctorSearcheds)
                                         {
-                                            <li class="dropdown-item" @onclick="()=>SelectedDoctor(item)">
+                                            <li class="dropdown-item" style="cursor: pointer;" @onclick="()=>SelectedDoctor(item)">
                                                 @(item.FullName) , @(item.Specialization)
                                             </li>
                                         }
@@ -175,58 +175,32 @@
 </div>
 
 @code {
+    // Ngày khám mở rộng logic: giới hạn khám số bệnh nhân 1 ngày / 15-20 người hoặc tạo select option các khung giờ chọn lịch khám của bác sĩ đó(hàm lấy ra list khung giờ rãnh hôm đó)
     private AppointmentReceptionistCreateVM appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
-
     private string MessageErrorResult = string.Empty;
-
-    private string doctorSearchText = string.Empty;
-    private async Task HandleValidSubmit()
-    {
-        // Xử lý khi form hợp lệ
-        Console.WriteLine(JsonSerializer.Serialize(appointmentReceptionistCreateVM));
-        var result = true;
-        @* await receptionistService.CreateAppointmentAsync(appointmentReceptionistCreateVM); *@
-        if(result){
-            string chuoi = 
-                appointmentReceptionistCreateVM.AppointmentDate.ToLongDateString() + " " + 
-                appointmentReceptionistCreateVM.PatientFullName + " " +
-                appointmentReceptionistCreateVM.Phone;
-            appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
-            doctorSelected = new DoctorSearchedForCreateAppointmentVM();
-            MessageErrorResult = "Tạo lịch khám thành công! " + chuoi;
-        }
-        else{
-            MessageErrorResult = "Tạo lịch khám thất bại! ";
-        }
-    }
-    private List<DoctorSearchedForCreateAppointmentVM> doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
-    private DoctorSearchedForCreateAppointmentVM doctorSelected = new DoctorSearchedForCreateAppointmentVM();
-
-    private async Task SearchInputDoctorName(ChangeEventArgs e)
-    {
-        doctorSearchText = e.Value?.ToString()?.ToLower()??"";
-        if (string.IsNullOrWhiteSpace(doctorSearchText))
-        {
-            doctorSearcheds.Clear();
-        }
-        else
-        {
-            doctorSearcheds = await receptionistService.GetDoctorByNameForReceptionistAsync(doctorSearchText);
-        }
-    }
-    private void SelectedDoctor(DoctorSearchedForCreateAppointmentVM item){
-        //doctorSelected.DoctorId = item.DoctorId;
-        appointmentReceptionistCreateVM.DoctorId = item.DoctorId;
-        doctorSelected.FullName = item.FullName;
-        doctorSelected.Specialization = item.Specialization;
-
-        doctorSearcheds.Clear();
-        doctorSearchText = "";
-    }
-
+    
+    private bool IsPatientOld = false;
     private bool isDropdownVisible = false;
     private string patientSearchText = string.Empty;
     private List<PatientSearchedForCreateAppointmentVM> patientSearcheds = new List<PatientSearchedForCreateAppointmentVM>();
+    
+    private bool isDropdownVisible2 = false;
+    private string doctorSearchText = string.Empty;
+    private List<DoctorSearchedForCreateAppointmentVM> doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
+    private DoctorSearchedForCreateAppointmentVM doctorSelected = new DoctorSearchedForCreateAppointmentVM();
+    
+    private void IsPatientOldOnChanged(ChangeEventArgs e)
+    {
+        IsPatientOld = bool.Parse(e.Value?.ToString() ?? "false");
+        appointmentReceptionistCreateVM.PatientId = null;
+        appointmentReceptionistCreateVM.PatientFullName = string.Empty;
+        appointmentReceptionistCreateVM.Dob = null;
+        appointmentReceptionistCreateVM.Phone = null;
+        appointmentReceptionistCreateVM.Address = null;
+        appointmentReceptionistCreateVM.Email = string.Empty;
+        appointmentReceptionistCreateVM.PasswordHash = string.Empty;
+    }
+
     private async Task SearchInputPatientName(ChangeEventArgs e)
     {
         patientSearchText = e.Value?.ToString()?.ToLower()??"";
@@ -255,18 +229,48 @@
         isDropdownVisible = false;
     }
 
-    private bool IsPatientOld = false;
-    private void IsPatientOldOnChanged(ChangeEventArgs e)
+    private async Task SearchInputDoctorName(ChangeEventArgs e)
     {
-        IsPatientOld = bool.Parse(e.Value?.ToString() ?? "false");
-        appointmentReceptionistCreateVM.PatientId = null;
-        appointmentReceptionistCreateVM.PatientFullName = string.Empty;
-        appointmentReceptionistCreateVM.Dob = null;
-        appointmentReceptionistCreateVM.Phone = null;
-        appointmentReceptionistCreateVM.Address = null;
-        appointmentReceptionistCreateVM.Email = string.Empty;
-        appointmentReceptionistCreateVM.PasswordHash = string.Empty;
+        doctorSearchText = e.Value?.ToString()?.ToLower()??"";
+        if (string.IsNullOrWhiteSpace(doctorSearchText))
+        {
+            doctorSearcheds.Clear();
+            isDropdownVisible2 = false;
+        }
+        else
+        {
+            doctorSearcheds = await receptionistService.GetDoctorByNameForReceptionistAsync(doctorSearchText);
+            isDropdownVisible2 = doctorSearcheds.Any();
+        }
     }
+    private void SelectedDoctor(DoctorSearchedForCreateAppointmentVM item){
+        //doctorSelected.DoctorId = item.DoctorId;
+        appointmentReceptionistCreateVM.DoctorId = item.DoctorId;
+        doctorSelected.FullName = item.FullName;
+        doctorSelected.Specialization = item.Specialization;
+
+        doctorSearchText = string.Empty;
+        isDropdownVisible2 = false;
+    }
+    private async Task HandleValidSubmit()
+    {
+        // Xử lý khi form hợp lệ
+        Console.WriteLine(JsonSerializer.Serialize(appointmentReceptionistCreateVM));
+        var result = await receptionistService.CreateAppointmentAsync(appointmentReceptionistCreateVM);
+        if(result){
+            string chuoi = 
+                appointmentReceptionistCreateVM.AppointmentDate.ToLongDateString() + " " + 
+                appointmentReceptionistCreateVM.PatientFullName + " " +
+                appointmentReceptionistCreateVM.Phone;
+            appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+            doctorSelected = new DoctorSearchedForCreateAppointmentVM();
+            MessageErrorResult = "Tạo lịch khám thành công! " + chuoi;
+        }
+        else{
+            MessageErrorResult = "Tạo lịch khám thất bại! ";
+        }
+    }
+
 
     [Parameter]
     public EventCallback OnClose { get; set; }
@@ -276,16 +280,20 @@
 
     private async Task Close()
     {
+        showPassword = true;
+        appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+        MessageErrorResult = string.Empty;
+        
+        IsPatientOld = false;
         patientSearchText = string.Empty;
         isDropdownVisible = false;
-        doctorSearchText = string.Empty;
-
-        IsPatientOld = false;
         patientSearcheds = new List<PatientSearchedForCreateAppointmentVM>();
+
+        isDropdownVisible2 = false;
+        doctorSearchText = string.Empty;
         doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
-        appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
         doctorSelected = new DoctorSearchedForCreateAppointmentVM();
-        MessageErrorResult = string.Empty;
+       
         await OnClose.InvokeAsync();
     }
 }
