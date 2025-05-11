@@ -25,11 +25,11 @@
             </select>
         </div>
         <div class="col-md-2">
-            <button class="btn btn-primary w-100" @onclick="ShowModal"><i class="bi bi-plus-circle me-2"></i>Thêm mới</button>
+            <button class="btn btn-primary w-100"><i class="bi bi-plus-circle me-2"></i>Thêm mới</button>
         </div>
     </div>
     <!-- Loading spinner -->
-    @if (!receptionistService.isLoaded)
+    @if (!receptionistService.isLoaded2)
     {
         <div class="d-flex justify-content-center my-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -37,11 +37,11 @@
             </div>
         </div>
     }
-    else if (!string.IsNullOrEmpty(receptionistService.ErrorMessage))
+    else if (!string.IsNullOrEmpty(receptionistService.ErrorMessage2))
     {
         <div class="alert alert-danger" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            @receptionistService.ErrorMessage
+            @receptionistService.ErrorMessage2
         </div>
     }
     else
@@ -54,13 +54,13 @@
                         @* gắn dữ liệu ở đây *@
                         <thead>
                             <tr>
-                                <th>Số thứ tự 00000</th>
-                                <th>Thời gian khám</th>
-                                <th>Bệnh nhân</th>
-                                <th>Ngày sinh</th>
-                                <th>Số điện thoại</th>
+                                <th>Số thứ tự</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Giờ bắt đầu</th>
+                                <th>Giờ kết thúc</th>
                                 <th>Bác sĩ</th>
-                                <th>Trạng thái</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
 
@@ -69,16 +69,25 @@
                             @{
                                 var i = 1;
                             }
-                            @foreach (var item in receptionistService.listAppointment.OrderBy(p=>p.AppointmentDate))
+                            @foreach (var item in receptionistService.listWorkScheduleDoctor.OrderByDescending(p=>p.EndDate))
                             {
                                 <tr>
                                     <td>@i</td>
-                                    <td>@item.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>@item.PatientFullName</td>
-                                    <td>@((item.Dob.HasValue)? item.Dob!.Value.ToString("dd/MM/yyyy") : "") </td>
-                                    <td>@item.Phone</td>
-                                    <td>@item.DoctorFullName</td>
-                                    <td>@item.Status</td>
+                                    <td>@item.StartDate</td>
+                                    <td>@item.EndDate</td>
+                                    <td>@item.StartTime </td>
+                                    <td>@item.EndTime</td>
+                                    <td>@item.DoctorName</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="()=>ShowModalDetail(item.WorkScheduleId)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                                 i++;
                             }
@@ -105,27 +114,28 @@
     }
 </div>
 
-@* <ReceptionistModalAppointmentDetail IsVisible="@isModalVisible" OnClose="HideModal" /> *@
+<ReceptionistScheduleDoctorModalDetail WorKScheduleId="@WorKScheduleId" IsVisible="@isModalVisible" OnClose="HideModalDetail" />
 
 @code {
-    
+    private int WorKScheduleId = 0;
     private bool isModalVisible = false;
 
-    private void ShowModal()
+    private void ShowModalDetail(int workScheduleId)
     {
+        WorKScheduleId = workScheduleId;
         isModalVisible = true;
     }
 
-    private async Task HideModal()
+    private async Task HideModalDetail()
     {
         isModalVisible = false;
-        await receptionistService.GetAllAppointmentPatientAsync();
+        await receptionistService.GetWorkScheduleDoctorAsync();
     }
 
     protected override async Task OnInitializedAsync()
     {
         receptionistService.OnChange += StateHasChanged;
-        @* await receptionistService.GetAllAppointmentPatientAsync(); *@
+        await receptionistService.GetWorkScheduleDoctorAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

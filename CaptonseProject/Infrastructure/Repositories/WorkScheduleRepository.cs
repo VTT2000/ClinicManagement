@@ -14,6 +14,6 @@ public class WorkScheduleRepository : Repository<WorkSchedule>, IWorkScheduleRep
     }
 
     public async Task<List<WorkSchedule>> GetAllWorkScheduleDortorAsync(){
-        return await _dbSet.AsNoTracking().Include(p=>p.Doctors).ThenInclude(q=>q.User).ToListAsync();
+        return await _dbSet.AsNoTracking().Include(p=>p.Doctor).ThenInclude(q=>q!.User).ToListAsync();
     }
 }

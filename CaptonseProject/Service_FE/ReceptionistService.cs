@@ -15,13 +15,50 @@ public class ReceptionistService
     public event Action? OnChange;
     private void NotifyStateChanged() => OnChange?.Invoke();
 
+    public bool isLoaded2 = false;
+    public string ErrorMessage2 = string.Empty;
+    public List<WorkScheduleDoctorVM> listWorkScheduleDoctor = new List<WorkScheduleDoctorVM>();
 
     public ReceptionistService(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
     }
 
-    // Xử lý tạo lịch khám tại đây
+    public async Task GetWorkScheduleDoctorAsync()
+    {
+        string query = $"api/WorkSchedule/GetAllWorkScheduleDortorAsync";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var response = await client.GetAsync(query);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<WorkScheduleDoctorVM>>>();
+                if (result == null)
+                {
+                    ErrorMessage2 = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage2 = result.Message;
+                    listWorkScheduleDoctor = result.Data ?? new List<WorkScheduleDoctorVM>();
+                }
+            }
+            else
+            {
+                ErrorMessage2 = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage2 = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        };
+        isLoaded2 = true;
+        NotifyStateChanged();
+    }
+
     public async Task<dynamic> CreateAppointmentAsync(AppointmentReceptionistCreateVM appointmentReceptionistCreateVM)
     {
         string query = $"api/Appointment/CreateAppointmentFromReceptionist";

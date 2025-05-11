@@ -1,4 +1,4 @@
-public class WorkScheduleDoctorVM
+public class WorkScheduleDoctorDetailVM
 {
     public int WorkScheduleId { get; set; }
 
@@ -9,5 +9,5 @@ public class WorkScheduleDoctorVM
     public TimeOnly? StartTime { get; set; }
 
     public TimeOnly? EndTime { get; set; }
-    public string DoctorName { get; set; }
+    public string DoctorId { get; set; }
 }

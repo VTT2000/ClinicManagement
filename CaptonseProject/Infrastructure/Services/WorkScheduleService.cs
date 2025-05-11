@@ -34,7 +34,7 @@ public class WorkScheduleService : IWorkScheduleService
                 EndDate = x.EndDate,
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
-                ListDoctorName = x.Doctors.Select(p => p.User!.FullName).ToList()
+                DoctorName = x.Doctor!.User!.FullName
             }).ToList();
             result.Data = data;
         }

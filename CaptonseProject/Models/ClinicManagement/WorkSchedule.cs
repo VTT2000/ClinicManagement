@@ -15,5 +15,7 @@ public partial class WorkSchedule
 
     public DateOnly? EndDate { get; set; }
 
-    public virtual ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
+    public int? DoctorId { get; set; }
+
+    public virtual Doctor? Doctor { get; set; }
 }

@@ -241,25 +241,11 @@ public partial class ClinicContext : DbContext
             entity.HasKey(e => e.WorkScheduleId).HasName("PK__WorkSche__C6AC635E6C7080E1");
 
             entity.Property(e => e.WorkScheduleId).HasColumnName("WorkScheduleID");
+            entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
 
-            entity.HasMany(d => d.Doctors).WithMany(p => p.WorkSchedules)
-                .UsingEntity<Dictionary<string, object>>(
-                    "WorkScheduleDoctor",
-                    r => r.HasOne<Doctor>().WithMany()
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__WorkSched__Docto__74AE54BC"),
-                    l => l.HasOne<WorkSchedule>().WithMany()
-                        .HasForeignKey("WorkScheduleId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__WorkSched__WorkS__73BA3083"),
-                    j =>
-                    {
-                        j.HasKey("WorkScheduleId", "DoctorId");
-                        j.ToTable("WorkSchedule_Doctor");
-                        j.IndexerProperty<int>("WorkScheduleId").HasColumnName("WorkScheduleID");
-                        j.IndexerProperty<int>("DoctorId").HasColumnName("DoctorID");
-                    });
+            entity.HasOne(d => d.Doctor).WithMany(p => p.WorkSchedules)
+                .HasForeignKey(d => d.DoctorId)
+                .HasConstraintName("FK_WorkSchedules_Doctors");
         });
 
         OnModelCreatingPartial(modelBuilder);
