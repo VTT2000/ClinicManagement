@@ -5,6 +5,7 @@ public interface IAppointmentRepository : IRepository<Appointment>
 {
     // Add custom methods for Appointment here if needed
     Task<List<Appointment>> GetAllAppointmentForReceptionistAsync(DateTime? date = null);
+    Task<List<Appointment>> GetAllAppointmentPatientUserAsync(DateOnly date);
 }
 
 public class AppointmentRepository : Repository<Appointment>, IAppointmentRepository
@@ -12,6 +13,14 @@ public class AppointmentRepository : Repository<Appointment>, IAppointmentReposi
     public AppointmentRepository(ClinicContext context) : base(context)
     {
 
+    }
+
+    public async Task<List<Appointment>> GetAllAppointmentPatientUserAsync(DateOnly date){
+        return await _dbSet
+                .AsNoTracking()
+                .Include(a => a.Patient).ThenInclude(p => p!.User) // Bệnh nhân và người dùng của bệnh nhân
+                .Where(x=> DateOnly.FromDateTime(x.AppointmentDate).CompareTo(date) == 0)
+                .ToListAsync();
     }
 
     public async Task<List<Appointment>> GetAllAppointmentForReceptionistAsync(DateTime? date = null)

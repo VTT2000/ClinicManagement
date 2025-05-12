@@ -40,5 +40,13 @@ namespace CaptonseProject.Controllers
             var result = await _appointmentService.CreateAppointmentFromReceptionist(item);
             return Ok(result);
         }
+
+        // role doctor
+        [HttpGet("GetAllListPatientForDocTor/{date}")]
+        public async Task<IActionResult> GetAllListPatientForDocTor([FromRoute]DateOnly date)
+        {
+            var result = await _appointmentService.GetAllListPatientForDocTor(date);
+            return Ok(result);
+        }
     }
 }

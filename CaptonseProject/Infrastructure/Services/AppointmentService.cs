@@ -5,6 +5,7 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IAppointmentService
 {
+    public Task<dynamic> GetAllListPatientForDocTor(DateOnly date);
     public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
     public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(string date);
     public Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);
@@ -20,6 +21,33 @@ public class AppointmentService : IAppointmentService
     }
 
     // Implement methods for admin functionalities here
+
+    public async Task<dynamic> GetAllListPatientForDocTor(DateOnly date){
+        var result = new HTTPResponseClient<List<AppointmentPatientForDoctorVM>>();
+        try
+        {
+            var list = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientUserAsync(date);
+            var data = list.Select(x => new AppointmentPatientForDoctorVM()
+            {
+                AppointmentId = x.AppointmentId,
+                PatientId = x.PatientId,
+                PatientFullName = x.Patient!.User!.FullName,
+                AppointmentDate = x.AppointmentDate,
+                Status = x.Status,
+                Dob = x.Patient.Dob,
+                Phone = x.Patient.Phone
+            }).ToList();
+            result.Data = data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
 
     public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync()
     {
