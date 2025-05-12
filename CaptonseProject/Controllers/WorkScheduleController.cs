@@ -24,5 +24,29 @@ namespace CaptonseProject.Controllers
             var result = await _workScheduleService.GetAllWorkScheduleDortorAsync();
             return Ok(result);
         }
+
+        // role receptionist
+        [HttpGet("GetWorkScheduleDortorAsync/{id}")]
+        public async Task<IActionResult> GetWorkScheduleDortorAsync([FromRoute]int id)
+        {
+            var result = await _workScheduleService.GetWorkScheduleDortorAsync(id);
+            return Ok(result);
+        }
+
+        // role receptionist
+        [HttpPost("SaveWorkScheduleDortorAsync")]
+        public async Task<IActionResult> SaveWorkScheduleDortorAsync([FromBody]WorkScheduleDoctorDetailVM item)
+        {
+            var result = await _workScheduleService.SaveWorkScheduleDortorAsync(item);
+            return Ok(result);
+        }
+
+        // role receptionist
+        [HttpDelete("DeleteWorkScheduleDortorAsync/{id}")]
+        public async Task<IActionResult> DeleteWorkScheduleDortorAsync([FromRoute]int id)
+        {
+            var result = await _workScheduleService.DeleteWorkScheduleDortorAsync(id);
+            return Ok(result);
+        }
    }
 }

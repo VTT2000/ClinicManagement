@@ -25,7 +25,7 @@
             </select>
         </div>
         <div class="col-md-2">
-            <button class="btn btn-primary w-100"><i class="bi bi-plus-circle me-2"></i>Thêm mới</button>
+            <button class="btn btn-primary w-100" @onclick="()=>ShowModalDetail()"><i class="bi bi-plus-circle me-2"></i>Thêm mới</button>
         </div>
     </div>
     <!-- Loading spinner -->
@@ -83,7 +83,7 @@
                                             <button class="btn btn-sm btn-outline-primary" @onclick="()=>ShowModalDetail(item.WorkScheduleId)">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger">
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="()=>ShowModalDelete(item.WorkScheduleId)">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -115,12 +115,25 @@
 </div>
 
 <ReceptionistScheduleDoctorModalDetail WorKScheduleId="@WorKScheduleId" IsVisible="@isModalVisible" OnClose="HideModalDetail" />
-
+<ReceptionistScheduleDoctorModalDelete WorKScheduleId="@WorKScheduleId" Message="@NotificationDelete" IsVisible="@isModalVisible2" OnClose="HideModalDetail" />
 @code {
     private int WorKScheduleId = 0;
     private bool isModalVisible = false;
 
-    private void ShowModalDetail(int workScheduleId)
+    private bool isModalVisible2 = false;
+
+    private string NotificationDelete = string.Empty;
+
+    private void ShowModalDelete(int workScheduleId)
+    {
+        WorKScheduleId = workScheduleId;
+        isModalVisible2 = true;
+        var temp = receptionistService.listWorkScheduleDoctor.First(p=>p.WorkScheduleId == WorKScheduleId);
+        NotificationDelete = $"Bạn có chắc chắn muốn xóa lịch làm việc của bác sĩ "+ temp.DoctorName; 
+    }
+
+
+    private void ShowModalDetail(int workScheduleId = 0)
     {
         WorKScheduleId = workScheduleId;
         isModalVisible = true;
@@ -129,13 +142,17 @@
     private async Task HideModalDetail()
     {
         isModalVisible = false;
-        await receptionistService.GetWorkScheduleDoctorAsync();
+        isModalVisible2 = false;
+        NotificationDelete = string.Empty;
+        WorKScheduleId = 0;
+
+        await receptionistService.GetAllWorkScheduleDoctorAsync();
     }
 
     protected override async Task OnInitializedAsync()
     {
         receptionistService.OnChange += StateHasChanged;
-        await receptionistService.GetWorkScheduleDoctorAsync();
+        await receptionistService.GetAllWorkScheduleDoctorAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

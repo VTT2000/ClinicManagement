@@ -24,7 +24,161 @@ public class ReceptionistService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task GetWorkScheduleDoctorAsync()
+    public async Task<dynamic> GetDoctorByIdAsync(int id)
+    {
+        if(id < 1){
+            return new DoctorSearchedForCreateAppointmentVM();
+        }
+        string query = $"api/Doctor/GetDoctorByIdAsync/{id}";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var response = await client.GetAsync(query);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<DoctorSearchedForCreateAppointmentVM>>();
+                if (result == null)
+                {
+                    // ErrorMessage = "Lỗi dữ liệu!";
+                    Console.WriteLine("Lỗi dữ liệu!");
+                }
+                else
+                {
+                    //ErrorMessage = result.Message;
+                    Console.WriteLine(result.Message);
+                    return result.Data ?? new DoctorSearchedForCreateAppointmentVM();
+                }
+            }
+            else
+            {
+                Console.WriteLine(response.StatusCode.ToString());
+                // ErrorMessage = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return new DoctorSearchedForCreateAppointmentVM();
+    }
+
+    public async Task<dynamic> DeleteWorkScheduleDoctorAsync(int id)
+    {
+        string query = $"api/WorkSchedule/DeleteWorkScheduleDortorAsync/{id}";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+
+            var response = await client.DeleteAsync(query);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<bool>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage = "Lỗi dữ liệu!";
+                    Console.WriteLine("Lỗi dữ liệu!");
+                }
+                else
+                {
+                    Console.WriteLine(result.Message);
+                    //ErrorMessage = result.Message;
+                    return result.Data;
+                }
+            }
+            else{
+                Console.WriteLine(response.StatusCode.ToString());
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return false;
+    }
+
+    public async Task<dynamic> SaveWorkScheduleDoctorAsync(WorkScheduleDoctorDetailVM item)
+    {
+        string query = $"api/WorkSchedule/SaveWorkScheduleDortorAsync";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+
+            var response = await client.PostAsJsonAsync(query, item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<bool>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage = "Lỗi dữ liệu!";
+                    Console.WriteLine("Lỗi dữ liệu!");
+                }
+                else
+                {
+                    Console.WriteLine(result.Message);
+                    //ErrorMessage = result.Message;
+                    return result.Data;
+                }
+            }
+            else{
+                Console.WriteLine(response.StatusCode.ToString());
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return false;
+    }
+
+    public async Task<dynamic> GetWorkScheduleDoctorAsync(int id)
+    {
+        if(id < 1){
+            return new WorkScheduleDoctorDetailVM();
+        }
+        string query = $"api/WorkSchedule/GetWorkScheduleDortorAsync/{id}";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var response = await client.GetAsync(query);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<WorkScheduleDoctorDetailVM>>();
+                if (result == null)
+                {
+                    // ErrorMessage = "Lỗi dữ liệu!";
+                    Console.WriteLine("Lỗi dữ liệu!");
+                }
+                else
+                {
+                    //ErrorMessage = result.Message;
+                    Console.WriteLine(result.Message);
+                    return result.Data ?? new WorkScheduleDoctorDetailVM();
+                }
+            }
+            else
+            {
+                Console.WriteLine(response.StatusCode.ToString());
+                // ErrorMessage = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return new WorkScheduleDoctorDetailVM();
+    }
+
+    public async Task GetAllWorkScheduleDoctorAsync()
     {
         string query = $"api/WorkSchedule/GetAllWorkScheduleDortorAsync";
         try

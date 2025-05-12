@@ -9,5 +9,5 @@ public class WorkScheduleDoctorDetailVM
     public TimeOnly? StartTime { get; set; }
 
     public TimeOnly? EndTime { get; set; }
-    public string DoctorId { get; set; }
+    public int? DoctorId { get; set; }
 }

@@ -5,103 +5,43 @@
     <div class="modal-dialog modal-lg" @onclick:stopPropagation>
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tạo lịch khám</h5>
+                <h5 class="modal-title">@(WorKScheduleId == 0 ? "Tạo lịch làm việc": "Chỉnh sửa lịch làm việc")</h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm Model="@appointmentReceptionistCreateVM" OnValidSubmit="HandleValidSubmit">
+                <EditForm Model="@doctorDetailVM" OnValidSubmit="HandleValidSubmit">
                 <DataAnnotationsValidator />
                 @* Nội dung ở đây *@
                 <div class="container">
                     <div class="row mb-3">
-                        <h3>Thông tin bệnh nhân</h3>
+                        <h3>Thông tin lịch làm việc</h3>
                         <div class="col-md-12">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1"
-                                    value="false" checked @onchange="IsPatientOldOnChanged">
-                                <label class="form-check-label" for="inlineRadio1">Bệnh nhân mới</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2"
-                                    value="true" @onchange="IsPatientOldOnChanged">
-                                <label class="form-check-label" for="inlineRadio2">Bệnh nhân cũ</label>
-                            </div>
-                        </div>
-                        @if (IsPatientOld)
-                        {
-                            <div class="col-md-12">
-                                <div class="dropdown">
-                                    <label class="form-check-label" for="patientSearch">Tìm kiếm</label>
-                                    <input type="text" class="form-control" id="patientSearch" placeholder="Tìm kiếm theo họ và tên"
-                                        value="@patientSearchText" 
-                                        @oninput="SearchInputPatientName" autocomplete="off" />
-                                    <!-- Danh sách kết quả tìm kiếm (Dropdown) -->
-                                    @if (isDropdownVisible)
-                                    {
-                                        <ul class="dropdown-menu show" style="max-height: 200px; overflow-y: auto;">
-                                            @foreach (var item in patientSearcheds)
-                                            {
-                                                <li class="dropdown-item" style="cursor: pointer;" @onclick="()=>SelectedPatient(item)">
-                                                    @(item.FullName) , @(item.Dob.HasValue ? item.Dob.Value.ToShortDateString() : "") , @(item.Phone)
-                                                </li>
-                                            }
-                                        </ul>
-                                    }
-                                </div>
-                            </div>
-                        }
-                        <div class="col-md-6">
-                            <label class="form-label">Họ và tên</label>
-                            <input type="text" class="form-control" placeholder="Nhập họ và tên" readonly="@IsPatientOld"
-                            @bind="appointmentReceptionistCreateVM.PatientFullName" >
-                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.PatientFullName)" />
+                            <input type="number" class="form-control d-none" @bind="doctorDetailVM.WorkScheduleId" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Ngày sinh</label>
-                            <input type="date" class="form-control" readonly="@IsPatientOld"
-                            @bind="appointmentReceptionistCreateVM.Dob">
-                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Dob)" />
+                            <label class="form-label">Ngày bắt đầu</label>
+                            <input type="date" class="form-control" placeholder="Nhập ngày bắt đầu"
+                            @bind="doctorDetailVM.StartDate" >
+                            <ValidationMessage For="@(() => doctorDetailVM.StartDate)" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Số điện thoại</label>
-                            <input type="tel" class="form-control" placeholder="Nhập số điện thoại" readonly="@IsPatientOld"
-                            @bind="appointmentReceptionistCreateVM.Phone" >
-                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Phone)" />
+                            <label class="form-label">Ngày kết thúc</label>
+                            <input type="date" class="form-control" placeholder="Nhập ngày kết thúc"
+                            @bind="doctorDetailVM.EndDate" >
+                            <ValidationMessage For="@(() => doctorDetailVM.EndDate)" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Địa chỉ</label>
-                            <input type="text" class="form-control" placeholder="Nhập địa chỉ" readonly="@IsPatientOld"
-                            @bind="appointmentReceptionistCreateVM.Address">
-                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Address)" />
+                            <label class="form-label">Giờ bắt đầu</label>
+                            <input type="time" class="form-control" placeholder="Nhập giờ bắt đầu"
+                            @bind="doctorDetailVM.StartTime" >
+                            <ValidationMessage For="@(() => doctorDetailVM.StartTime)" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" placeholder="Nhập email" readonly="@IsPatientOld"
-                            @bind="appointmentReceptionistCreateVM.Email">
-                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Email)" />
+                            <label class="form-label">Giờ kết thúc</label>
+                            <input type="time" class="form-control" placeholder="Nhập giờ kết thúc"
+                            @bind="doctorDetailVM.EndTime" >
+                            <ValidationMessage For="@(() => doctorDetailVM.EndTime)" />
                         </div>
-                        @if (!IsPatientOld){
-                            <div class="col-md-6">
-                                <label class="form-label">Mật khẩu</label>
-                                <div class="input-group">
-                                    <input type="@(!showPassword ? "text" : "password")" class="form-control" 
-                                    placeholder="Nhập mật khẩu" readonly="@IsPatientOld"
-                                    @bind="appointmentReceptionistCreateVM.PasswordHash" />
-                                    <button class="btn btn-outline-secondary" type="button" @onclick="TogglePasswordVisibility">
-                                        <i class="bi bi-@(showPassword ? "eye-slash" : "eye")"></i>
-                                    </button>
-                                    <ValidationMessage For="@(() => appointmentReceptionistCreateVM.PasswordHash)" />
-                                    @code{
-                                        private bool showPassword = true;
-
-                                        private void TogglePasswordVisibility()
-                                        {
-                                            showPassword = !showPassword;
-                                        }
-                                    }
-                                </div>
-                            </div>
-                        }
                     </div>
                     <div class="row mb-3">
                         <h3>Thông tin bác sĩ</h3>
@@ -111,8 +51,8 @@
                                 <input type="text" class="form-control" id="doctorSearch" placeholder="Tìm kiếm theo họ và tên"
                                     value="@doctorSearchText" @oninput="SearchInputDoctorName" autocomplete="off" />
                                     <!-- Danh sách kết quả tìm kiếm (Dropdown) -->
-                                    <input type="number" class="form-control d-none" @bind="appointmentReceptionistCreateVM.DoctorId" />
-                                    <ValidationMessage For="@(() => appointmentReceptionistCreateVM.DoctorId)" />
+                                    <input type="number" class="form-control d-none" @bind="doctorDetailVM.DoctorId" />
+                                    <ValidationMessage For="@(() => doctorDetailVM.DoctorId)" />
                                 @if (isDropdownVisible2)
                                 {
                                     <ul class="dropdown-menu show" style="max-height: 200px; overflow-y: auto;">
@@ -136,22 +76,6 @@
                             <input type="text" class="form-control" placeholder="Nhập chuyên môn" readonly="true"
                             @bind="doctorSelected.Specialization">
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <h3>Thông tin lịch khám</h3>
-                        <div class="col-md-6">
-                            <label class="form-label">Ngày khám</label>
-                            <input type="datetime-local" class="form-control" @bind="appointmentReceptionistCreateVM.AppointmentDate">
-                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.AppointmentDate)" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Trạng thái</label>
-                            <select class="form-select" @bind="appointmentReceptionistCreateVM.Status">
-                                <option value="@StatusConstant.AppointmentStatus.Booked" >@StatusConstant.AppointmentStatus.Booked</option>
-                                <option value="@StatusConstant.AppointmentStatus.Waiting" >@StatusConstant.AppointmentStatus.Waiting</option>
-                            </select>
-                        </div>
-                        
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -180,60 +104,32 @@
     [Parameter]
     public int WorKScheduleId { get; set; }
 
+    protected override async Task OnParametersSetAsync(){
+        doctorDetailVM = new WorkScheduleDoctorDetailVM();
+        MessageErrorResult = string.Empty;
+        isDropdownVisible2 = false;
+        doctorSearchText = string.Empty;
+        doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
+        doctorSelected = new DoctorSearchedForCreateAppointmentVM();
 
-    // Ngày khám mở rộng logic: giới hạn khám số bệnh nhân 1 ngày / 15-20 người hoặc tạo select option các khung giờ chọn lịch khám của bác sĩ đó(hàm lấy ra list khung giờ rãnh hôm đó)
-    private AppointmentReceptionistCreateVM appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+        if(WorKScheduleId > 0){
+            doctorDetailVM = await receptionistService.GetWorkScheduleDoctorAsync(WorKScheduleId);
+            if(doctorDetailVM.DoctorId != null){
+                doctorSelected = await receptionistService.GetDoctorByIdAsync(doctorDetailVM.DoctorId ?? 0);
+            }
+        }
+        else{
+            doctorDetailVM.WorkScheduleId = WorKScheduleId;
+        }
+        //Console.WriteLine(JsonSerializer.Serialize(doctorDetailVM));
+    }
+
     private string MessageErrorResult = string.Empty;
-    
-    private bool IsPatientOld = false;
-    private bool isDropdownVisible = false;
-    private string patientSearchText = string.Empty;
-    private List<PatientSearchedForCreateAppointmentVM> patientSearcheds = new List<PatientSearchedForCreateAppointmentVM>();
     
     private bool isDropdownVisible2 = false;
     private string doctorSearchText = string.Empty;
     private List<DoctorSearchedForCreateAppointmentVM> doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
     private DoctorSearchedForCreateAppointmentVM doctorSelected = new DoctorSearchedForCreateAppointmentVM();
-    
-    private void IsPatientOldOnChanged(ChangeEventArgs e)
-    {
-        IsPatientOld = bool.Parse(e.Value?.ToString() ?? "false");
-        appointmentReceptionistCreateVM.PatientId = null;
-        appointmentReceptionistCreateVM.PatientFullName = string.Empty;
-        appointmentReceptionistCreateVM.Dob = null;
-        appointmentReceptionistCreateVM.Phone = null;
-        appointmentReceptionistCreateVM.Address = null;
-        appointmentReceptionistCreateVM.Email = string.Empty;
-        appointmentReceptionistCreateVM.PasswordHash = string.Empty;
-    }
-
-    private async Task SearchInputPatientName(ChangeEventArgs e)
-    {
-        patientSearchText = e.Value?.ToString()?.ToLower()??"";
-        if (string.IsNullOrWhiteSpace(patientSearchText))
-        {
-            patientSearcheds.Clear();
-            isDropdownVisible = false;
-        }
-        else
-        {
-            patientSearcheds = await receptionistService.GetPatientByNameForReceptionistAsync(patientSearchText);
-            isDropdownVisible = patientSearcheds.Any();
-        }
-    }
-
-    private void SelectedPatient(PatientSearchedForCreateAppointmentVM item){
-        appointmentReceptionistCreateVM.PatientId = item.PatientId;
-        appointmentReceptionistCreateVM.PatientFullName = item.FullName;
-        appointmentReceptionistCreateVM.Dob = item.Dob;
-        appointmentReceptionistCreateVM.Phone = item.Phone;
-        appointmentReceptionistCreateVM.Address = item.Address;
-        appointmentReceptionistCreateVM.Email = item.Email;
-        appointmentReceptionistCreateVM.PasswordHash = item.PasswordHash;
-
-        patientSearchText = string.Empty;
-        isDropdownVisible = false;
-    }
 
     private async Task SearchInputDoctorName(ChangeEventArgs e)
     {
@@ -251,7 +147,7 @@
     }
     private void SelectedDoctor(DoctorSearchedForCreateAppointmentVM item){
         //doctorSelected.DoctorId = item.DoctorId;
-        appointmentReceptionistCreateVM.DoctorId = item.DoctorId;
+        doctorDetailVM.DoctorId = item.DoctorId;
         doctorSelected.FullName = item.FullName;
         doctorSelected.Specialization = item.Specialization;
 
@@ -261,19 +157,17 @@
     private async Task HandleValidSubmit()
     {
         // Xử lý khi form hợp lệ
-        Console.WriteLine(JsonSerializer.Serialize(appointmentReceptionistCreateVM));
-        var result = await receptionistService.CreateAppointmentAsync(appointmentReceptionistCreateVM);
+        Console.WriteLine(JsonSerializer.Serialize(doctorDetailVM));
+        var result = await receptionistService.SaveWorkScheduleDoctorAsync(doctorDetailVM);
         if(result){
-            string chuoi = 
-                appointmentReceptionistCreateVM.AppointmentDate.ToLongDateString() + " " + 
-                appointmentReceptionistCreateVM.PatientFullName + " " +
-                appointmentReceptionistCreateVM.Phone;
-            appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
-            doctorSelected = new DoctorSearchedForCreateAppointmentVM();
-            MessageErrorResult = "Tạo lịch khám thành công! " + chuoi;
+            MessageErrorResult = "Lưu lịch làm việc thành công! ";
+            if(WorKScheduleId <= 0){
+                doctorDetailVM = new WorkScheduleDoctorDetailVM();
+                doctorDetailVM.WorkScheduleId = WorKScheduleId;
+            }
         }
         else{
-            MessageErrorResult = "Tạo lịch khám thất bại! ";
+            MessageErrorResult = "Lưu lịch làm việc thất bại! ";
         }
     }
 
@@ -286,14 +180,9 @@
 
     private async Task Close()
     {
-        showPassword = true;
-        appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+        WorKScheduleId = 0;
+        doctorDetailVM = new WorkScheduleDoctorDetailVM();
         MessageErrorResult = string.Empty;
-        
-        IsPatientOld = false;
-        patientSearchText = string.Empty;
-        isDropdownVisible = false;
-        patientSearcheds = new List<PatientSearchedForCreateAppointmentVM>();
 
         isDropdownVisible2 = false;
         doctorSearchText = string.Empty;

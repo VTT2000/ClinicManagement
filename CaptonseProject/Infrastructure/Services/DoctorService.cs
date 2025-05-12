@@ -1,6 +1,7 @@
 public interface IDoctorService
 {
     public Task<dynamic> GetByNameForReceptionistAsync(string searchKey);
+    public Task<dynamic> GetDoctorByIdAsync(int id);
 }
 
 public class DoctorService : IDoctorService
@@ -13,6 +14,37 @@ public class DoctorService : IDoctorService
     }
 
     // Implement methods for admin functionalities here
+    public async Task<dynamic> GetDoctorByIdAsync(int id)
+    {
+        var result = new HTTPResponseClient<DoctorSearchedForCreateAppointmentVM>();
+        try
+        {
+            var itemfinded = await _unitOfWork._doctorRepository.GetDoctorUserAsync(id);
+            if (itemfinded == null)
+            {
+                result.StatusCode = StatusCodes.Status400BadRequest;
+                result.Message = StatusCodes.Status400BadRequest.ToString();
+            }
+            else
+            {
+                result.Data = new DoctorSearchedForCreateAppointmentVM()
+                {
+                    DoctorId = itemfinded.DoctorId,
+                    FullName = itemfinded.User!.FullName,
+                    Specialization = itemfinded.Specialization
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+
     public async Task<dynamic> GetByNameForReceptionistAsync(string searchKey)
     {
         var result = new HTTPResponseClient<List<DoctorSearchedForCreateAppointmentVM>>();

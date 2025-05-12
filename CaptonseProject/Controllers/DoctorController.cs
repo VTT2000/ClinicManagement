@@ -25,5 +25,13 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
+        // role receptionist
+        [HttpGet("GetDoctorByIdAsync/{id}")]
+        public async Task<IActionResult> GetDoctorByIdAsync([FromRoute]int id)
+        {
+            var result = await _doctorService.GetDoctorByIdAsync(id);
+            return Ok(result);
+        }
+
    }
 }
