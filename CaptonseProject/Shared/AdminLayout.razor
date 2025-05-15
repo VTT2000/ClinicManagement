@@ -33,7 +33,13 @@
                         <NavLink class="nav-link text-white" href="/receptionist/schedule/doctor">Quản lý lịch làm việc của bác sĩ</NavLink>
                     </li>
                 }
-                
+
+                if (userRole.Equals(RoleConstant.Receptionist))
+                {
+                    <li class="nav-item">
+                        <NavLink class="nav-link text-white" href="/doctor">Danh sách bệnh nhân hôm nay</NavLink>
+                    </li>
+                }
             }
 
         </ul>

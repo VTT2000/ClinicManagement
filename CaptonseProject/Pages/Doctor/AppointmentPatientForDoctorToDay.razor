@@ -1,0 +1,153 @@
+@page "/doctor"
+@using System.Text;
+@layout AdminLayout
+@inject DoctorFEService doctorService
+
+<div class="container-fluid">
+
+    <h4 class="mb-4">Danh sách khách hàng khám bệnh Phòng khám TMH (P. 206)</h4>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="khamTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="doiKham-tab" data-bs-toggle="tab" data-bs-target="#doiKham"
+                type="button" role="tab">Đợi Khám</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="quaLuot-tab" data-bs-toggle="tab" data-bs-target="#quaLuot" type="button"
+                role="tab">Qua lượt</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="dangKham-tab" data-bs-toggle="tab" data-bs-target="#dangKham" type="button"
+                role="tab">Đang khám</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="khamXong-tab" data-bs-toggle="tab" data-bs-target="#khamXong" type="button"
+                role="tab">Khám xong</button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content p-3 border border-top-0" id="khamTabContent">
+        <div class="tab-pane fade show active" id="doiKham" role="tabpanel">
+            <!-- Loading spinner -->
+            @if (!doctorService.isLoaded)
+            {
+                <div class="d-flex justify-content-center my-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    @doctorService.ErrorMessage
+                </div>
+            }
+            else
+            {
+                <!-- Bảng hiển thị danh sách người dùng -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-bordered">
+                                @* gắn dữ liệu ở đây *@
+                                <thead>
+                                    <tr>
+                                        <th>Số thứ tự</th>
+                                        <th>Thời gian khám</th>
+                                        <th>Bệnh nhân</th>
+                                        <th>Ngày sinh</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Bác sĩ</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <!-- Dòng 1 -->
+                                    @{
+                                        var i = 1;
+                                    }
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay)
+                                    {
+                                        <tr>
+                                            <td>@i</td>
+                                            <td>@item.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@item.PatientFullName</td>
+                                            <td>@((item.Dob.HasValue) ? item.Dob!.Value.ToString("dd/MM/yyyy") : "") </td>
+                                            <td>@item.Phone</td>
+                                            <td>@item.AppointmentId</td>
+                                            <td>@item.Status</td>
+                                        </tr>
+                                        i++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Phân trang -->
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="tab-pane fade" id="quaLuot" role="tabpanel">
+            Tab Content 2
+        </div>
+        <div class="tab-pane fade" id="dangKham" role="tabpanel">
+            Tab Content 3
+        </div>
+        <div class="tab-pane fade" id="khamXong" role="tabpanel">
+            Tab Content 4
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    private bool isModalVisible = false;
+
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
+
+    private async Task HideModal()
+    {
+        isModalVisible = false;
+        @* await receptionistService.GetAllAppointmentPatientAsync(); *@
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        doctorService.OnChange += StateHasChanged;
+        await doctorService.GetAllListPatientForDocTor(DateOnly.Parse("10-Jun-2010"));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public void Dispose()
+    {
+        // Hủy lắng nghe khi component bị hủy
+        doctorService.OnChange -= StateHasChanged;
+    }
+}

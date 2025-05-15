@@ -142,6 +142,7 @@ builder.Services.AddScoped<ILoginService, LoginService>();
 
 //service FE
 builder.Services.AddScoped<ReceptionistService>();
+builder.Services.AddScoped<DoctorFEService>();
 
 var app = builder.Build();
 
