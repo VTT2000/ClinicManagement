@@ -5,6 +5,7 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IAppointmentService
 {
+    public Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status);
     public Task<dynamic> GetAllListPatientForDocTor(DateOnly date);
     public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
     public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(string date);
@@ -22,7 +23,51 @@ public class AppointmentService : IAppointmentService
 
     // Implement methods for admin functionalities here
 
-    public async Task<dynamic> GetAllListPatientForDocTor(DateOnly date){
+    public async Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status)
+    {
+        HTTPResponseClient<bool> result = new HTTPResponseClient<bool>();
+        var found = await _unitOfWork._appointmentRepository.GetByIdAsync(appointmentId);
+        List<string> listStatus = new List<string>()
+        {
+            StatusConstant.AppointmentStatus.Turned,
+            StatusConstant.AppointmentStatus.Processing,
+            StatusConstant.AppointmentStatus.Diagnosed,
+        };
+
+        if (found == null || !listStatus.Contains(status))
+        {
+            result.StatusCode = StatusCodes.Status400BadRequest;
+            result.Message = "Tham số không hợp lệ!";
+            result.Data = false;
+        }
+        else
+        {
+            await _unitOfWork.BeginTransaction();
+            try
+            {
+                found.Status = status;
+                _unitOfWork._appointmentRepository.Update(found);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransaction();
+
+                result.Message = "Thành công";
+                result.StatusCode = StatusCodes.Status200OK;
+                result.Data = true;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollBack();
+                Console.WriteLine(ex.Message);
+                result.Message = "Thất bại";
+                result.StatusCode = StatusCodes.Status500InternalServerError;
+                result.Data = false;
+            }
+        }
+        return result;
+    }
+
+    public async Task<dynamic> GetAllListPatientForDocTor(DateOnly date)
+    {
         var result = new HTTPResponseClient<List<AppointmentPatientForDoctorVM>>();
         try
         {
@@ -157,7 +202,7 @@ public class AppointmentService : IAppointmentService
             }
             await _unitOfWork._appointmentRepository.AddAsync(data);
             await _unitOfWork.SaveChangesAsync();
-            
+
             await _unitOfWork.CommitTransaction();
 
             result.Message = "Thành công";

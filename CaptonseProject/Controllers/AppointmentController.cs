@@ -27,7 +27,7 @@ namespace CaptonseProject.Controllers
 
         // role receptionist
         [HttpGet("GetAllAppointmentPatientAsync/{date}")]
-        public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute]string date)
+        public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute] string date)
         {
             var result = await _appointmentService.GetAllAppointmentPatientForDateAsync(date);
             return Ok(result);
@@ -35,7 +35,7 @@ namespace CaptonseProject.Controllers
 
         // role receptionist
         [HttpPost("CreateAppointmentFromReceptionist")]
-        public async Task<IActionResult> CreateAppointmentFromReceptionist([FromBody]AppointmentReceptionistCreateVM item)
+        public async Task<IActionResult> CreateAppointmentFromReceptionist([FromBody] AppointmentReceptionistCreateVM item)
         {
             var result = await _appointmentService.CreateAppointmentFromReceptionist(item);
             return Ok(result);
@@ -43,9 +43,17 @@ namespace CaptonseProject.Controllers
 
         // role doctor
         [HttpGet("GetAllListPatientForDocTor/{date}")]
-        public async Task<IActionResult> GetAllListPatientForDocTor([FromRoute]DateOnly date)
+        public async Task<IActionResult> GetAllListPatientForDocTor([FromRoute] DateOnly date)
         {
             var result = await _appointmentService.GetAllListPatientForDocTor(date);
+            return Ok(result);
+        }
+        
+        // role doctor
+        [HttpPut("UpdateStatusAppointmentForDoctor/{appointmentId}")]
+        public async Task<IActionResult> UpdateStatusAppointmentForDoctor([FromRoute]int appointmentId, [FromBody]string status)
+        {
+            var result = await _appointmentService.UpdateStatusAppointmentForDoctor(appointmentId, status);
             return Ok(result);
         }
     }

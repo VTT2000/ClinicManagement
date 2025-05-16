@@ -13,12 +13,47 @@ public class DoctorFEService
         _httpClientFactory = httpClientFactory;
     }
 
+    public async Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status)
+    {
+        string query = $"api/Appointment/UpdateStatusAppointmentForDoctor/{appointmentId}";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+
+            var response = await client.PutAsJsonAsync(query, status);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<bool>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage = result.Message;
+                    return result.Data;
+                }
+            }
+            else{
+                Console.WriteLine(response.StatusCode + "/" + response.ReasonPhrase);
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return false;
+    }
+
     public async Task GetAllListPatientForDocTor(DateOnly? date = null)
     {
-        if(date == null){
+        if (date == null)
+        {
             date = DateOnly.FromDateTime(DateTime.Now);
         }
-        Console.WriteLine("Chay 111");
         string query = $"api/Appointment/GetAllListPatientForDocTor/{date}";
         try
         {

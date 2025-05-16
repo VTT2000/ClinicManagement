@@ -61,8 +61,8 @@
                                         <th>Bệnh nhân</th>
                                         <th>Ngày sinh</th>
                                         <th>Số điện thoại</th>
-                                        <th>Bác sĩ</th>
                                         <th>Trạng thái</th>
+                                        <th>Hành động</th>
                                     </tr>
                                 </thead>
 
@@ -71,7 +71,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay)
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay.Where(p=>(p.Status??"").Equals(StatusConstant.AppointmentStatus.Waiting)))
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -79,8 +79,17 @@
                                             <td>@item.PatientFullName</td>
                                             <td>@((item.Dob.HasValue) ? item.Dob!.Value.ToString("dd/MM/yyyy") : "") </td>
                                             <td>@item.Phone</td>
-                                            <td>@item.AppointmentId</td>
                                             <td>@item.Status</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button @onclick="()=>UpdateStatusAppointment(item.AppointmentId, StatusConstant.AppointmentStatus.Processing)" class="btn btn-sm btn-outline-primary">
+                                                        Khám
+                                                    </button>
+                                                    <button @onclick="()=>UpdateStatusAppointment(item.AppointmentId, StatusConstant.AppointmentStatus.Turned)" class="btn btn-sm btn-outline-danger">
+                                                        Bỏ lượt
+                                                    </button>
+                                                </div>
+                                            </td>
                                         </tr>
                                         i++;
                                     }
@@ -105,15 +114,262 @@
                     </div>
                 </div>
             }
+
         </div>
         <div class="tab-pane fade" id="quaLuot" role="tabpanel">
-            Tab Content 2
+            <!-- Loading spinner -->
+            @if (!doctorService.isLoaded)
+            {
+                <div class="d-flex justify-content-center my-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    @doctorService.ErrorMessage
+                </div>
+            }
+            else
+            {
+                <!-- Bảng hiển thị danh sách người dùng -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-bordered">
+                                @* gắn dữ liệu ở đây *@
+                                <thead>
+                                    <tr>
+                                        <th>Số thứ tự</th>
+                                        <th>Thời gian khám</th>
+                                        <th>Bệnh nhân</th>
+                                        <th>Ngày sinh</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Trạng thái</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <!-- Dòng 1 -->
+                                    @{
+                                        var i = 1;
+                                    }
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay.Where(p=>(p.Status??"").Equals(StatusConstant.AppointmentStatus.Turned)))
+                                    {
+                                        <tr>
+                                            <td>@i</td>
+                                            <td>@item.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@item.PatientFullName</td>
+                                            <td>@((item.Dob.HasValue) ? item.Dob!.Value.ToString("dd/MM/yyyy") : "") </td>
+                                            <td>@item.Phone</td>
+                                            <td>@item.Status</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button @onclick="()=>UpdateStatusAppointment(item.AppointmentId, StatusConstant.AppointmentStatus.Processing)"  class="btn btn-sm btn-outline-primary">
+                                                        Khám
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        i++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Phân trang -->
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+            
         </div>
         <div class="tab-pane fade" id="dangKham" role="tabpanel">
-            Tab Content 3
+            <!-- Loading spinner -->
+            @if (!doctorService.isLoaded)
+            {
+                <div class="d-flex justify-content-center my-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    @doctorService.ErrorMessage
+                </div>
+            }
+            else
+            {
+                <!-- Bảng hiển thị danh sách người dùng -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-bordered">
+                                @* gắn dữ liệu ở đây *@
+                                <thead>
+                                    <tr>
+                                        <th>Số thứ tự</th>
+                                        <th>Thời gian khám</th>
+                                        <th>Bệnh nhân</th>
+                                        <th>Ngày sinh</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Trạng thái</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <!-- Dòng 1 -->
+                                    @{
+                                        var i = 1;
+                                    }
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay.Where(p=>(p.Status??"").Equals(StatusConstant.AppointmentStatus.Processing)))
+                                    {
+                                        <tr>
+                                            <td>@i</td>
+                                            <td>@item.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@item.PatientFullName</td>
+                                            <td>@((item.Dob.HasValue) ? item.Dob!.Value.ToString("dd/MM/yyyy") : "") </td>
+                                            <td>@item.Phone</td>
+                                            <td>@item.Status</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        Thông tin khám
+                                                    </button>
+                                                    <button @onclick="()=>UpdateStatusAppointment(item.AppointmentId, StatusConstant.AppointmentStatus.Diagnosed)"  class="btn btn-sm btn-outline-danger">
+                                                        Khám xong
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        i++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Phân trang -->
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+            
         </div>
         <div class="tab-pane fade" id="khamXong" role="tabpanel">
-            Tab Content 4
+            <!-- Loading spinner -->
+            @if (!doctorService.isLoaded)
+            {
+                <div class="d-flex justify-content-center my-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    @doctorService.ErrorMessage
+                </div>
+            }
+            else
+            {
+                <!-- Bảng hiển thị danh sách người dùng -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-bordered">
+                                @* gắn dữ liệu ở đây *@
+                                <thead>
+                                    <tr>
+                                        <th>Số thứ tự</th>
+                                        <th>Thời gian khám</th>
+                                        <th>Bệnh nhân</th>
+                                        <th>Ngày sinh</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Trạng thái</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <!-- Dòng 1 -->
+                                    @{
+                                        var i = 1;
+                                    }
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay.Where(p=>(p.Status??"").Equals(StatusConstant.AppointmentStatus.Diagnosed)))
+                                    {
+                                        <tr>
+                                            <td>@i</td>
+                                            <td>@item.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@item.PatientFullName</td>
+                                            <td>@((item.Dob.HasValue) ? item.Dob!.Value.ToString("dd/MM/yyyy") : "") </td>
+                                            <td>@item.Phone</td>
+                                            <td>@item.Status</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        Thông tin khám
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        i++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Phân trang -->
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+            
         </div>
     </div>
 </div>
@@ -122,6 +378,13 @@
 @code {
 
     private bool isModalVisible = false;
+
+    private async Task UpdateStatusAppointment(int appointmentId, string status){
+        var check0 = await doctorService.UpdateStatusAppointmentForDoctor(appointmentId, status);
+        if(check0){
+            await doctorService.GetAllListPatientForDocTor();
+        }
+    }
 
     private void ShowModal()
     {
@@ -137,7 +400,8 @@
     protected override async Task OnInitializedAsync()
     {
         doctorService.OnChange += StateHasChanged;
-        await doctorService.GetAllListPatientForDocTor(DateOnly.Parse("10-Jun-2010"));
+        @* await doctorService.GetAllListPatientForDocTor(DateOnly.Parse("10-Jun-2010")); *@
+        await doctorService.GetAllListPatientForDocTor();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
