@@ -24,9 +24,47 @@ public class ReceptionistService
         _httpClientFactory = httpClientFactory;
     }
 
+    public async Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId)
+    {
+        string query = $"api/Appointment/GetAllFreeTimeAppointmentForDoctor/{date}/{doctorId}";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var response = await client.GetAsync(query);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<TimeOnly>>>();
+                if (result == null)
+                {
+                    // ErrorMessage = "Lỗi dữ liệu!";
+                    Console.WriteLine("Lỗi dữ liệu!");
+                }
+                else
+                {
+                    //ErrorMessage = result.Message;
+                    Console.WriteLine(result.Message);
+                    return result.Data ?? new List<TimeOnly>();
+                }
+            }
+            else
+            {
+                Console.WriteLine(response.StatusCode.ToString());
+                // ErrorMessage = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return new DoctorSearchedForCreateAppointmentVM();
+    }
+
     public async Task<dynamic> GetDoctorByIdAsync(int id)
     {
-        if(id < 1){
+        if (id < 1)
+        {
             return new DoctorSearchedForCreateAppointmentVM();
         }
         string query = $"api/Doctor/GetDoctorByIdAsync/{id}";

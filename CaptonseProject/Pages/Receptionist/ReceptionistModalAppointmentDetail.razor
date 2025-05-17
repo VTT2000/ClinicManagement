@@ -143,18 +143,25 @@
                             <label class="form-label">Ngày khám</label>
                             <input type="date" class="form-control" @bind="appointmentReceptionistCreateVM.AppointmentDate">
                             <ValidationMessage For="@(() => appointmentReceptionistCreateVM.AppointmentDate)" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Giờ khám</label>
-                            <input type="time" class="form-control" @bind="appointmentReceptionistCreateVM.AppointmentTime">
-                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.AppointmentTime)" />
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label">Trạng thái</label>
                             <select class="form-select" @bind="appointmentReceptionistCreateVM.Status">
                                 <option value="@StatusConstant.AppointmentStatus.Booked" >@StatusConstant.AppointmentStatus.Booked</option>
                                 <option value="@StatusConstant.AppointmentStatus.Waiting" >@StatusConstant.AppointmentStatus.Waiting</option>
                             </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Giờ khám</label>
+                            <input @onfocus="()=>LoadTimeOptionsAsync()" list="available-times" type="time" class="form-control" @bind="appointmentReceptionistCreateVM.AppointmentTime">
+                            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.AppointmentTime)" />
+                            <datalist id="available-times">
+                                @foreach (var time in timeOptions)
+                                {
+                                    <option value="@time">@time</option>
+                                }
+                            </datalist>
+                            <span class="form-text text-muted fst-italic">
+                                Ghi chú: Chọn đồng hồ để gợi ý giờ khám (chỉ có khi đã chọn bác sĩ) và nếu không có gợi ý giờ khám thì do đầy lịch cần thương lượng giờ khám với bác sĩ đã chọn hoặc chọn ngày khác.
+                            </span>
                         </div>
                         
                     </div>
@@ -180,7 +187,6 @@
 </div>
 
 @code {
-    // Ngày khám mở rộng logic: giới hạn khám số bệnh nhân 1 ngày / 15-20 người hoặc tạo select option các khung giờ chọn lịch khám của bác sĩ đó(hàm lấy ra list khung giờ rãnh hôm đó)
     private AppointmentReceptionistCreateVM appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
     private string MessageErrorResult = string.Empty;
     
@@ -194,6 +200,17 @@
     private List<DoctorSearchedForCreateAppointmentVM> doctorSearcheds = new List<DoctorSearchedForCreateAppointmentVM>();
     private DoctorSearchedForCreateAppointmentVM doctorSelected = new DoctorSearchedForCreateAppointmentVM();
     
+    private List<TimeOnly> timeOptions = new List<TimeOnly>();
+
+    private async Task LoadTimeOptionsAsync(){
+        if(appointmentReceptionistCreateVM.DoctorId != null){
+            timeOptions = await receptionistService.GetAllFreeTimeAppointmentForDoctor(appointmentReceptionistCreateVM.AppointmentDate, appointmentReceptionistCreateVM.DoctorId.Value);
+        }
+        else{
+            timeOptions = new List<TimeOnly>();
+        }
+    }
+
     private void IsPatientOldOnChanged(ChangeEventArgs e)
     {
         IsPatientOld = bool.Parse(e.Value?.ToString() ?? "false");

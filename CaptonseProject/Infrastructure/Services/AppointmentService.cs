@@ -5,6 +5,7 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IAppointmentService
 {
+    public Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId);
     public Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status);
     public Task<dynamic> GetAllListPatientForDocTor(DateOnly date);
     public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
@@ -22,6 +23,53 @@ public class AppointmentService : IAppointmentService
     }
 
     // Implement methods for admin functionalities here
+    public async Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId)
+    {
+        HTTPResponseClient<List<TimeOnly>> result = new HTTPResponseClient<List<TimeOnly>>();
+        try
+        {
+            // Lấy lịch làm việc của bác sĩ -> startime endtime
+            var listWorkSchedule = await _unitOfWork._workScheduleRepository.WhereAsync(x => x.DoctorId == doctorId
+                && x.StartDate.HasValue && (date.CompareTo(x.StartDate.Value) >= 0)
+                && x.EndDate.HasValue && (date.CompareTo(x.EndDate.Value) <= 0) );
+            if (listWorkSchedule.Count() == 0)
+            {
+                // Không có lịch làm việc
+                result.Message = "Bác sĩ chưa có lịch làm việc";
+                return result;
+            }
+            // Lấy lịch khám của bác sĩ đã có -> appointmentTime
+            var listAppointment = await _unitOfWork._appointmentRepository.WhereAsync(x => x.AppointmentDate.HasValue ? (x.AppointmentDate.Value.CompareTo(date) == 0 && x.DoctorId == doctorId) : false);
+            // Tạo các khung giờ theo lịch làm việc của bác sĩ và loại bỏ các khung giờ đã đặt
+            // 10 phút / 1 bệnh nhân (10 phút đầu và 10 phút cuối kết luận nếu đi xét nghiệm tổng thật là 20 phút 1 bệnh nhân)
+            // (end time - startime)/2/10 = số bệnh nhân 
+            // số bệnh nhân cũng là số khung giờ đặt lịch
+            var data = new List<TimeOnly>();
+            foreach (var item in listWorkSchedule)
+            {
+                double s = (item.EndTime!.Value - item.StartTime!.Value).TotalMinutes / 20;
+                TimeOnly temp = item.StartTime.Value;
+                for (int i = 0; i < s; i++)
+                {
+                    if (!listAppointment.Any(p => p.AppointmentTime.HasValue && p.AppointmentTime.Value.CompareTo(temp) == 0))
+                    {
+                        data.Add(temp);
+                    }
+                    temp = temp.AddMinutes(10);
+                }
+            }
+            result.Data = data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+            result.Data = null;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
 
     public async Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status)
     {
