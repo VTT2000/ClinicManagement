@@ -13,6 +13,8 @@ public partial class Service
 
     public int? ServiceParentId { get; set; }
 
+    public string? Type { get; set; }
+
     public virtual ICollection<Service> InverseServiceParent { get; set; } = new List<Service>();
 
     public virtual Service? ServiceParent { get; set; }

@@ -50,7 +50,6 @@ public partial class ClinicContext : DbContext
             entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA24E5DFB25");
 
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
-            entity.Property(e => e.AppointmentDate).HasColumnType("datetime");
             entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
             entity.Property(e => e.PatientId).HasColumnName("PatientID");
             entity.Property(e => e.Status)
@@ -213,6 +212,7 @@ public partial class ClinicContext : DbContext
             entity.Property(e => e.Price).HasColumnType("decimal(15, 3)");
             entity.Property(e => e.ServiceName).HasMaxLength(100);
             entity.Property(e => e.ServiceParentId).HasColumnName("ServiceParentID");
+            entity.Property(e => e.Type).HasMaxLength(50);
 
             entity.HasOne(d => d.ServiceParent).WithMany(p => p.InverseServiceParent)
                 .HasForeignKey(d => d.ServiceParentId)

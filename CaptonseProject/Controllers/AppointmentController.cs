@@ -27,7 +27,7 @@ namespace CaptonseProject.Controllers
 
         // role receptionist
         [HttpGet("GetAllAppointmentPatientAsync/{date}")]
-        public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute] string date)
+        public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute]DateOnly date)
         {
             var result = await _appointmentService.GetAllAppointmentPatientForDateAsync(date);
             return Ok(result);

@@ -1,6 +1,7 @@
 public class AppointmentReceptionistCreateVM
 {
-    public DateTime AppointmentDate { get; set; }
+    public DateOnly AppointmentDate { get; set; }
+    public TimeOnly AppointmentTime { get; set; }
 
     public string? Status { get; set; } = StatusConstant.AppointmentStatus.Booked;
 

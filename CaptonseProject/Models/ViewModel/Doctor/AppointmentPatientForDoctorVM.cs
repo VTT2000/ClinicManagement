@@ -5,6 +5,7 @@ public class AppointmentPatientForDoctorVM
     public string PatientFullName { get; set; } = null!;
     public DateOnly? Dob { get; set; }
     public string? Phone { get; set; }
-    public DateTime AppointmentDate { get; set; }
+    public DateOnly? AppointmentDate { get; set; }
+    public TimeOnly? AppointmentTime { get; set; }
     public string? Status { get; set; }
 }

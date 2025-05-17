@@ -55,7 +55,8 @@
                         <thead>
                             <tr>
                                 <th>Số thứ tự</th>
-                                <th>Thời gian khám</th>
+                                <th>Ngày khám</th>
+                                <th>Giờ khám</th>
                                 <th>Bệnh nhân</th>
                                 <th>Ngày sinh</th>
                                 <th>Số điện thoại</th>
@@ -73,7 +74,8 @@
                             {
                                 <tr>
                                     <td>@i</td>
-                                    <td>@item.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@(item.AppointmentDate.HasValue ? item.AppointmentDate.Value.ToString("dd/MM/yyyy") : "")</td>
+                                    <td>@(item.AppointmentTime.HasValue ? item.AppointmentTime.Value.ToString("HH:mm") : "")</td>
                                     <td>@item.PatientFullName</td>
                                     <td>@((item.Dob.HasValue)? item.Dob!.Value.ToString("dd/MM/yyyy") : "") </td>
                                     <td>@item.Phone</td>
