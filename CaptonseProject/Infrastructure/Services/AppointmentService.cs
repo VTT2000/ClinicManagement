@@ -256,27 +256,27 @@ public class AppointmentService : IAppointmentService
         var result = new HTTPResponseClient<PagedResponse<List<AppointmentPatientVM>>>();
         try
         {
-            var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientDoctor();
+            var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientDoctor(
+                a =>
+                // Trạng thái là Booked hoặc Waiting
+                ((a.Status ?? "") == StatusConstant.AppointmentStatus.Booked || (a.Status ?? "") == StatusConstant.AppointmentStatus.Waiting)
+                // Lọc theo trạng thái nếu có
+                && (condition.Data == null || string.IsNullOrWhiteSpace(condition.Data.Status) || condition.Data.Status == a.Status)
+                // Lọc theo ngày nếu có
+                && (condition.Data == null || condition.Data.dateAppointment == a.AppointmentDate)
+            );
 
-            var data = appointmentList
-            .Where(a => (a.Status ?? "").Equals(StatusConstant.AppointmentStatus.Booked) || (a.Status ?? "").Equals(StatusConstant.AppointmentStatus.Waiting))
-                
-            //tìm theo trạng thái
-            .Where(z => condition.Data != null
-            && (string.IsNullOrWhiteSpace(condition.Data.Status) ? true :
-            (z.Status == null ? false : condition.Data.Status.Equals(z.Status))))
-            //tìm theo ngày
-            .Where(q => condition.Data != null
-            && q.AppointmentDate.HasValue
-            && condition.Data.dateAppointment.CompareTo(q.AppointmentDate.Value) == 0)
-            //tìm theo tên bệnh nhân
-            .Where(p => condition.Data != null
-            && (string.IsNullOrWhiteSpace(condition.Data.searchNamePatient) ? true :
-            (p.Patient == null ? false :
-            (p.Patient.User == null ? false : (
-                StringHelper.IsMatchSearchKey(condition.Data.searchNamePatient, p.Patient.User.FullName)
-            )))))
-            .Select(x => new AppointmentPatientVM()
+            // Lọc theo tên bệnh nhân (chỉ có thể làm sau ToList vì dùng StringHelper)
+            if (condition.Data != null && !string.IsNullOrWhiteSpace(condition.Data.searchNamePatient))
+            {
+                appointmentList = appointmentList
+                    .Where(p => p.Patient != null
+                        && p.Patient.User != null
+                        && StringHelper.IsMatchSearchKey(condition.Data.searchNamePatient, p.Patient.User.FullName))
+                    .ToList();
+            }
+
+            var data = appointmentList.Select(x => new AppointmentPatientVM()
             {
                 AppointmentId = x.AppointmentId,
                 PatientId = x.PatientId,
