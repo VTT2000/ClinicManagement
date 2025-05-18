@@ -5,11 +5,13 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IAppointmentService
 {
+    public Task<dynamic> GetAllAppointmentPatientAsync2(PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition);
+    public Task<dynamic> ChangeStatusWaitingForPatient(int appointmentId);
     public Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId);
     public Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status);
     public Task<dynamic> GetAllListPatientForDocTor(DateOnly date);
-    public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
-    public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(DateOnly date);
+    // public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
+    // public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(DateOnly date);
     public Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);
 }
 
@@ -23,6 +25,51 @@ public class AppointmentService : IAppointmentService
     }
 
     // Implement methods for admin functionalities here
+    public async Task<dynamic> ChangeStatusWaitingForPatient(int appointmentId)
+    {
+        HTTPResponseClient<bool> result = new HTTPResponseClient<bool>();
+        await _unitOfWork.BeginTransaction();
+        try
+        {
+            var found = await _unitOfWork._appointmentRepository.GetByIdAsync(appointmentId);
+            if (found == null)
+            {
+                result.Message = "Thất bại";
+                result.StatusCode = StatusCodes.Status400BadRequest;
+                result.Data = false;
+            }
+            else
+            {
+                if ((found.Status ?? "").Equals(StatusConstant.AppointmentStatus.Booked))
+                {
+                    found.Status = StatusConstant.AppointmentStatus.Waiting;
+                    _unitOfWork._appointmentRepository.Update(found);
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitTransaction();
+                    result.Message = "Thành công";
+                    result.StatusCode = StatusCodes.Status200OK;
+                    result.Data = true;
+                }
+                else
+                {
+                    result.Message = "Lỗi dữ liệu";
+                    result.StatusCode = StatusCodes.Status500InternalServerError;
+                    result.Data = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollBack();
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+            result.Data = false;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+
     public async Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId)
     {
         HTTPResponseClient<List<TimeOnly>> result = new HTTPResponseClient<List<TimeOnly>>();
@@ -31,7 +78,7 @@ public class AppointmentService : IAppointmentService
             // Lấy lịch làm việc của bác sĩ -> startime endtime
             var listWorkSchedule = await _unitOfWork._workScheduleRepository.WhereAsync(x => x.DoctorId == doctorId
                 && x.StartDate.HasValue && (date.CompareTo(x.StartDate.Value) >= 0)
-                && x.EndDate.HasValue && (date.CompareTo(x.EndDate.Value) <= 0) );
+                && x.EndDate.HasValue && (date.CompareTo(x.EndDate.Value) <= 0));
             if (listWorkSchedule.Count() == 0)
             {
                 // Không có lịch làm việc
@@ -143,13 +190,93 @@ public class AppointmentService : IAppointmentService
         return result;
     }
 
-    public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync()
+    // public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync()
+    // {
+    //     var result = new HTTPResponseClient<List<AppointmentPatientVM>>();
+    //     try
+    //     {
+    //         var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentForReceptionistAsync();
+    //         var data = appointmentList.Select(x => new AppointmentPatientVM()
+    //         {
+    //             AppointmentId = x.AppointmentId,
+    //             PatientId = x.PatientId,
+    //             PatientFullName = x.Patient!.User!.FullName,
+    //             DoctorId = x.DoctorId,
+    //             DoctorFullName = x.Doctor?.User?.FullName ?? "",
+    //             AppointmentDate = x.AppointmentDate,
+    //             AppointmentTime = x.AppointmentTime,
+    //             Status = x.Status,
+    //             Dob = x.Patient.Dob,
+    //             Phone = x.Patient.Phone
+    //         }).ToList();
+    //         result.Data = data;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //         result.Message = "Thất bại";
+    //         result.StatusCode = StatusCodes.Status500InternalServerError;
+    //     }
+    //     result.DateTime = DateTime.Now;
+    //     return result;
+    // }
+
+    // public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(DateOnly date)
+    // {
+    //     var result = new HTTPResponseClient<List<AppointmentPatientVM>>();
+    //     try
+    //     {
+    //         var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentForReceptionistAsync(date);
+    //         var data = appointmentList.Select(x => new AppointmentPatientVM()
+    //         {
+    //             AppointmentId = x.AppointmentId,
+    //             PatientId = x.PatientId,
+    //             PatientFullName = x.Patient!.User!.FullName,
+    //             DoctorId = x.DoctorId,
+    //             DoctorFullName = x.Doctor?.User?.FullName ?? "",
+    //             AppointmentDate = x.AppointmentDate,
+    //             Status = x.Status,
+    //             Dob = x.Patient.Dob,
+    //             Phone = x.Patient.Phone
+    //         }).ToList();
+    //         result.Data = data;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //         result.Message = "Thất bại";
+    //         result.StatusCode = StatusCodes.Status500InternalServerError;
+    //     }
+    //     result.DateTime = DateTime.Now;
+    //     return result;
+    // }
+
+    public async Task<dynamic> GetAllAppointmentPatientAsync2(PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition)
     {
-        var result = new HTTPResponseClient<List<AppointmentPatientVM>>();
+        var result = new HTTPResponseClient<PagedResponse<List<AppointmentPatientVM>>>();
         try
         {
-            var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentForReceptionistAsync();
-            var data = appointmentList.Select(x => new AppointmentPatientVM()
+            var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientDoctor();
+
+            var data = appointmentList
+            .Where(a => (a.Status ?? "").Equals(StatusConstant.AppointmentStatus.Booked) || (a.Status ?? "").Equals(StatusConstant.AppointmentStatus.Waiting))
+                
+            //tìm theo trạng thái
+            .Where(z => condition.Data != null
+            && (string.IsNullOrWhiteSpace(condition.Data.Status) ? true :
+            (z.Status == null ? false : condition.Data.Status.Equals(z.Status))))
+            //tìm theo ngày
+            .Where(q => condition.Data != null
+            && q.AppointmentDate.HasValue
+            && condition.Data.dateAppointment.CompareTo(q.AppointmentDate.Value) == 0)
+            //tìm theo tên bệnh nhân
+            .Where(p => condition.Data != null
+            && (string.IsNullOrWhiteSpace(condition.Data.searchNamePatient) ? true :
+            (p.Patient == null ? false :
+            (p.Patient.User == null ? false : (
+                StringHelper.IsMatchSearchKey(condition.Data.searchNamePatient, p.Patient.User.FullName)
+            )))))
+            .Select(x => new AppointmentPatientVM()
             {
                 AppointmentId = x.AppointmentId,
                 PatientId = x.PatientId,
@@ -162,7 +289,20 @@ public class AppointmentService : IAppointmentService
                 Dob = x.Patient.Dob,
                 Phone = x.Patient.Phone
             }).ToList();
-            result.Data = data;
+
+            result.Data = new PagedResponse<List<AppointmentPatientVM>>();
+            result.Data.PageNumber = condition.PageNumber;
+            result.Data.PageSize = condition.PageSize;
+            result.Data.TotalRecords = data.Count;
+            result.Data.TotalPages = (int)Math.Ceiling((double)data.Count / result.Data.PageSize);
+
+            result.Data.Data = data
+            // lấy theo page
+            .Skip(condition.PageSize * (condition.PageNumber - 1))
+            .Take(condition.PageSize).ToList();
+
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
         }
         catch (Exception ex)
         {
@@ -174,35 +314,6 @@ public class AppointmentService : IAppointmentService
         return result;
     }
 
-    public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(DateOnly date)
-    {
-        var result = new HTTPResponseClient<List<AppointmentPatientVM>>();
-        try
-        {
-            var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentForReceptionistAsync(date);
-            var data = appointmentList.Select(x => new AppointmentPatientVM()
-            {
-                AppointmentId = x.AppointmentId,
-                PatientId = x.PatientId,
-                PatientFullName = x.Patient!.User!.FullName,
-                DoctorId = x.DoctorId,
-                DoctorFullName = x.Doctor?.User?.FullName ?? "",
-                AppointmentDate = x.AppointmentDate,
-                Status = x.Status,
-                Dob = x.Patient.Dob,
-                Phone = x.Patient.Phone
-            }).ToList();
-            result.Data = data;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            result.Message = "Thất bại";
-            result.StatusCode = StatusCodes.Status500InternalServerError;
-        }
-        result.DateTime = DateTime.Now;
-        return result;
-    }
 
     public async Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item)
     {

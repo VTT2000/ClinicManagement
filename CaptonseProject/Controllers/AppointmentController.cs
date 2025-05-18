@@ -18,18 +18,26 @@ namespace CaptonseProject.Controllers
         }
 
         // role receptionist
-        [HttpGet("GetAllAppointmentPatientAsync")]
-        public async Task<IActionResult> GetAllAppointmentPatientAsync()
-        {
-            var result = await _appointmentService.GetAllAppointmentPatientAsync();
-            return Ok(result);
-        }
+        // [HttpGet("GetAllAppointmentPatientAsync")]
+        // public async Task<IActionResult> GetAllAppointmentPatientAsync()
+        // {
+        //     var result = await _appointmentService.GetAllAppointmentPatientAsync();
+        //     return Ok(result);
+        // }
 
         // role receptionist
-        [HttpGet("GetAllAppointmentPatientAsync/{date}")]
-        public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute] DateOnly date)
+        // [HttpGet("GetAllAppointmentPatientAsync/{date}")]
+        // public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute] DateOnly date)
+        // {
+        //     var result = await _appointmentService.GetAllAppointmentPatientForDateAsync(date);
+        //     return Ok(result);
+        // }
+
+        // role receptionist
+        [HttpPost("GetAllAppointmentPatientAsync")]
+        public async Task<IActionResult> GetAllAppointmentPatientAsync2([FromBody] PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition)
         {
-            var result = await _appointmentService.GetAllAppointmentPatientForDateAsync(date);
+            var result = await _appointmentService.GetAllAppointmentPatientAsync2(condition);
             return Ok(result);
         }
 
@@ -38,6 +46,14 @@ namespace CaptonseProject.Controllers
         public async Task<IActionResult> CreateAppointmentFromReceptionist([FromBody] AppointmentReceptionistCreateVM item)
         {
             var result = await _appointmentService.CreateAppointmentFromReceptionist(item);
+            return Ok(result);
+        }
+
+        // role receptionist
+        [HttpPost("ChangeStatusWaitingForPatient")]
+        public async Task<IActionResult> ChangeStatusWaitingForPatient([FromBody]int appointmentId)
+        {
+            var result = await _appointmentService.ChangeStatusWaitingForPatient(appointmentId);
             return Ok(result);
         }
 

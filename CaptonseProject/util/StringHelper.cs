@@ -23,4 +23,14 @@ public static class StringHelper
 
         return sb.ToString().Normalize(NormalizationForm.FormC);
     }
+
+    public static bool IsMatchSearchKey(string searchKey, string input)
+    {
+        // Chuẩn hóa keyword: bỏ dấu, lowercase, tách từ
+        var keywords = RemoveDiacritics(searchKey).ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var normalizedName = RemoveDiacritics(input).ToLower();
+        
+        // Đảm bảo tất cả từ khóa đều xuất hiện trong tên
+        return keywords.All(word => normalizedName.Contains(word));
+    }
 }
