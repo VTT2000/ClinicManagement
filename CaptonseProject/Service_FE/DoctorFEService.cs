@@ -1,16 +1,46 @@
+using System.Net.Http.Headers;
+using Blazored.LocalStorage;
+
 public class DoctorFEService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILocalStorageService _localStorage;
     public event Action? OnChange;
     private void NotifyStateChanged() => OnChange?.Invoke();
 
     public bool isLoaded = false;
     public string ErrorMessage = string.Empty;
-    public List<AppointmentPatientForDoctorVM> listAppointmentPatientForDoctorToDay = new List<AppointmentPatientForDoctorVM>();
+    public bool isLoaded2 = false;
+    public string ErrorMessage2 = string.Empty;
+    public bool isLoaded3 = false;
+    public string ErrorMessage3 = string.Empty;
+    public bool isLoaded4 = false;
+    public string ErrorMessage4 = string.Empty;
+    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorWaiting = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorTurned = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorProcessing = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorDiagnosed  = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
 
-    public DoctorFEService(IHttpClientFactory httpClientFactory)
+    public DoctorFEService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage)
     {
         _httpClientFactory = httpClientFactory;
+        _localStorage = localStorage;
+
+        listAppointmentPatientForDoctorWaiting.Data = new List<AppointmentPatientForDoctorVM>();
+        listAppointmentPatientForDoctorTurned.Data = new List<AppointmentPatientForDoctorVM>();
+        listAppointmentPatientForDoctorProcessing.Data = new List<AppointmentPatientForDoctorVM>();
+        listAppointmentPatientForDoctorDiagnosed.Data = new List<AppointmentPatientForDoctorVM>();
+        
+
+        listAppointmentPatientForDoctorWaiting.PageSize = 10;
+        listAppointmentPatientForDoctorWaiting.PageNumber = 1;
+        listAppointmentPatientForDoctorTurned.PageSize = 10;
+        listAppointmentPatientForDoctorTurned.PageNumber = 1;
+        listAppointmentPatientForDoctorProcessing.PageSize = 10;
+        listAppointmentPatientForDoctorProcessing.PageNumber = 1;
+        listAppointmentPatientForDoctorDiagnosed.PageSize = 10;
+        listAppointmentPatientForDoctorDiagnosed.PageNumber = 1;
+        
     }
 
     public async Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status)
@@ -48,43 +78,149 @@ public class DoctorFEService
         return false;
     }
 
-    public async Task GetAllListPatientForDocTor(DateOnly? date = null)
+    
+    public async Task GetAllListPatientForDocTorAsync2(ConditionFilterPatientForAppointmentDoctor condition)
     {
-        if (date == null)
+        string query = $"api/Appointment/GetAllListPatientForDocTorAsync2";
+
+        PagedResponse<ConditionFilterPatientForAppointmentDoctor> conditionfilter = new PagedResponse<ConditionFilterPatientForAppointmentDoctor>();
+        conditionfilter.Data = condition;
+        if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
         {
-            date = DateOnly.FromDateTime(DateTime.Now);
+            conditionfilter.PageSize = listAppointmentPatientForDoctorWaiting.PageSize;
+            conditionfilter.PageNumber = listAppointmentPatientForDoctorWaiting.PageNumber;
         }
-        string query = $"api/Appointment/GetAllListPatientForDocTor/{date}";
+        if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
+        {
+            conditionfilter.PageSize = listAppointmentPatientForDoctorTurned.PageSize;
+            conditionfilter.PageNumber = listAppointmentPatientForDoctorTurned.PageNumber;
+        }
+        if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
+        {
+            conditionfilter.PageSize = listAppointmentPatientForDoctorProcessing.PageSize;
+            conditionfilter.PageNumber = listAppointmentPatientForDoctorProcessing.PageNumber;
+        }
+        if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
+        {
+            conditionfilter.PageSize = listAppointmentPatientForDoctorDiagnosed.PageSize;
+            conditionfilter.PageNumber = listAppointmentPatientForDoctorDiagnosed.PageNumber;
+        }
+
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
-            var response = await client.GetAsync(query);
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, conditionfilter);
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<AppointmentPatientForDoctorVM>>>();
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<PagedResponse<List<AppointmentPatientForDoctorVM>>>>();
+
                 if (result == null)
                 {
-                    ErrorMessage = "Lỗi dữ liệu!";
+                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
+                    {
+                        ErrorMessage = "Lỗi dữ liệu!";
+                    }
+                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
+                    {
+                        ErrorMessage2 = "Lỗi dữ liệu!";
+                    }
+                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
+                    {
+                        ErrorMessage3 = "Lỗi dữ liệu!";
+                    }
+                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
+                    {
+                        ErrorMessage4 = "Lỗi dữ liệu!";
+                    }
                 }
                 else
                 {
                     //ErrorMessage = result.Message;
-                    listAppointmentPatientForDoctorToDay = result.Data ?? new List<AppointmentPatientForDoctorVM>();
+                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
+                    {
+                        listAppointmentPatientForDoctorWaiting = result.Data ?? new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+                    }
+                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
+                    {
+                        listAppointmentPatientForDoctorTurned = result.Data ?? new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+                    }
+                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
+                    {
+                        listAppointmentPatientForDoctorProcessing = result.Data ?? new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+                    }
+                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
+                    {
+                        listAppointmentPatientForDoctorDiagnosed = result.Data ?? new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+                    }
                 }
             }
             else
             {
-                ErrorMessage = response.StatusCode.ToString();
+                if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
+                {
+                    ErrorMessage = response.StatusCode.ToString();
+                }
+                if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
+                {
+                    ErrorMessage2 = response.StatusCode.ToString();
+                }
+                if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
+                {
+                    ErrorMessage3 = response.StatusCode.ToString();
+                }
+                if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
+                {
+                    ErrorMessage4 = response.StatusCode.ToString();
+                }
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = "Thất bại!";
-            Console.WriteLine(ex.Message);
+            if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
+            {
+                ErrorMessage = "Thất bại!";
+                Console.WriteLine(ex.Message);
+            }
+            if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
+            {
+                ErrorMessage2 = "Thất bại!";
+                Console.WriteLine(ex.Message);
+            }
+            if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
+            {
+                ErrorMessage3 = "Thất bại!";
+                Console.WriteLine(ex.Message);
+            }
+            if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
+            {
+                ErrorMessage4 = "Thất bại!";
+                Console.WriteLine(ex.Message);
+            }
         }
-        isLoaded = true;
-        NotifyStateChanged();
+        if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
+        {
+            isLoaded = true;
+            NotifyStateChanged();
+        }
+        if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
+        {
+            isLoaded2 = true;
+            NotifyStateChanged();
+        }
+        if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
+        {
+            isLoaded3 = true;
+            NotifyStateChanged();
+        }
+        if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
+        {
+            isLoaded4 = true;
+            NotifyStateChanged();
+        }
+        
     }
-
 }

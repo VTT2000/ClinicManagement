@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 //using CaptonseProject.Models;
 
@@ -16,22 +17,6 @@ namespace CaptonseProject.Controllers
         {
             _appointmentService = appoinmentService;
         }
-
-        // role receptionist
-        // [HttpGet("GetAllAppointmentPatientAsync")]
-        // public async Task<IActionResult> GetAllAppointmentPatientAsync()
-        // {
-        //     var result = await _appointmentService.GetAllAppointmentPatientAsync();
-        //     return Ok(result);
-        // }
-
-        // role receptionist
-        // [HttpGet("GetAllAppointmentPatientAsync/{date}")]
-        // public async Task<IActionResult> GetAllAppointmentPatientAsync([FromRoute] DateOnly date)
-        // {
-        //     var result = await _appointmentService.GetAllAppointmentPatientForDateAsync(date);
-        //     return Ok(result);
-        // }
 
         // role receptionist
         [HttpPost("GetAllAppointmentPatientAsync")]
@@ -66,26 +51,12 @@ namespace CaptonseProject.Controllers
         }
 
         // role doctor
-        [HttpPost("GetAllListPatientForDocTor")]
-        public async Task<IActionResult> GetAllListPatientForDocTorAsync2([FromBody] ConditionFilterPatientForAppointmentDoctor condition)
+        [Authorize]
+        [HttpPost("GetAllListPatientForDocTorAsync2")]
+        public async Task<IActionResult> GetAllListPatientForDocTorAsync2([FromHeader] string authorization, [FromBody] PagedResponse<ConditionFilterPatientForAppointmentDoctor> condition)
         {
-            var result = await _appointmentService.GetAllListPatientForDocTorAsync2(condition);
+            var result = await _appointmentService.GetAllListPatientForDocTorAsync2(condition, authorization);
             return Ok(result);
-        }
-
-        // thử nghiệm xóa sau khi test
-        [HttpGet("test")]
-        public IActionResult GetToken()
-        {
-            var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
-            Console.WriteLine(authHeader);
-            if (authHeader != null && authHeader.StartsWith("Bearer "))
-            {
-                var token = authHeader.Substring("Bearer ".Length).Trim();
-                return Ok(token);
-            }
-
-            return Unauthorized();
         }
 
         // role doctor

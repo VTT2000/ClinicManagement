@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using web_api_base.Helper;
@@ -5,58 +6,84 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IAppointmentService
 {
-    public Task<dynamic> GetAllListPatientForDocTorAsync2(ConditionFilterPatientForAppointmentDoctor condition);
+    public Task<dynamic> GetAllListPatientForDocTorAsync2(PagedResponse<ConditionFilterPatientForAppointmentDoctor> condition, string authorization);
     public Task<dynamic> GetAllAppointmentPatientAsync2(PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition);
     public Task<dynamic> ChangeStatusWaitingForPatient(int appointmentId);
     public Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId);
     public Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status);
     public Task<dynamic> GetAllListPatientForDocTor(DateOnly date);
-    // public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync();
-    // public Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(DateOnly date);
     public Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);
 }
 
 public class AppointmentService : IAppointmentService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly JwtAuthService _jwtAuthService;
 
     public AppointmentService(IUnitOfWork unitOfWork, JwtAuthService jwtAuthService)
     {
         _unitOfWork = unitOfWork;
+        _jwtAuthService = jwtAuthService;
     }
 
     // Implement methods for admin functionalities here
-    public async Task<dynamic> GetAllListPatientForDocTorAsync2(ConditionFilterPatientForAppointmentDoctor condition)
+    public async Task<dynamic> GetAllListPatientForDocTorAsync2(PagedResponse<ConditionFilterPatientForAppointmentDoctor> condition, string authorization)
     {
-        var result = new HTTPResponseClient<List<AppointmentPatientForDoctorVM>>();
+        var result = new HTTPResponseClient<PagedResponse<List<AppointmentPatientForDoctorVM>>>();
+        result.Data = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+        result.Data.PageNumber = condition.PageNumber;
+        result.Data.PageSize = condition.PageSize;
         try
         {
-            var list = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientUserAsync(
-                p =>
-                condition.dateAppointment == null || condition.dateAppointment == p.AppointmentDate
-            );
-            if (!string.IsNullOrWhiteSpace(condition.searchNamePatient))
+            string token = authorization.Substring("Bearer ".Length);
+            string fullName = _jwtAuthService.DecodePayloadToken(token);
+            var user = await _unitOfWork._userRepository.SingleOrDefaultAsync(p => p.FullName == fullName
+            && (RoleConstant.Doctor == p.Role || RoleConstant.Admin == p.Role));
+            if (user == null)
             {
-                list = list
-                    .Where(p => p.Patient != null
-                        && p.Patient.User != null
-                        && StringHelper.IsMatchSearchKey(condition.searchNamePatient, p.Patient.User.FullName))
-                    .ToList();
+                // không có quyền
+                result.Message = "Thất bại";
+                result.StatusCode = StatusCodes.Status401Unauthorized;
             }
-            var data = list.Select(x => new AppointmentPatientForDoctorVM()
+            else
             {
-                AppointmentId = x.AppointmentId,
-                PatientId = x.PatientId,
-                PatientFullName = x.Patient!.User!.FullName,
-                AppointmentDate = x.AppointmentDate,
-                AppointmentTime = x.AppointmentTime,
-                Status = x.Status,
-                Dob = x.Patient.Dob,
-                Phone = x.Patient.Phone
-            }).ToList();
-            result.Data = data;
-            result.Message = "Thành công";
-            result.StatusCode = StatusCodes.Status200OK;
+                var doctor = await _unitOfWork._doctorRepository.SingleOrDefaultAsync(p => p.UserId == user.UserId);
+                var list = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientUserAsync(
+                    p =>
+                    (user.Role == RoleConstant.Admin || (doctor != null && doctor.DoctorId == p.DoctorId))
+                    && (condition.Data == null || condition.Data.dateAppointment == null || condition.Data.dateAppointment == p.AppointmentDate)
+                    && (condition.Data == null || string.IsNullOrWhiteSpace(condition.Data.status) || condition.Data.status == p.Status)
+                );
+                if (condition.Data != null && !string.IsNullOrWhiteSpace(condition.Data.searchNamePatient))
+                {
+                    list = list
+                        .Where(p => p.Patient != null
+                            && p.Patient.User != null
+                            && StringHelper.IsMatchSearchKey(condition.Data.searchNamePatient, p.Patient.User.FullName))
+                        .ToList();
+                }
+                var data = list.Select(x => new AppointmentPatientForDoctorVM()
+                {
+                    AppointmentId = x.AppointmentId,
+                    PatientId = x.PatientId,
+                    PatientFullName = x.Patient!.User!.FullName,
+                    AppointmentDate = x.AppointmentDate,
+                    AppointmentTime = x.AppointmentTime,
+                    Status = x.Status,
+                    Dob = x.Patient.Dob,
+                    Phone = x.Patient.Phone
+                }).ToList();
+
+                result.Data.TotalRecords = data.Count;
+                result.Data.TotalPages = (int)Math.Ceiling((double)data.Count / result.Data.PageSize);
+                result.Data.Data = data
+                // lấy theo page
+                .Skip(condition.PageSize * (condition.PageNumber - 1))
+                .Take(condition.PageSize).ToList();
+
+                result.Message = "Thành công";
+                result.StatusCode = StatusCodes.Status200OK;
+            }
         }
         catch (Exception ex)
         {
@@ -232,68 +259,7 @@ public class AppointmentService : IAppointmentService
         result.DateTime = DateTime.Now;
         return result;
     }
-
-    // public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientAsync()
-    // {
-    //     var result = new HTTPResponseClient<List<AppointmentPatientVM>>();
-    //     try
-    //     {
-    //         var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentForReceptionistAsync();
-    //         var data = appointmentList.Select(x => new AppointmentPatientVM()
-    //         {
-    //             AppointmentId = x.AppointmentId,
-    //             PatientId = x.PatientId,
-    //             PatientFullName = x.Patient!.User!.FullName,
-    //             DoctorId = x.DoctorId,
-    //             DoctorFullName = x.Doctor?.User?.FullName ?? "",
-    //             AppointmentDate = x.AppointmentDate,
-    //             AppointmentTime = x.AppointmentTime,
-    //             Status = x.Status,
-    //             Dob = x.Patient.Dob,
-    //             Phone = x.Patient.Phone
-    //         }).ToList();
-    //         result.Data = data;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine(ex.Message);
-    //         result.Message = "Thất bại";
-    //         result.StatusCode = StatusCodes.Status500InternalServerError;
-    //     }
-    //     result.DateTime = DateTime.Now;
-    //     return result;
-    // }
-
-    // public async Task<HTTPResponseClient<List<AppointmentPatientVM>>> GetAllAppointmentPatientForDateAsync(DateOnly date)
-    // {
-    //     var result = new HTTPResponseClient<List<AppointmentPatientVM>>();
-    //     try
-    //     {
-    //         var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentForReceptionistAsync(date);
-    //         var data = appointmentList.Select(x => new AppointmentPatientVM()
-    //         {
-    //             AppointmentId = x.AppointmentId,
-    //             PatientId = x.PatientId,
-    //             PatientFullName = x.Patient!.User!.FullName,
-    //             DoctorId = x.DoctorId,
-    //             DoctorFullName = x.Doctor?.User?.FullName ?? "",
-    //             AppointmentDate = x.AppointmentDate,
-    //             Status = x.Status,
-    //             Dob = x.Patient.Dob,
-    //             Phone = x.Patient.Phone
-    //         }).ToList();
-    //         result.Data = data;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine(ex.Message);
-    //         result.Message = "Thất bại";
-    //         result.StatusCode = StatusCodes.Status500InternalServerError;
-    //     }
-    //     result.DateTime = DateTime.Now;
-    //     return result;
-    // }
-
+    
     public async Task<dynamic> GetAllAppointmentPatientAsync2(PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition)
     {
         var result = new HTTPResponseClient<PagedResponse<List<AppointmentPatientVM>>>();

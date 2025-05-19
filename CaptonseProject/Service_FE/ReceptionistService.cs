@@ -10,7 +10,6 @@ public class ReceptionistService
 {
     public bool isLoaded = false;
     public string ErrorMessage = string.Empty;
-    // public List<AppointmentPatientVM> listAppointment = new List<AppointmentPatientVM>();
     public PagedResponse<List<AppointmentPatientVM>> listAppointment2 = new PagedResponse<List<AppointmentPatientVM>>();
 
 
@@ -451,45 +450,4 @@ public class ReceptionistService
         }
         return new List<PatientSearchedForCreateAppointmentVM>();
     }
-
-    // public async Task GetAllAppointmentPatientAsync(string date = "")
-    // {
-    //     string query = "api/Appointment/GetAllAppointmentPatientAsync";
-    //     try
-    //     {
-    //         if (!string.IsNullOrWhiteSpace(date))
-    //         {
-    //             query += $"/{date}";
-    //         }
-    //         var client = _httpClientFactory.CreateClient("LocalApi");
-    //         var response = await client.GetAsync(query);
-
-    //         if (response.IsSuccessStatusCode)
-    //         {
-    //             var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<AppointmentPatientVM>>>();
-    //             if (result == null)
-    //             {
-    //                 ErrorMessage = "Lỗi dữ liệu!";
-    //             }
-    //             else
-    //             {
-    //                 //ErrorMessage = result.Message;
-    //                 listAppointment = result.Data ?? new List<AppointmentPatientVM>();
-    //             }
-    //         }
-    //         else
-    //         {
-    //             ErrorMessage = response.StatusCode.ToString();
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         ErrorMessage = "Thất bại!";
-    //         Console.WriteLine(ex.Message);
-    //     }
-    //     isLoaded = true;
-    //     NotifyStateChanged();
-    // }
-    
-
 }

@@ -4,9 +4,6 @@
 @inject DoctorFEService doctorService
 
 <div class="container-fluid">
-
-    <h4 class="mb-4">Danh sách khách hàng khám bệnh Phòng khám TMH (P. 206)</h4>
-
     <!-- Tabs -->
     <ul class="nav nav-tabs" id="khamTab" role="tablist">
         <li class="nav-item" role="presentation">
@@ -30,6 +27,19 @@
     <!-- Tab Content -->
     <div class="tab-content p-3 border border-top-0" id="khamTabContent">
         <div class="tab-pane fade show active" id="doiKham" role="tabpanel">
+            <!-- Phần tiêu đề và tìm kiếm -->
+            <div class="row align-items-center">
+                <div class="col-md-12">
+                    <div class="input-group">
+                        <input @bind="conditionFilter.searchNamePatient" type="text" class="form-control" placeholder="Tìm kiếm theo tên bệnh nhân" />
+                        <input @bind="conditionFilter.dateAppointment" type="date" class="form-control" />
+                        
+                        <button @onclick="()=>SearchRequest(conditionFilter.status)" class="btn btn-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
             <!-- Loading spinner -->
             @if (!doctorService.isLoaded)
             {
@@ -72,7 +82,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay.Where(p=>(p.Status??"").Equals(StatusConstant.AppointmentStatus.Waiting)))
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorWaiting.Data)
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -102,23 +112,49 @@
                         <!-- Phân trang -->
                         <nav aria-label="Page navigation" class="mt-4">
                             <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                <li class="page-item @(doctorService.listAppointmentPatientForDoctorWaiting.PageNumber == 1 ? "disabled" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(doctorService.listAppointmentPatientForDoctorWaiting.PageNumber - 1, StatusConstant.AppointmentStatus.Waiting)">Trước</a>
                                 </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Sau</a>
+
+                                @foreach (var page in GetPageNumbersToDisplay(StatusConstant.AppointmentStatus.Waiting))
+                                {
+                                    if (page == -1)
+                                    {
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item @(page == doctorService.listAppointmentPatientForDoctorWaiting.PageNumber ? "active" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page, StatusConstant.AppointmentStatus.Waiting)">@(page)</a>
+                                        </li>
+                                    }
+                                }
+
+                                <li class="page-item @(doctorService.listAppointmentPatientForDoctorWaiting.PageNumber == doctorService.listAppointmentPatientForDoctorWaiting.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(doctorService.listAppointmentPatientForDoctorWaiting.PageNumber + 1, StatusConstant.AppointmentStatus.Waiting)">Sau</a>
                                 </li>
                             </ul>
                         </nav>
+                        
                     </div>
                 </div>
             }
 
         </div>
         <div class="tab-pane fade" id="quaLuot" role="tabpanel">
+            <!-- Phần tiêu đề và tìm kiếm -->
+            <div class="row align-items-center">
+                <div class="col-md-12">
+                    <div class="input-group">
+                        <input @bind="conditionFilter2.searchNamePatient" type="text" class="form-control" placeholder="Tìm kiếm theo tên bệnh nhân" />
+                        <input @bind="conditionFilter2.dateAppointment" type="date" class="form-control" />
+                        
+                        <button @onclick="()=>SearchRequest(conditionFilter2.status)" class="btn btn-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
             <!-- Loading spinner -->
             @if (!doctorService.isLoaded)
             {
@@ -161,7 +197,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay.Where(p=>(p.Status??"").Equals(StatusConstant.AppointmentStatus.Turned)))
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorTurned.Data)
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -188,23 +224,49 @@
                         <!-- Phân trang -->
                         <nav aria-label="Page navigation" class="mt-4">
                             <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                <li class="page-item @(doctorService.listAppointmentPatientForDoctorTurned.PageNumber == 1 ? "disabled" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(doctorService.listAppointmentPatientForDoctorTurned.PageNumber - 1, StatusConstant.AppointmentStatus.Turned)">Trước</a>
                                 </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Sau</a>
+
+                                @foreach (var page in GetPageNumbersToDisplay(StatusConstant.AppointmentStatus.Turned))
+                                {
+                                    if (page == -1)
+                                    {
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item @(page == doctorService.listAppointmentPatientForDoctorTurned.PageNumber ? "active" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page, StatusConstant.AppointmentStatus.Turned)">@(page)</a>
+                                        </li>
+                                    }
+                                }
+
+                                <li class="page-item @(doctorService.listAppointmentPatientForDoctorTurned.PageNumber == doctorService.listAppointmentPatientForDoctorTurned.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(doctorService.listAppointmentPatientForDoctorTurned.PageNumber + 1, StatusConstant.AppointmentStatus.Turned)">Sau</a>
                                 </li>
                             </ul>
                         </nav>
+
                     </div>
                 </div>
             }
             
         </div>
         <div class="tab-pane fade" id="dangKham" role="tabpanel">
+            <!-- Phần tiêu đề và tìm kiếm -->
+            <div class="row align-items-center">
+                <div class="col-md-12">
+                    <div class="input-group">
+                        <input @bind="conditionFilter3.searchNamePatient" type="text" class="form-control" placeholder="Tìm kiếm theo tên bệnh nhân" />
+                        <input @bind="conditionFilter3.dateAppointment" type="date" class="form-control" />
+                        
+                        <button @onclick="()=>SearchRequest(conditionFilter3.status)" class="btn btn-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
             <!-- Loading spinner -->
             @if (!doctorService.isLoaded)
             {
@@ -247,7 +309,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay.Where(p=>(p.Status??"").Equals(StatusConstant.AppointmentStatus.Processing)))
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorProcessing.Data)
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -277,23 +339,49 @@
                         <!-- Phân trang -->
                         <nav aria-label="Page navigation" class="mt-4">
                             <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                <li class="page-item @(doctorService.listAppointmentPatientForDoctorProcessing.PageNumber == 1 ? "disabled" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(doctorService.listAppointmentPatientForDoctorProcessing.PageNumber - 1, StatusConstant.AppointmentStatus.Processing)">Trước</a>
                                 </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Sau</a>
+
+                                @foreach (var page in GetPageNumbersToDisplay(StatusConstant.AppointmentStatus.Processing))
+                                {
+                                    if (page == -1)
+                                    {
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item @(page == doctorService.listAppointmentPatientForDoctorProcessing.PageNumber ? "active" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page, StatusConstant.AppointmentStatus.Processing)">@(page)</a>
+                                        </li>
+                                    }
+                                }
+
+                                <li class="page-item @(doctorService.listAppointmentPatientForDoctorProcessing.PageNumber == doctorService.listAppointmentPatientForDoctorProcessing.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(doctorService.listAppointmentPatientForDoctorProcessing.PageNumber + 1, StatusConstant.AppointmentStatus.Processing)">Sau</a>
                                 </li>
                             </ul>
                         </nav>
+
                     </div>
                 </div>
             }
             
         </div>
         <div class="tab-pane fade" id="khamXong" role="tabpanel">
+            <!-- Phần tiêu đề và tìm kiếm -->
+            <div class="row align-items-center">
+                <div class="col-md-12">
+                    <div class="input-group">
+                        <input @bind="conditionFilter4.searchNamePatient" type="text" class="form-control" placeholder="Tìm kiếm theo tên bệnh nhân" />
+                        <input @bind="conditionFilter4.dateAppointment" type="date" class="form-control" />
+                        
+                        <button @onclick="()=>SearchRequest(conditionFilter4.status)" class="btn btn-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
             <!-- Loading spinner -->
             @if (!doctorService.isLoaded)
             {
@@ -336,7 +424,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorToDay.Where(p=>(p.Status??"").Equals(StatusConstant.AppointmentStatus.Diagnosed)))
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorDiagnosed.Data)
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -363,17 +451,30 @@
                         <!-- Phân trang -->
                         <nav aria-label="Page navigation" class="mt-4">
                             <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                <li class="page-item @(doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber == 1 ? "disabled" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber - 1, StatusConstant.AppointmentStatus.Diagnosed)">Trước</a>
                                 </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Sau</a>
+
+                                @foreach (var page in GetPageNumbersToDisplay(StatusConstant.AppointmentStatus.Diagnosed))
+                                {
+                                    if (page == -1)
+                                    {
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item @(page == doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber ? "active" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page, StatusConstant.AppointmentStatus.Diagnosed)">@(page)</a>
+                                        </li>
+                                    }
+                                }
+
+                                <li class="page-item @(doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber == doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber + 1, StatusConstant.AppointmentStatus.Diagnosed)">Sau</a>
                                 </li>
                             </ul>
                         </nav>
+
                     </div>
                 </div>
             }
@@ -384,12 +485,151 @@
 
 
 @code {
+    private ConditionFilterPatientForAppointmentDoctor conditionFilter = new ConditionFilterPatientForAppointmentDoctor();
+    private ConditionFilterPatientForAppointmentDoctor conditionFilter2 = new ConditionFilterPatientForAppointmentDoctor();
+    private ConditionFilterPatientForAppointmentDoctor conditionFilter3 = new ConditionFilterPatientForAppointmentDoctor();
+    private ConditionFilterPatientForAppointmentDoctor conditionFilter4 = new ConditionFilterPatientForAppointmentDoctor();
     private bool isModalVisible = false;
+
+    private List<int> GetPageNumbersToDisplay(string status)
+    {
+        const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
+        var pages = new List<int>();
+        
+        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
+            if (doctorService.listAppointmentPatientForDoctorWaiting.TotalPages <= 7)
+            {
+                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorWaiting.TotalPages; i++) pages.Add(i);
+            }
+            else
+            {
+                pages.Add(1);
+                if (doctorService.listAppointmentPatientForDoctorWaiting.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorWaiting.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorWaiting.TotalPages - 1, doctorService.listAppointmentPatientForDoctorWaiting.PageNumber + range); i++)
+                {
+                    pages.Add(i);
+                }
+
+                if (doctorService.listAppointmentPatientForDoctorWaiting.PageNumber < doctorService.listAppointmentPatientForDoctorWaiting.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+                pages.Add(doctorService.listAppointmentPatientForDoctorWaiting.TotalPages);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
+            if (doctorService.listAppointmentPatientForDoctorTurned.TotalPages <= 7)
+            {
+                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorTurned.TotalPages; i++) pages.Add(i);
+            }
+            else
+            {
+                pages.Add(1);
+                if (doctorService.listAppointmentPatientForDoctorTurned.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorTurned.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorTurned.TotalPages - 1, doctorService.listAppointmentPatientForDoctorTurned.PageNumber + range); i++)
+                {
+                    pages.Add(i);
+                }
+
+                if (doctorService.listAppointmentPatientForDoctorTurned.PageNumber < doctorService.listAppointmentPatientForDoctorTurned.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+                pages.Add(doctorService.listAppointmentPatientForDoctorTurned.TotalPages);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
+            if (doctorService.listAppointmentPatientForDoctorProcessing.TotalPages <= 7)
+            {
+                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorProcessing.TotalPages; i++) pages.Add(i);
+            }
+            else
+            {
+                pages.Add(1);
+                if (doctorService.listAppointmentPatientForDoctorProcessing.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorProcessing.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorProcessing.TotalPages - 1, doctorService.listAppointmentPatientForDoctorProcessing.PageNumber + range); i++)
+                {
+                    pages.Add(i);
+                }
+
+                if (doctorService.listAppointmentPatientForDoctorProcessing.PageNumber < doctorService.listAppointmentPatientForDoctorProcessing.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+                pages.Add(doctorService.listAppointmentPatientForDoctorProcessing.TotalPages);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
+            if (doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages <= 7)
+            {
+                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages; i++) pages.Add(i);
+            }
+            else
+            {
+                pages.Add(1);
+                if (doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages - 1, doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber + range); i++)
+                {
+                    pages.Add(i);
+                }
+
+                if (doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber < doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+                pages.Add(doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages);
+            }
+        }
+        
+
+        return pages;
+    }
+    private async Task SelectPage(int page, string status)
+    {
+        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
+            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorWaiting.TotalPages && page != doctorService.listAppointmentPatientForDoctorWaiting.PageNumber)
+            {
+                doctorService.listAppointmentPatientForDoctorWaiting.PageNumber = page;
+                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
+            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorTurned.TotalPages && page != doctorService.listAppointmentPatientForDoctorTurned.PageNumber)
+            {
+                doctorService.listAppointmentPatientForDoctorTurned.PageNumber = page;
+                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
+            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorProcessing.TotalPages && page != doctorService.listAppointmentPatientForDoctorProcessing.PageNumber)
+            {
+                doctorService.listAppointmentPatientForDoctorProcessing.PageNumber = page;
+                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
+            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages && page != doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber)
+            {
+                doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber = page;
+                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
+            }
+        }
+        
+    }
+    private async Task SearchRequest(string status){
+        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
+        }
+    }
 
     private async Task UpdateStatusAppointment(int appointmentId, string status){
         var check0 = await doctorService.UpdateStatusAppointmentForDoctor(appointmentId, status);
         if(check0){
-            await doctorService.GetAllListPatientForDocTor();
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
         }
     }
 
@@ -406,9 +646,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        conditionFilter.status = StatusConstant.AppointmentStatus.Waiting;
+        conditionFilter.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
+        conditionFilter2.status = StatusConstant.AppointmentStatus.Turned;
+        conditionFilter2.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
+        conditionFilter3.status = StatusConstant.AppointmentStatus.Processing;
+        conditionFilter3.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
+        conditionFilter4.status = StatusConstant.AppointmentStatus.Diagnosed;
+        conditionFilter4.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
+        
         doctorService.OnChange += StateHasChanged;
-        await doctorService.GetAllListPatientForDocTor(DateOnly.Parse("10-Jun-2010"));
-        @* await doctorService.GetAllListPatientForDocTor(); *@
+        
+        await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
+        await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
+        await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
+        await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
