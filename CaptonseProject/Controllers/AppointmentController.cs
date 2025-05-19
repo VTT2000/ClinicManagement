@@ -66,6 +66,29 @@ namespace CaptonseProject.Controllers
         }
 
         // role doctor
+        [HttpPost("GetAllListPatientForDocTor")]
+        public async Task<IActionResult> GetAllListPatientForDocTorAsync2([FromBody] ConditionFilterPatientForAppointmentDoctor condition)
+        {
+            var result = await _appointmentService.GetAllListPatientForDocTorAsync2(condition);
+            return Ok(result);
+        }
+
+        // thử nghiệm xóa sau khi test
+        [HttpGet("test")]
+        public IActionResult GetToken()
+        {
+            var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
+            Console.WriteLine(authHeader);
+            if (authHeader != null && authHeader.StartsWith("Bearer "))
+            {
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+                return Ok(token);
+            }
+
+            return Unauthorized();
+        }
+
+        // role doctor
         [HttpPut("UpdateStatusAppointmentForDoctor/{appointmentId}")]
         public async Task<IActionResult> UpdateStatusAppointmentForDoctor([FromRoute] int appointmentId, [FromBody] string status)
         {

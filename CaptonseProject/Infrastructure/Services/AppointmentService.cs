@@ -5,6 +5,7 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IAppointmentService
 {
+    public Task<dynamic> GetAllListPatientForDocTorAsync2(ConditionFilterPatientForAppointmentDoctor condition);
     public Task<dynamic> GetAllAppointmentPatientAsync2(PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition);
     public Task<dynamic> ChangeStatusWaitingForPatient(int appointmentId);
     public Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId);
@@ -25,6 +26,48 @@ public class AppointmentService : IAppointmentService
     }
 
     // Implement methods for admin functionalities here
+    public async Task<dynamic> GetAllListPatientForDocTorAsync2(ConditionFilterPatientForAppointmentDoctor condition)
+    {
+        var result = new HTTPResponseClient<List<AppointmentPatientForDoctorVM>>();
+        try
+        {
+            var list = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientUserAsync(
+                p =>
+                condition.dateAppointment == null || condition.dateAppointment == p.AppointmentDate
+            );
+            if (!string.IsNullOrWhiteSpace(condition.searchNamePatient))
+            {
+                list = list
+                    .Where(p => p.Patient != null
+                        && p.Patient.User != null
+                        && StringHelper.IsMatchSearchKey(condition.searchNamePatient, p.Patient.User.FullName))
+                    .ToList();
+            }
+            var data = list.Select(x => new AppointmentPatientForDoctorVM()
+            {
+                AppointmentId = x.AppointmentId,
+                PatientId = x.PatientId,
+                PatientFullName = x.Patient!.User!.FullName,
+                AppointmentDate = x.AppointmentDate,
+                AppointmentTime = x.AppointmentTime,
+                Status = x.Status,
+                Dob = x.Patient.Dob,
+                Phone = x.Patient.Phone
+            }).ToList();
+            result.Data = data;
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+
     public async Task<dynamic> ChangeStatusWaitingForPatient(int appointmentId)
     {
         HTTPResponseClient<bool> result = new HTTPResponseClient<bool>();
@@ -263,7 +306,7 @@ public class AppointmentService : IAppointmentService
                 // Lọc theo trạng thái nếu có
                 && (condition.Data == null || string.IsNullOrWhiteSpace(condition.Data.Status) || condition.Data.Status == a.Status)
                 // Lọc theo ngày nếu có
-                && (condition.Data == null || condition.Data.dateAppointment == a.AppointmentDate)
+                && (condition.Data == null || !condition.Data.dateAppointment.HasValue || condition.Data.dateAppointment == a.AppointmentDate)
             );
 
             // Lọc theo tên bệnh nhân (chỉ có thể làm sau ToList vì dùng StringHelper)

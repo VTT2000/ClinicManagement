@@ -20,7 +20,9 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var token = await _localStorage.GetItemAsync<string>("token");
+        // _localStorage chỉ hoạt động ở FE, đây là server; muốn xài cấu hình thêm service bên blazor server tức serviceFE 
+        // hiện tại bên service Fe; client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var token = await _localStorage.GetItemAsStringAsync("token");
 
         if (!string.IsNullOrEmpty(token))
         {

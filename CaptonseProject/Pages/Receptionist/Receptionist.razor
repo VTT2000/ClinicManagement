@@ -194,10 +194,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        conditionfilter.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
         receptionistService.OnChange += StateHasChanged;
         @* await receptionistService.GetAllAppointmentPatientAsync(); *@
         await receptionistService.GetAllAppointmentPatientAsync2(conditionfilter);
-        Console.WriteLine("//"+receptionistService.listAppointment2.TotalPages);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

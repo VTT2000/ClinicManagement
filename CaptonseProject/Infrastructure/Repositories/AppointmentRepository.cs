@@ -5,6 +5,7 @@ using web_api_base.Models.ClinicManagement;
 public interface IAppointmentRepository : IRepository<Appointment>
 {
     // Add custom methods for Appointment here if needed
+    Task<List<Appointment>> GetAllAppointmentPatientUserAsync(Expression<Func<Appointment, bool>> predicate);
     public Task<List<Appointment>> GetAllAppointmentPatientDoctor(Expression<Func<Appointment, bool>> predicate);
     // Task<List<Appointment>> GetAllAppointmentForReceptionistAsync(DateOnly? date = null);
     Task<List<Appointment>> GetAllAppointmentPatientUserAsync(DateOnly date);
@@ -23,6 +24,15 @@ public class AppointmentRepository : Repository<Appointment>, IAppointmentReposi
                 .AsNoTracking()
                 .Include(a => a.Patient).ThenInclude(p => p!.User) // Bệnh nhân và người dùng của bệnh nhân
                 .Where(x => date.CompareTo(x.AppointmentDate ?? DateOnly.MinValue) == 0)
+                .ToListAsync();
+    }
+
+    public async Task<List<Appointment>> GetAllAppointmentPatientUserAsync(Expression<Func<Appointment, bool>> predicate)
+    {
+        return await _dbSet
+                .AsNoTracking()
+                .Where(predicate)
+                .Include(a => a.Patient).ThenInclude(p => p!.User) // Bệnh nhân và người dùng của bệnh nhân
                 .ToListAsync();
     }
 
