@@ -321,9 +321,9 @@
                                             <td>@item.Status</td>
                                             <td>
                                                 <div class="btn-group">
-                                                    <button class="btn btn-sm btn-outline-primary">
-                                                        Thông tin khám
-                                                    </button>
+                                                    <a href="doctor/diagnosis/@item.AppointmentId" class="btn btn-sm btn-outline-primary">
+                                                        Chẩn đoán
+                                                    </a>
                                                     <button @onclick="()=>UpdateStatusAppointment(item.AppointmentId, StatusConstant.AppointmentStatus.Diagnosed)"  class="btn btn-sm btn-outline-danger">
                                                         Khám xong
                                                     </button>
@@ -482,7 +482,7 @@
         </div>
     </div>
 </div>
-
+<ModalDetailDiagnosis IsVisible="@isModalVisible" OnClose="HideModal" />
 
 @code {
     private ConditionFilterPatientForAppointmentDoctor conditionFilter = new ConditionFilterPatientForAppointmentDoctor();

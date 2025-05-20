@@ -39,9 +39,8 @@ public partial class ClinicContext : DbContext
 
     public virtual DbSet<WorkSchedule> WorkSchedules { get; set; }
 
-    // Khi cấu hình program rồi không cần cấu hình ở đây 3h lãng phí
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //     => optionsBuilder.UseSqlServer("Name=ConnectionString");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Name=ConnectionString0");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -86,10 +85,11 @@ public partial class ClinicContext : DbContext
 
         modelBuilder.Entity<DiagnosesService>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Diagnoses_Services");
+            entity.ToTable("Diagnoses_Services");
 
+            entity.Property(e => e.DiagnosesServiceId)
+                .ValueGeneratedNever()
+                .HasColumnName("DiagnosesServiceID");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -98,22 +98,22 @@ public partial class ClinicContext : DbContext
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
             entity.Property(e => e.UserIdperformed).HasColumnName("UserIDperformed");
 
-            entity.HasOne(d => d.Diagnosis).WithMany()
+            entity.HasOne(d => d.Diagnosis).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.DiagnosisId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Diagnoses__Diagn__6B24EA82");
 
-            entity.HasOne(d => d.Room).WithMany()
+            entity.HasOne(d => d.Room).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.RoomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Diagnoses__RoomI__6E01572D");
 
-            entity.HasOne(d => d.Service).WithMany()
+            entity.HasOne(d => d.Service).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Diagnoses__Servi__6C190EBB");
 
-            entity.HasOne(d => d.UserIdperformedNavigation).WithMany()
+            entity.HasOne(d => d.UserIdperformedNavigation).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.UserIdperformed)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Diagnoses__UserI__6D0D32F4");

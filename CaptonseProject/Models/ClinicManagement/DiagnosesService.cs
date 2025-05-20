@@ -5,6 +5,8 @@ namespace web_api_base.Models.ClinicManagement;
 
 public partial class DiagnosesService
 {
+    public int DiagnosesServiceId { get; set; }
+
     public int DiagnosisId { get; set; }
 
     public int ServiceId { get; set; }

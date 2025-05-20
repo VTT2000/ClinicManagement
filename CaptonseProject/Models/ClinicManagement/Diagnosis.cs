@@ -17,5 +17,7 @@ public partial class Diagnosis
 
     public virtual Appointment? Appointment { get; set; }
 
+    public virtual ICollection<DiagnosesService> DiagnosesServices { get; set; } = new List<DiagnosesService>();
+
     public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
 }

@@ -11,7 +11,7 @@ public interface IAppointmentService
     public Task<dynamic> ChangeStatusWaitingForPatient(int appointmentId);
     public Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId);
     public Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status);
-    public Task<dynamic> GetAllListPatientForDocTor(DateOnly date);
+    //public Task<dynamic> GetAllListPatientForDocTor(DateOnly date);
     public Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);
 }
 
@@ -231,41 +231,41 @@ public class AppointmentService : IAppointmentService
         return result;
     }
 
-    public async Task<dynamic> GetAllListPatientForDocTor(DateOnly date)
-    {
-        var result = new HTTPResponseClient<List<AppointmentPatientForDoctorVM>>();
-        try
-        {
-            var list = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientUserAsync(date);
-            var data = list.Select(x => new AppointmentPatientForDoctorVM()
-            {
-                AppointmentId = x.AppointmentId,
-                PatientId = x.PatientId,
-                PatientFullName = x.Patient!.User!.FullName,
-                AppointmentDate = x.AppointmentDate,
-                AppointmentTime = x.AppointmentTime,
-                Status = x.Status,
-                Dob = x.Patient.Dob,
-                Phone = x.Patient.Phone
-            }).ToList();
-            result.Data = data;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            result.Message = "Thất bại";
-            result.StatusCode = StatusCodes.Status500InternalServerError;
-        }
-        result.DateTime = DateTime.Now;
-        return result;
-    }
+    // public async Task<dynamic> GetAllListPatientForDocTor(DateOnly date)
+    // {
+    //     var result = new HTTPResponseClient<List<AppointmentPatientForDoctorVM>>();
+    //     try
+    //     {
+    //         var list = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientUserAsync(date);
+    //         var data = list.Select(x => new AppointmentPatientForDoctorVM()
+    //         {
+    //             AppointmentId = x.AppointmentId,
+    //             PatientId = x.PatientId,
+    //             PatientFullName = x.Patient!.User!.FullName,
+    //             AppointmentDate = x.AppointmentDate,
+    //             AppointmentTime = x.AppointmentTime,
+    //             Status = x.Status,
+    //             Dob = x.Patient.Dob,
+    //             Phone = x.Patient.Phone
+    //         }).ToList();
+    //         result.Data = data;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //         result.Message = "Thất bại";
+    //         result.StatusCode = StatusCodes.Status500InternalServerError;
+    //     }
+    //     result.DateTime = DateTime.Now;
+    //     return result;
+    // }
     
     public async Task<dynamic> GetAllAppointmentPatientAsync2(PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition)
     {
         var result = new HTTPResponseClient<PagedResponse<List<AppointmentPatientVM>>>();
         try
         {
-            var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientDoctor(
+            var appointmentList = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientDoctorUser(
                 a =>
                 // Trạng thái là Booked hoặc Waiting
                 ((a.Status ?? "") == StatusConstant.AppointmentStatus.Booked || (a.Status ?? "") == StatusConstant.AppointmentStatus.Waiting)
@@ -330,45 +330,60 @@ public class AppointmentService : IAppointmentService
         await _unitOfWork.BeginTransaction();
         try
         {
-            Appointment data = new Appointment();
-            data.DoctorId = item.DoctorId;
-            data.AppointmentDate = item.AppointmentDate;
-            data.AppointmentTime = item.AppointmentTime;
-            data.Status = item.Status;
-            if (item.PatientId == null)
+            var workScheduleDoctor = await _unitOfWork._workScheduleRepository.WhereAsync(p => p.DoctorId == item.DoctorId);
+            if (item.AppointmentDate >= DateOnly.FromDateTime(DateTime.Now)
+                && item.AppointmentTime >= TimeOnly.FromDateTime(DateTime.Now)
+                && workScheduleDoctor.Any(p=>p.StartDate <= item.AppointmentDate && p.EndDate >= item.AppointmentDate)
+                && workScheduleDoctor.Any(p=>p.StartTime <= item.AppointmentTime && p.EndTime >= item.AppointmentTime)
+                && (item.Status.Equals(StatusConstant.AppointmentStatus.Booked) || item.Status.Equals(StatusConstant.AppointmentStatus.Waiting))
+                )
             {
-                User newUser = new User()
+                Appointment data = new Appointment();
+                data.DoctorId = item.DoctorId;
+                data.AppointmentDate = item.AppointmentDate;
+                data.AppointmentTime = item.AppointmentTime;
+                data.Status = item.Status;
+                if (item.PatientId == null)
                 {
-                    FullName = item.PatientFullName,
-                    Email = item.Email,
-                    PasswordHash = PasswordHelper.HashPassword(item.PasswordHash),
-                    Role = RoleConstant.Patient,
-                };
-                await _unitOfWork._userRepository.AddAsync(newUser);
-                await _unitOfWork.SaveChangesAsync();
-                Patient newPatient = new Patient()
+                    User newUser = new User()
+                    {
+                        FullName = item.PatientFullName,
+                        Email = item.Email,
+                        PasswordHash = PasswordHelper.HashPassword(item.PasswordHash),
+                        Role = RoleConstant.Patient,
+                    };
+                    await _unitOfWork._userRepository.AddAsync(newUser);
+                    await _unitOfWork.SaveChangesAsync();
+                    Patient newPatient = new Patient()
+                    {
+                        UserId = newUser.UserId,
+                        Dob = item.Dob,
+                        Phone = item.Phone,
+                        Address = item.Address
+                    };
+                    await _unitOfWork._patientRepository.AddAsync(newPatient);
+                    await _unitOfWork.SaveChangesAsync();
+                    data.PatientId = newPatient.PatientId;
+                }
+                else
                 {
-                    UserId = newUser.UserId,
-                    Dob = item.Dob,
-                    Phone = item.Phone,
-                    Address = item.Address
-                };
-                await _unitOfWork._patientRepository.AddAsync(newPatient);
+                    data.PatientId = item.PatientId;
+                }
+                await _unitOfWork._appointmentRepository.AddAsync(data);
                 await _unitOfWork.SaveChangesAsync();
-                data.PatientId = newPatient.PatientId;
+
+                await _unitOfWork.CommitTransaction();
+
+                result.Message = "Thành công";
+                result.StatusCode = StatusCodes.Status200OK;
+                result.Data = true;
             }
             else
             {
-                data.PatientId = item.PatientId;
+                result.Message = "Thất bại";
+                result.StatusCode = StatusCodes.Status400BadRequest;
+                result.Data = true;
             }
-            await _unitOfWork._appointmentRepository.AddAsync(data);
-            await _unitOfWork.SaveChangesAsync();
-
-            await _unitOfWork.CommitTransaction();
-
-            result.Message = "Thành công";
-            result.StatusCode = StatusCodes.Status200OK;
-            result.Data = true;
         }
         catch (Exception ex)
         {

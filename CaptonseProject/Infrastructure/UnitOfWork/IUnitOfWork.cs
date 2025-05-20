@@ -6,6 +6,8 @@ public interface IUnitOfWork : IAsyncDisposable
   public IDoctorRepository _doctorRepository { get; }
   public IAppointmentRepository _appointmentRepository { get; }
   public IWorkScheduleRepository _workScheduleRepository { get; }
+  public IDiagnosisRepository _diagnosisRepository { get; }
+  public IDiagnosisServiceRepository _diagnosisServiceRepository { get; }
 
   Task<int> SaveChangesAsync();
 
@@ -26,11 +28,13 @@ public class UnitOfWork : IUnitOfWork
   public IDoctorRepository _doctorRepository { get; }
   public IAppointmentRepository _appointmentRepository { get; }
   public IWorkScheduleRepository _workScheduleRepository { get; }
+  public IDiagnosisRepository _diagnosisRepository { get; }
+  public IDiagnosisServiceRepository _diagnosisServiceRepository { get; }
 
   private readonly ClinicContext _context;
 
 
-  public UnitOfWork(ClinicContext context, IUserRepository userRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IDoctorRepository doctorRepository, IWorkScheduleRepository workScheduleRepository)
+  public UnitOfWork(ClinicContext context, IUserRepository userRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IDoctorRepository doctorRepository, IWorkScheduleRepository workScheduleRepository, IDiagnosisRepository diagnosisRepository, IDiagnosisServiceRepository diagnosisServiceRepository)
   {
     _context = context;
     _userRepository = userRepository;
@@ -38,6 +42,8 @@ public class UnitOfWork : IUnitOfWork
     _doctorRepository = doctorRepository;
     _appointmentRepository = appointmentRepository;
     _workScheduleRepository = workScheduleRepository;
+    _diagnosisRepository = diagnosisRepository;
+    _diagnosisServiceRepository = diagnosisServiceRepository;
   }
   public async Task BeginTransaction()
   {

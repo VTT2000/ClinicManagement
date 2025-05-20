@@ -15,6 +15,8 @@ public partial class Service
 
     public string? Type { get; set; }
 
+    public virtual ICollection<DiagnosesService> DiagnosesServices { get; set; } = new List<DiagnosesService>();
+
     public virtual ICollection<Service> InverseServiceParent { get; set; } = new List<Service>();
 
     public virtual Service? ServiceParent { get; set; }

@@ -1,1 +1,219 @@
-// trang chan doan
+@page "/doctor/diagnosis"
+@page "/doctor/diagnosis/{IdAppointment:int}"
+@using System.Text;
+@layout AdminLayout
+
+@inject ReceptionistService receptionistService
+@inject DoctorFEService doctorService
+
+<div class="container-fluid">
+    <!-- Phần tiêu đề và tìm kiếm -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-10">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Tìm kiếm theo tên bệnh nhân" />
+                <input type="date" class="form-control" />
+                <select class="form-select">
+                    <option value="" selected>Tất cả trạng thái</option>
+                    <option value="@StatusConstant.AppointmentStatus.Booked">@StatusConstant.AppointmentStatus.Booked</option>
+                    <option value="@StatusConstant.AppointmentStatus.Waiting">@StatusConstant.AppointmentStatus.Waiting</option>
+                </select>
+                <button @onclick="()=>SearchRequest()" class="btn btn-outline-secondary" type="button">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" @onclick="ShowModal"><i class="bi bi-plus-circle me-2"></i>Thêm
+                mới</button>
+        </div>
+    </div>
+    <!-- Loading spinner -->
+    @if (!receptionistService.isLoaded)
+    {
+        <div class="d-flex justify-content-center my-5">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(receptionistService.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @receptionistService.ErrorMessage
+        </div>
+    }
+    else
+    {
+        <!-- Bảng hiển thị danh sách người dùng -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered">
+                        @* gắn dữ liệu ở đây *@
+                        <thead>
+                            <tr>
+                                <th>Số thứ tự</th>
+                                <th>Ngày khám</th>
+                                <th>Giờ khám</th>
+                                <th>Bệnh nhân</th>
+                                <th>Ngày sinh</th>
+                                <th>Số điện thoại</th>
+                                <th>Bác sĩ</th>
+                                <th>Trạng thái</th>
+                                <th>Tiến hành</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <!-- Dòng 1 -->
+                            @{
+                                var i = 1;
+                            }
+                            @foreach (var item in receptionistService.listAppointment2.Data.OrderBy(p => p.Status))
+                            {
+                                <tr>
+                                    <td>@i</td>
+                                    <td>@(item.AppointmentDate.HasValue ? item.AppointmentDate.Value.ToString("dd/MM/yyyy") : "")</td>
+                                    <td>@(item.AppointmentTime.HasValue? item.AppointmentTime.Value.ToString("HH:mm") : "")</td>
+                                    <td>@item.PatientFullName</td>
+                                    <td>@((item.Dob.HasValue) ? item.Dob!.Value.ToString("dd/MM/yyyy") : "") </td>
+                                    <td>@item.Phone</td>
+                                    <td>@item.DoctorFullName</td>
+                                    <td>@item.Status</td>
+                                    <td>
+                                        @if(StatusConstant.AppointmentStatus.Booked.Equals(item.Status)){
+                                            <div class="btn-group">
+                                                <button @onclick="()=>ChangeStatusWaitingForPatient(item.AppointmentId)" class="btn btn-sm btn-outline-primary">
+                                                    Chờ khám
+                                                </button>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                                i++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Phân trang -->
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(receptionistService.listAppointment2.PageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(receptionistService.listAppointment2.PageNumber - 1)">Trước</a>
+                        </li>
+
+                        @foreach (var page in GetPageNumbersToDisplay())
+                        {
+                            if (page == -1)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+                            else
+                            {
+                                <li class="page-item @(page == receptionistService.listAppointment2.PageNumber ? "active" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page)">@(page)</a>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(receptionistService.listAppointment2.PageNumber == receptionistService.listAppointment2.TotalPages ? "disabled" : "")">
+                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(receptionistService.listAppointment2.PageNumber + 1)">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int? IdAppointment {get; set;}
+
+
+    private ConditionFilterPatientForAppointmentReceptionist conditionfilter = new ConditionFilterPatientForAppointmentReceptionist();
+    
+    private bool isModalVisible = false;
+
+    private List<int> GetPageNumbersToDisplay()
+    {
+        const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
+        var pages = new List<int>();
+
+        if (receptionistService.listAppointment2.TotalPages <= 7)
+        {
+            for (int i = 1; i <= receptionistService.listAppointment2.TotalPages; i++) pages.Add(i);
+        }
+        else
+        {
+            pages.Add(1);
+            if (receptionistService.listAppointment2.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+            for (int i = Math.Max(2, receptionistService.listAppointment2.PageNumber - range); i <= Math.Min(receptionistService.listAppointment2.TotalPages - 1, receptionistService.listAppointment2.PageNumber + range); i++)
+            {
+                pages.Add(i);
+            }
+
+            if (receptionistService.listAppointment2.PageNumber < receptionistService.listAppointment2.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+            pages.Add(receptionistService.listAppointment2.TotalPages);
+        }
+
+        return pages;
+    }
+
+    private async Task SelectPage(int page)
+    {
+        if (page >= 1 && page <= receptionistService.listAppointment2.TotalPages && page != receptionistService.listAppointment2.PageNumber)
+        {
+            receptionistService.listAppointment2.PageNumber = page;
+            @* await receptionistService.GetAllAppointmentPatientAsync2(conditionfilter); *@
+        }
+    }
+
+    private async Task SearchRequest(){
+        @* await receptionistService.GetAllAppointmentPatientAsync2(conditionfilter); *@
+    }
+
+    private async Task ChangeStatusWaitingForPatient(int appointmentId){
+        @* bool result = await receptionistService.ChangeStatusWaitingForPatient(appointmentId);
+        if(result){
+            await receptionistService.GetAllAppointmentPatientAsync();
+            await receptionistService.GetAllAppointmentPatientAsync2(conditionfilter);
+        } *@
+    }
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
+
+    private async Task HideModal()
+    {
+        isModalVisible = false;
+        @* await receptionistService.GetAllAppointmentPatientAsync(); *@
+        @* await receptionistService.GetAllAppointmentPatientAsync2(conditionfilter); *@
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        @* conditionfilter.dateAppointment = DateOnly.FromDateTime(DateTime.Now); *@
+        receptionistService.OnChange += StateHasChanged;
+        @* await receptionistService.GetAllAppointmentPatientAsync(); *@
+        @* await receptionistService.GetAllAppointmentPatientAsync2(conditionfilter); *@
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public void Dispose()
+    {
+        // Hủy lắng nghe khi component bị hủy
+        @* receptionistService.OnChange -= StateHasChanged; *@
+    }
+}

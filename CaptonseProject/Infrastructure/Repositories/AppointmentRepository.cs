@@ -6,7 +6,7 @@ public interface IAppointmentRepository : IRepository<Appointment>
 {
     // Add custom methods for Appointment here if needed
     Task<List<Appointment>> GetAllAppointmentPatientUserAsync(Expression<Func<Appointment, bool>> predicate);
-    public Task<List<Appointment>> GetAllAppointmentPatientDoctor(Expression<Func<Appointment, bool>> predicate);
+    public Task<List<Appointment>> GetAllAppointmentPatientDoctorUser(Expression<Func<Appointment, bool>> predicate);
 }
 
 public class AppointmentRepository : Repository<Appointment>, IAppointmentRepository
@@ -25,7 +25,7 @@ public class AppointmentRepository : Repository<Appointment>, IAppointmentReposi
                 .ToListAsync();
     }
     
-    public async Task<List<Appointment>> GetAllAppointmentPatientDoctor(Expression<Func<Appointment, bool>> predicate)
+    public async Task<List<Appointment>> GetAllAppointmentPatientDoctorUser(Expression<Func<Appointment, bool>> predicate)
     {
         return await _dbSet
                 .AsNoTracking()
