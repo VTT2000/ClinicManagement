@@ -18,22 +18,20 @@ namespace CaptonseProject.Controllers
             _diagnosisService = diagnosisService;
         }
 
-        // role doctor
-        [Authorize]
+        [Authorize(Roles = RoleConstant.Doctor)]
         [HttpPost("SaveDiagnosisDoctorAsync")]
         public async Task<IActionResult> SaveDiagnosisDoctorAsync([FromHeader] string authorization, [FromBody] DetailSaveDiagnosisDoctorVM item)
         {
             var result = await _diagnosisService.SaveDiagnosisDoctorAsync(item, authorization);
             return Ok(result);
         }
-    
 
-        // role receptionist
-        // [HttpPost("GetAllAppointmentPatientAsync")]
-        // public async Task<IActionResult> GetAllAppointmentPatientAsync2([FromBody] PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition)
-        // {
-        //     var result = await _appointmentService.GetAllAppointmentPatientAsync2(condition);
-        //     return Ok(result);
-        // }
+        [Authorize(Roles = RoleConstant.Doctor)]
+        [HttpPost("GetAllDiagnosisByAppointmentIDAsync")]
+        public async Task<IActionResult> GetAllAppointmentPatientAsync2([FromHeader] string authorization, [FromBody] int appointmentID)
+        {
+            var result = await _diagnosisService.GetAllDiagnosisByAppointmentIDAsync(appointmentID, authorization);
+            return Ok(result);
+        }
     }
 }

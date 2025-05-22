@@ -82,7 +82,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorWaiting.Data)
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorWaiting.Data!)
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -156,7 +156,7 @@
                 </div>
             </div>
             <!-- Loading spinner -->
-            @if (!doctorService.isLoaded)
+            @if (!doctorService.isLoaded2)
             {
                 <div class="d-flex justify-content-center my-5">
                     <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -164,11 +164,11 @@
                     </div>
                 </div>
             }
-            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage))
+            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage2))
             {
                 <div class="alert alert-danger" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    @doctorService.ErrorMessage
+                    @doctorService.ErrorMessage2
                 </div>
             }
             else
@@ -197,7 +197,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorTurned.Data)
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorTurned.Data!)
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -268,7 +268,7 @@
                 </div>
             </div>
             <!-- Loading spinner -->
-            @if (!doctorService.isLoaded)
+            @if (!doctorService.isLoaded3)
             {
                 <div class="d-flex justify-content-center my-5">
                     <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -276,11 +276,11 @@
                     </div>
                 </div>
             }
-            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage))
+            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage3))
             {
                 <div class="alert alert-danger" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    @doctorService.ErrorMessage
+                    @doctorService.ErrorMessage3
                 </div>
             }
             else
@@ -309,7 +309,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorProcessing.Data)
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorProcessing.Data!)
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -322,7 +322,7 @@
                                             <td>
                                                 <div class="btn-group">
                                                     <a href="doctor/diagnosis/@item.AppointmentId" class="btn btn-sm btn-outline-primary">
-                                                        Chẩn đoán
+                                                        Chẩn đoán (xét nghiệm, kê thuốc)
                                                     </a>
                                                     <button @onclick="()=>UpdateStatusAppointment(item.AppointmentId, StatusConstant.AppointmentStatus.Diagnosed)"  class="btn btn-sm btn-outline-danger">
                                                         Khám xong
@@ -383,7 +383,7 @@
                 </div>
             </div>
             <!-- Loading spinner -->
-            @if (!doctorService.isLoaded)
+            @if (!doctorService.isLoaded4)
             {
                 <div class="d-flex justify-content-center my-5">
                     <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -391,11 +391,11 @@
                     </div>
                 </div>
             }
-            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage))
+            else if (!string.IsNullOrEmpty(doctorService.ErrorMessage4))
             {
                 <div class="alert alert-danger" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    @doctorService.ErrorMessage
+                    @doctorService.ErrorMessage4
                 </div>
             }
             else
@@ -424,7 +424,7 @@
                                     @{
                                         var i = 1;
                                     }
-                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorDiagnosed.Data)
+                                    @foreach (var item in doctorService.listAppointmentPatientForDoctorDiagnosed.Data!)
                                     {
                                         <tr>
                                             <td>@i</td>
@@ -482,7 +482,6 @@
         </div>
     </div>
 </div>
-<ModalDetailDiagnosis IsVisible="@isModalVisible" OnClose="HideModal" />
 
 @code {
     private ConditionFilterPatientForAppointmentDoctor conditionFilter = new ConditionFilterPatientForAppointmentDoctor();

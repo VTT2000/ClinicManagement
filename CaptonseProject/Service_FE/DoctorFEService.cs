@@ -16,31 +16,79 @@ public class DoctorFEService
     public string ErrorMessage3 = string.Empty;
     public bool isLoaded4 = false;
     public string ErrorMessage4 = string.Empty;
-    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorWaiting = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
-    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorTurned = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
-    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorProcessing = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
-    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorDiagnosed  = new PagedResponse<List<AppointmentPatientForDoctorVM>>();
+    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorWaiting = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
+    {
+        Data = new List<AppointmentPatientForDoctorVM>(),
+        PageSize = 10,
+        PageNumber = 1
+    };
+    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorTurned = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
+    {
+        Data = new List<AppointmentPatientForDoctorVM>(),
+        PageSize = 10,
+        PageNumber = 1
+    };
+    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorProcessing = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
+    {
+        Data = new List<AppointmentPatientForDoctorVM>(),
+        PageSize = 10,
+        PageNumber = 1
+    };
+    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorDiagnosed  = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
+    {
+        Data = new List<AppointmentPatientForDoctorVM>(),
+        PageSize = 10,
+        PageNumber = 1
+    };
+
+    public bool isLoaded5 = false;
+    public string ErrorMessage5 = string.Empty;
+    public List<DiagnosisDoctorVM> listDiagnosisDoctorVM = new List<DiagnosisDoctorVM>();
 
     public DoctorFEService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage)
     {
         _httpClientFactory = httpClientFactory;
         _localStorage = localStorage;
+    }
 
-        listAppointmentPatientForDoctorWaiting.Data = new List<AppointmentPatientForDoctorVM>();
-        listAppointmentPatientForDoctorTurned.Data = new List<AppointmentPatientForDoctorVM>();
-        listAppointmentPatientForDoctorProcessing.Data = new List<AppointmentPatientForDoctorVM>();
-        listAppointmentPatientForDoctorDiagnosed.Data = new List<AppointmentPatientForDoctorVM>();
-        
+    public async Task GetAllDiagnosisByAppointmentIDAsync(int appointmentID)
+    {
+        string query = $"api/Diagnosis/GetAllDiagnosisByAppointmentIDAsync";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        listAppointmentPatientForDoctorWaiting.PageSize = 10;
-        listAppointmentPatientForDoctorWaiting.PageNumber = 1;
-        listAppointmentPatientForDoctorTurned.PageSize = 10;
-        listAppointmentPatientForDoctorTurned.PageNumber = 1;
-        listAppointmentPatientForDoctorProcessing.PageSize = 10;
-        listAppointmentPatientForDoctorProcessing.PageNumber = 1;
-        listAppointmentPatientForDoctorDiagnosed.PageSize = 10;
-        listAppointmentPatientForDoctorDiagnosed.PageNumber = 1;
-        
+            var response = await client.PostAsJsonAsync(query, appointmentID);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<DiagnosisDoctorVM>>>();
+
+                if (result == null)
+                {
+                    ErrorMessage5 = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage5 = result.Message;
+                    listDiagnosisDoctorVM = result.Data ?? new List<DiagnosisDoctorVM>();
+                }
+            }
+            else
+            {
+                ErrorMessage5 = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage5 = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+
+        isLoaded5 = true;
+        NotifyStateChanged();
     }
 
     public async Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status)
@@ -66,7 +114,8 @@ public class DoctorFEService
                     return result.Data;
                 }
             }
-            else{
+            else
+            {
                 Console.WriteLine(response.StatusCode + "/" + response.ReasonPhrase);
             }
         }

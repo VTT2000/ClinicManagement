@@ -335,7 +335,7 @@ public class AppointmentService : IAppointmentService
                 && item.AppointmentTime >= TimeOnly.FromDateTime(DateTime.Now)
                 && workScheduleDoctor.Any(p=>p.StartDate <= item.AppointmentDate && p.EndDate >= item.AppointmentDate)
                 && workScheduleDoctor.Any(p=>p.StartTime <= item.AppointmentTime && p.EndTime >= item.AppointmentTime)
-                && (item.Status.Equals(StatusConstant.AppointmentStatus.Booked) || item.Status.Equals(StatusConstant.AppointmentStatus.Waiting))
+                && ((item.Status??"").Equals(StatusConstant.AppointmentStatus.Booked) || (item.Status??"").Equals(StatusConstant.AppointmentStatus.Waiting))
                 )
             {
                 Appointment data = new Appointment();
