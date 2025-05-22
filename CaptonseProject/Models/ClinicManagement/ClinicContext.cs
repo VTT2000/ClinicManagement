@@ -31,6 +31,8 @@ public partial class ClinicContext : DbContext
 
     public virtual DbSet<Prescription> Prescriptions { get; set; }
 
+    public virtual DbSet<PrescriptionDetail> PrescriptionDetails { get; set; }
+
     public virtual DbSet<Room> Rooms { get; set; }
 
     public virtual DbSet<Service> Services { get; set; }
@@ -39,8 +41,8 @@ public partial class ClinicContext : DbContext
 
     public virtual DbSet<WorkSchedule> WorkSchedules { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionString0");
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //     => optionsBuilder.UseSqlServer("Name=ConnectionString0");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -183,15 +185,27 @@ public partial class ClinicContext : DbContext
 
             entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
             entity.Property(e => e.DiagnosisId).HasColumnName("DiagnosisID");
-            entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
+            entity.Property(e => e.Prescription1).HasColumnName("Prescription");
 
             entity.HasOne(d => d.Diagnosis).WithMany(p => p.Prescriptions)
                 .HasForeignKey(d => d.DiagnosisId)
-                .HasConstraintName("FK__Prescript__Diagn__70DDC3D8");
+                .HasConstraintName("FK_Prescriptions_Diagnoses");
+        });
 
-            entity.HasOne(d => d.Medicine).WithMany(p => p.Prescriptions)
+        modelBuilder.Entity<PrescriptionDetail>(entity =>
+        {
+            entity.Property(e => e.PrescriptionDetailId).HasColumnName("PrescriptionDetailID");
+            entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
+            entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
+
+            entity.HasOne(d => d.Medicine).WithMany(p => p.PrescriptionDetails)
                 .HasForeignKey(d => d.MedicineId)
-                .HasConstraintName("FK__Prescript__Medic__71D1E811");
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PrescriptionDetails_Medicines");
+
+            entity.HasOne(d => d.Prescription).WithMany(p => p.PrescriptionDetails)
+                .HasForeignKey(d => d.PrescriptionId)
+                .HasConstraintName("FK_PrescriptionDetails_Prescriptions");
         });
 
         modelBuilder.Entity<Room>(entity =>

@@ -15,5 +15,5 @@ public partial class Medicine
 
     public int StockQuantity { get; set; }
 
-    public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
+    public virtual ICollection<PrescriptionDetail> PrescriptionDetails { get; set; } = new List<PrescriptionDetail>();
 }

@@ -9,11 +9,9 @@ public partial class Prescription
 
     public int? DiagnosisId { get; set; }
 
-    public int? MedicineId { get; set; }
-
-    public int Quantity { get; set; }
+    public string? Prescription1 { get; set; }
 
     public virtual Diagnosis? Diagnosis { get; set; }
 
-    public virtual Medicine? Medicine { get; set; }
+    public virtual ICollection<PrescriptionDetail> PrescriptionDetails { get; set; } = new List<PrescriptionDetail>();
 }

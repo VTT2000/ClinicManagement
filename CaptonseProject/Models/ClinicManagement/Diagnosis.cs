@@ -13,8 +13,6 @@ public partial class Diagnosis
 
     public string? Diagnosis1 { get; set; }
 
-    public string? Prescription { get; set; }
-
     public virtual Appointment? Appointment { get; set; }
 
     public virtual ICollection<DiagnosesService> DiagnosesServices { get; set; } = new List<DiagnosesService>();
