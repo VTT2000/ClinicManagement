@@ -130,7 +130,8 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IWorkScheduleRepository, WorkScheduleRepository>();
 builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
 builder.Services.AddScoped<IDiagnosisServiceRepository, DiagnosisServiceRepository>();
-
+builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+builder.Services.AddScoped<IPrescriptionDetailRepository, PrescriptionDetailRepository>();
 //unit
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 //service

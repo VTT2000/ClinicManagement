@@ -1,0 +1,197 @@
+@page "/doctor/infoProcessing"
+@page "/doctor/infoProcessing/{diagnosisID:int}"
+
+@layout AdminLayout
+@inject DoctorFEService doctorService
+
+<div class="container-fluid">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="khamTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="diagnosis-tab" data-bs-toggle="tab" data-bs-target="#diagnosis"
+                type="button" role="tab">Chẩn đoán</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="serviceParaclinical-tab" data-bs-toggle="tab" data-bs-target="#serviceParaclinical" type="button"
+                role="tab">Xét nghiệm</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="prescription-tab" data-bs-toggle="tab" data-bs-target="#prescription" type="button"
+                role="tab">Toa thuốc</button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content p-3 border border-top-0" id="khamTabContent">
+        <div class="tab-pane fade show active" id="diagnosis" role="tabpanel">
+            111
+        </div>
+        <div class="tab-pane fade" id="serviceParaclinical" role="tabpanel">
+            222
+        </div>
+        <div class="tab-pane fade" id="prescription" role="tabpanel">
+            333
+        </div>
+
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? diagnosisID {get; set;}
+
+    @* private List<int> GetPageNumbersToDisplay(string status)
+    {
+        const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
+        var pages = new List<int>();
+        
+        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
+            if (doctorService.listAppointmentPatientForDoctorWaiting.TotalPages <= 7)
+            {
+                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorWaiting.TotalPages; i++) pages.Add(i);
+            }
+            else
+            {
+                pages.Add(1);
+                if (doctorService.listAppointmentPatientForDoctorWaiting.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorWaiting.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorWaiting.TotalPages - 1, doctorService.listAppointmentPatientForDoctorWaiting.PageNumber + range); i++)
+                {
+                    pages.Add(i);
+                }
+
+                if (doctorService.listAppointmentPatientForDoctorWaiting.PageNumber < doctorService.listAppointmentPatientForDoctorWaiting.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+                pages.Add(doctorService.listAppointmentPatientForDoctorWaiting.TotalPages);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
+            if (doctorService.listAppointmentPatientForDoctorTurned.TotalPages <= 7)
+            {
+                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorTurned.TotalPages; i++) pages.Add(i);
+            }
+            else
+            {
+                pages.Add(1);
+                if (doctorService.listAppointmentPatientForDoctorTurned.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorTurned.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorTurned.TotalPages - 1, doctorService.listAppointmentPatientForDoctorTurned.PageNumber + range); i++)
+                {
+                    pages.Add(i);
+                }
+
+                if (doctorService.listAppointmentPatientForDoctorTurned.PageNumber < doctorService.listAppointmentPatientForDoctorTurned.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+                pages.Add(doctorService.listAppointmentPatientForDoctorTurned.TotalPages);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
+            if (doctorService.listAppointmentPatientForDoctorProcessing.TotalPages <= 7)
+            {
+                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorProcessing.TotalPages; i++) pages.Add(i);
+            }
+            else
+            {
+                pages.Add(1);
+                if (doctorService.listAppointmentPatientForDoctorProcessing.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorProcessing.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorProcessing.TotalPages - 1, doctorService.listAppointmentPatientForDoctorProcessing.PageNumber + range); i++)
+                {
+                    pages.Add(i);
+                }
+
+                if (doctorService.listAppointmentPatientForDoctorProcessing.PageNumber < doctorService.listAppointmentPatientForDoctorProcessing.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+                pages.Add(doctorService.listAppointmentPatientForDoctorProcessing.TotalPages);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
+            if (doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages <= 7)
+            {
+                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages; i++) pages.Add(i);
+            }
+            else
+            {
+                pages.Add(1);
+                if (doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+
+                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages - 1, doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber + range); i++)
+                {
+                    pages.Add(i);
+                }
+
+                if (doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber < doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+                pages.Add(doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages);
+            }
+        }
+        
+
+        return pages;
+    } *@
+
+    @* private async Task SelectPage(int page, string status)
+    {
+        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
+            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorWaiting.TotalPages && page != doctorService.listAppointmentPatientForDoctorWaiting.PageNumber)
+            {
+                doctorService.listAppointmentPatientForDoctorWaiting.PageNumber = page;
+                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
+            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorTurned.TotalPages && page != doctorService.listAppointmentPatientForDoctorTurned.PageNumber)
+            {
+                doctorService.listAppointmentPatientForDoctorTurned.PageNumber = page;
+                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
+            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorProcessing.TotalPages && page != doctorService.listAppointmentPatientForDoctorProcessing.PageNumber)
+            {
+                doctorService.listAppointmentPatientForDoctorProcessing.PageNumber = page;
+                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
+            }
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
+            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages && page != doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber)
+            {
+                doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber = page;
+                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
+            }
+        }
+        
+    } *@
+
+    @* private async Task SearchRequest(string status){
+        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
+        }
+        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
+            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
+        }
+    } *@
+
+    protected override async Task OnInitializedAsync()
+    {
+        @* doctorService.OnChange += StateHasChanged; *@
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync(){
+        await base.OnParametersSetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public void Dispose()
+    {
+        // Hủy lắng nghe khi component bị hủy
+        @* doctorService.OnChange -= StateHasChanged; *@
+    }
+}

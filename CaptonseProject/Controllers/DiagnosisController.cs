@@ -19,6 +19,14 @@ namespace CaptonseProject.Controllers
         }
 
         [Authorize(Roles = RoleConstant.Doctor)]
+        [HttpPost("GetDiagnosisDoctorByIDAsync")]
+        public async Task<IActionResult> GetDiagnosisDoctorByIDAsync([FromHeader] string authorization, [FromBody] int diagnosisID)
+        {
+            var result = await _diagnosisService.GetDiagnosisDoctorByIDAsync(diagnosisID, authorization);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Doctor)]
         [HttpPost("SaveDiagnosisDoctorAsync")]
         public async Task<IActionResult> SaveDiagnosisDoctorAsync([FromHeader] string authorization, [FromBody] DetailSaveDiagnosisDoctorVM item)
         {

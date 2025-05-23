@@ -5,6 +5,7 @@ using web_api_base.Models.ClinicManagement;
 public interface IDiagnosisRepository : IRepository<Diagnosis>
 {
     // Add custom methods for Diagnosis here if needed
+    public Task<Diagnosis?> GetDiagnosis_Appointment_DiagnosisService_Service_Prescription_PrescriptionDetail(Expression<Func<Diagnosis, bool>> predicate);
     public Task<List<Diagnosis>> GetAllDiagnosis_Appointment_DiagnosisService_Service_Room(Expression<Func<Diagnosis, bool>> predicate);
 }
 
@@ -15,11 +16,21 @@ public class DiagnosisRepository : Repository<Diagnosis>, IDiagnosisRepository
 
     }
 
+    public async Task<Diagnosis?> GetDiagnosis_Appointment_DiagnosisService_Service_Prescription_PrescriptionDetail(Expression<Func<Diagnosis, bool>> predicate)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(p => p.Appointment)
+            .Include(p => p.DiagnosesServices).ThenInclude(q => q.Service)
+            .Include(p => p.Prescriptions).ThenInclude(p=>p.PrescriptionDetails)
+            .SingleOrDefaultAsync(predicate);
+    }
+
     public async Task<List<Diagnosis>> GetAllDiagnosis_Appointment_DiagnosisService_Service_Room(Expression<Func<Diagnosis, bool>> predicate)
     {
         return await _dbSet
             .AsNoTracking()
-            .Include(p=>p.Appointment)
+            .Include(p => p.Appointment)
             .Include(p => p.DiagnosesServices).ThenInclude(q => q.Service)
             .Include(p => p.DiagnosesServices).ThenInclude(q => q.Room)
             .Where(predicate)
