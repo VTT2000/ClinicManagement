@@ -632,17 +632,6 @@
         }
     }
 
-    private void ShowModal()
-    {
-        isModalVisible = true;
-    }
-
-    private async Task HideModal()
-    {
-        isModalVisible = false;
-        @* await receptionistService.GetAllAppointmentPatientAsync(); *@
-    }
-
     protected override async Task OnInitializedAsync()
     {
         conditionFilter.status = StatusConstant.AppointmentStatus.Waiting;

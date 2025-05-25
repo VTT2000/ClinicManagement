@@ -27,7 +27,7 @@ namespace CaptonseProject.Controllers
         }
 
         [Authorize(Roles = RoleConstant.Doctor)]
-        [HttpPost("SaveDiagnosisDoctorAsync")]
+        [HttpPut("SaveDiagnosisDoctorAsync")]
         public async Task<IActionResult> SaveDiagnosisDoctorAsync([FromHeader] string authorization, [FromBody] DetailSaveDiagnosisDoctorVM item)
         {
             var result = await _diagnosisService.SaveDiagnosisDoctorAsync(item, authorization);

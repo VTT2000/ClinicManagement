@@ -2,7 +2,6 @@
 @using System.Text;
 @layout AdminLayout
 
-@inject ReceptionistService receptionistService
 @inject DoctorFEService doctorService
 
 <div class="container-fluid">
@@ -12,7 +11,7 @@
             
         </div>
         <div class="col-md-2">
-            <a href="/doctor/infoProcessing" class="btn btn-primary w-100"><i class="bi bi-plus-circle me-2"></i>Thêm
+            <a href="/doctor/infoProcessing/@IdAppointment" class="btn btn-primary w-100"><i class="bi bi-plus-circle me-2"></i>Thêm
                 mới</a>
         </div>
     </div>

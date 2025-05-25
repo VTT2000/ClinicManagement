@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using Blazored.LocalStorage;
 
 public class DoctorFEService
@@ -50,6 +51,86 @@ public class DoctorFEService
         _httpClientFactory = httpClientFactory;
         _localStorage = localStorage;
     }
+
+    // modal search service 2 api clinical, paraclinic
+
+    public async Task<dynamic> SaveDiagnosisDoctorAsync(DetailSaveDiagnosisDoctorVM detailSaveDiagnosisDoctorVM)
+    {
+        string query = $"api/Diagnosis/SaveDiagnosisDoctorAsync";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PutAsJsonAsync(query, detailSaveDiagnosisDoctorVM);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<bool>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage = result.Message;
+                    return result.Data;
+                }
+            }
+            else
+            {
+                Console.WriteLine(response.StatusCode + "/" + response.ReasonPhrase);
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return false;
+    }
+
+    public async Task<dynamic> GetDiagnosisDoctorByIDAsync(int diagnosisID)
+    {
+        string query = $"api/Diagnosis/GetDiagnosisDoctorByIDAsync";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, diagnosisID);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<DetailSaveDiagnosisDoctorVM>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage6 = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage6 = result.Message;
+                    return result.Data ?? new DetailSaveDiagnosisDoctorVM();
+                }
+            }
+            else
+            {
+                // ErrorMessage6 = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage6 = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return new DetailSaveDiagnosisDoctorVM();
+        // isLoaded6 = true;
+        // NotifyStateChanged();
+    } 
 
     public async Task GetAllDiagnosisByAppointmentIDAsync(int appointmentID)
     {

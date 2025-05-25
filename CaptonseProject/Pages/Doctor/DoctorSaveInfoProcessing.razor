@@ -1,5 +1,5 @@
-@page "/doctor/infoProcessing"
-@page "/doctor/infoProcessing/{diagnosisID:int}"
+@page "/doctor/infoProcessing/{IdAppointment:int}"
+@page "/doctor/infoProcessing/{IdAppointment:int}/{diagnosisID:int}"
 
 @layout AdminLayout
 @inject DoctorFEService doctorService
@@ -24,7 +24,28 @@
     <!-- Tab Content -->
     <div class="tab-content p-3 border border-top-0" id="khamTabContent">
         <div class="tab-pane fade show active" id="diagnosis" role="tabpanel">
-            111
+            <div class="container-fluid bg-white text-black">
+                <div class="row mb-3">
+                    <h3>Dịch vụ khám bệnh lâm sàng</h3>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" @onclick="ShowModal">
+                            <i class="bi bi-plus-circle me-2"></i>Thêm mới
+                        </button>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Họ và tên</label>
+                            <input type="text" class="form-control" placeholder="Nhập họ và tên" >
+                            
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <h3>Thông tin bệnh nhân</h3>
+                    <div class="col-md-12">
+                        <label class="form-label">Họ và tên</label>
+                            <input type="text" class="form-control" placeholder="Nhập họ và tên" >
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="tab-pane fade" id="serviceParaclinical" role="tabpanel">
             222
@@ -36,9 +57,32 @@
     </div>
 </div>
 
+<ModalSelectedClinicalService IsVisible="@isModalVisible" OnSeletedClinicalService="OnSeletedClinicalService" OnClose="HideModal" />
+
 @code {
     [Parameter]
+    public int IdAppointment {get; set;}
+    [Parameter]
     public int? diagnosisID {get; set;}
+
+    
+
+    private DetailSaveDiagnosisDoctorVM detailSaveDiagnosisDoctorVM = new DetailSaveDiagnosisDoctorVM();
+
+    private bool isModalVisible = false;
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
+
+    private void OnSeletedClinicalService(int clinicalServiceSelected){
+        detailSaveDiagnosisDoctorVM.ClinicalServiceId = clinicalServiceSelected;
+    }
+
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
 
     @* private List<int> GetPageNumbersToDisplay(string status)
     {
