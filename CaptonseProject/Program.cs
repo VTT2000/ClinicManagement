@@ -142,6 +142,7 @@ builder.Services.AddScoped<IWorkScheduleService, WorkScheduleService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IDiagnosisServiceBE, DiagnosisServiceBE>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
 
 //service FE
 builder.Services.AddScoped<ILoginService, LoginService>();

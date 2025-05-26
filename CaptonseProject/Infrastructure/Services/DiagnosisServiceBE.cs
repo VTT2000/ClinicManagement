@@ -70,10 +70,9 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                         AppointmentId = found.AppointmentId??0,
                         Symptoms = found.Symptoms,
                         Diagnosis1 = found.Diagnosis1, 
-                        ClinicalServiceId = data2.ServiceId, 
-                        ClinicalServiceCreatedAt = data2.CreatedAt,
-                        ClinicalServiceServiceResultReport = data2.ServiceResultReport,
-                        ClinicalServiceRoomId = data2.RoomId,
+                        ClinicalServiceId = data2 == null ? null : data2.ServiceId,
+                        ClinicalServiceServiceResultReport = data2 == null ? "" : data2.ServiceResultReport,
+                        ClinicalServiceRoomId = data2 == null ? null : data2.RoomId,
                         ParaclinicalServiceList = data3,
                         Prescriptions = data4
                     };
@@ -168,7 +167,7 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
             else
             {
                 var doctor = await _unitOfWork._doctorRepository.SingleOrDefaultAsync(p => p.UserId == user.UserId);
-                var appointment = await _unitOfWork._appointmentRepository.GetByIdAsync(item.AppointmentId);
+                var appointment = await _unitOfWork._appointmentRepository.GetByIdAsync(item.AppointmentId ?? 0);
                 if (doctor == null || appointment == null || doctor.DoctorId != appointment.DoctorId)
                 {
                     result.Message = "Thất bại";
@@ -193,11 +192,11 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                         DiagnosesService clinicalService = new DiagnosesService()
                         {
                             DiagnosisId = temp.DiagnosisId,
-                            ServiceId = item.ClinicalServiceId,
+                            ServiceId = item.ClinicalServiceId ?? 0,
                             CreatedAt = DateTime.Now,
                             ServiceResultReport = item.ClinicalServiceServiceResultReport,
                             UserIdperformed = user.UserId,
-                            RoomId = item.ClinicalServiceRoomId
+                            RoomId = item.ClinicalServiceRoomId ?? 0
                         };
                         await _unitOfWork._diagnosisServiceRepository.AddAsync(clinicalService);
 
@@ -248,14 +247,13 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                         _unitOfWork._diagnosisRepository.Update(temp);
                         await _unitOfWork.SaveChangesAsync();
 
-                        var diagnosesServices = found.DiagnosesServices.Where(p => p.DiagnosisId == item.DiagnosisId.Value && p.Service.Type == TypeServiceConstant.Clinical);
+                        var diagnosesServices = found!.DiagnosesServices.Where(p => p.DiagnosisId == item.DiagnosisId.Value && p.Service.Type == TypeServiceConstant.Clinical);
                         DiagnosesService clinicalService = diagnosesServices.FirstOrDefault()!;
                         clinicalService.DiagnosisId = temp.DiagnosisId;
-                        clinicalService.ServiceId = item.ClinicalServiceId;
-                        clinicalService.CreatedAt = DateTime.Now;
+                        clinicalService.ServiceId = item.ClinicalServiceId ?? 0;
                         clinicalService.ServiceResultReport = item.ClinicalServiceServiceResultReport;
                         clinicalService.UserIdperformed = user.UserId;
-                        clinicalService.RoomId = item.ClinicalServiceRoomId;
+                        clinicalService.RoomId = item.ClinicalServiceRoomId ?? 0;
                         _unitOfWork._diagnosisServiceRepository.Update(clinicalService);
 
                         var diagnosesServices2 = found.DiagnosesServices.Where(p => p.DiagnosisId == item.DiagnosisId.Value && p.Service.Type == TypeServiceConstant.Paraclinical);

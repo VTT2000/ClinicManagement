@@ -26,16 +26,28 @@
         <div class="tab-pane fade show active" id="diagnosis" role="tabpanel">
             <div class="container-fluid bg-white text-black">
                 <div class="row mb-3">
-                    <h3>Dịch vụ khám bệnh lâm sàng</h3>
-                    <div class="col-md-2">
-                        <button class="btn btn-primary w-100" @onclick="ShowModal">
-                            <i class="bi bi-plus-circle me-2"></i>Thêm mới
-                        </button>
+                    <div class="col-md-12">
+                        <label class="me-2 form-label">Dịch vụ khám bệnh lâm sàng:</label>
+                        @if(!infoClinicalService.StatusCode.HasValue){
+                            <button class="btn btn-primary" @onclick="ShowModal">
+                                <i class="bi bi-plus-circle me-2"></i>Thêm mới
+                            </button>
+                        }
+                        else{
+                            if(infoClinicalService.StatusCode == StatusCodes.Status200OK){
+                                <span>@infoClinicalService.Data!.ServiceName</span>
+                            }
+                            else{
+                                <span>@infoClinicalService.Message</span>
+                            }
+                            <button @onclick="SetClinicalServiceIDasNull" class="ms-2 btn btn-danger" >
+                                <i class="bi bi-x-circle me-2"></i>Hủy
+                            </button>
+                        }
                     </div>
                     <div class="col-md-12">
-                        <label class="form-label">Họ và tên</label>
-                            <input type="text" class="form-control" placeholder="Nhập họ và tên" >
-                            
+                        <label class="form-label">Triệu chứng</label>
+                        <input type="text" class="form-control" placeholder="Nhập họ và tên" > 
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -64,21 +76,45 @@
     public int IdAppointment {get; set;}
     [Parameter]
     public int? diagnosisID {get; set;}
-
-    
-
     private DetailSaveDiagnosisDoctorVM detailSaveDiagnosisDoctorVM = new DetailSaveDiagnosisDoctorVM();
+
+    private HTTPResponseClient<ServiceVM> infoClinicalService = new HTTPResponseClient<ServiceVM>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(diagnosisID == null){
+            detailSaveDiagnosisDoctorVM = new DetailSaveDiagnosisDoctorVM();
+            detailSaveDiagnosisDoctorVM.AppointmentId = IdAppointment;
+        }
+        else{
+            detailSaveDiagnosisDoctorVM = await doctorService.GetDiagnosisDoctorByIDAsync(diagnosisID.Value);
+        }
+        await SetMessageClinicalService();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task SetClinicalServiceIDasNull(){
+        detailSaveDiagnosisDoctorVM.ClinicalServiceId = null;
+        await SetMessageClinicalService();
+    }
+    private async Task SetMessageClinicalService(){
+        if(!detailSaveDiagnosisDoctorVM.ClinicalServiceId.HasValue || detailSaveDiagnosisDoctorVM.ClinicalServiceId == 0){
+            infoClinicalService = new HTTPResponseClient<ServiceVM>();
+        }
+        else{
+            infoClinicalService = await doctorService.GetServiceVMByIDAsync(detailSaveDiagnosisDoctorVM.ClinicalServiceId.Value);
+        }
+    }
 
     private bool isModalVisible = false;
     private void ShowModal()
     {
         isModalVisible = true;
     }
-
-    private void OnSeletedClinicalService(int clinicalServiceSelected){
-        detailSaveDiagnosisDoctorVM.ClinicalServiceId = clinicalServiceSelected;
+    private async Task OnSeletedClinicalService(int serviceID){
+        detailSaveDiagnosisDoctorVM.ClinicalServiceId = serviceID;
+        await SetMessageClinicalService();
     }
-
     private void HideModal()
     {
         isModalVisible = false;
@@ -218,11 +254,7 @@
         }
     } *@
 
-    protected override async Task OnInitializedAsync()
-    {
-        @* doctorService.OnChange += StateHasChanged; *@
-        await base.OnInitializedAsync();
-    }
+    
 
     protected override async Task OnParametersSetAsync(){
         await base.OnParametersSetAsync();

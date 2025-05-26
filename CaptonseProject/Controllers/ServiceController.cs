@@ -19,6 +19,14 @@ namespace CaptonseProject.Controllers
         }
 
         [Authorize(Roles = RoleConstant.Doctor)]
+        [HttpPost("GetServiceVMByIDAsync")]
+        public async Task<IActionResult> GetServiceVMByIDAsync([FromBody] int serviceID)
+        {
+            var result = await _serviceService.GetServiceVMByIDAsync(serviceID);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Doctor)]
         [HttpPost("GetAllServiceClinicalAsync")]
         public async Task<IActionResult> GetAllServiceClinicalAsync([FromBody] PagedResponse<string> pagedResponseSearchText)
         {

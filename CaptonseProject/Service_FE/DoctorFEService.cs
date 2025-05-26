@@ -52,7 +52,139 @@ public class DoctorFEService
         _localStorage = localStorage;
     }
 
-    // modal search service 2 api clinical, paraclinic
+    public async Task<dynamic> GetDiagnosisDoctorByIDAsync(int diagnosisID)
+    {
+        string query = $"api/Diagnosis/GetDiagnosisDoctorByIDAsync";
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, diagnosisID);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<DetailSaveDiagnosisDoctorVM>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage6 = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage6 = result.Message;
+                    return result.Data ?? new DetailSaveDiagnosisDoctorVM();
+                }
+            }
+            else
+            {
+                // ErrorMessage6 = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage6 = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return new DetailSaveDiagnosisDoctorVM();
+        // isLoaded6 = true;
+        // NotifyStateChanged();
+    }
+
+    public async Task<dynamic> GetAllServiceClinicalAsync(PagedResponse<string> pagedResponseSearchText)
+    {
+        string query = $"api/Service/GetAllServiceClinicalAsync";
+        var kq = new HTTPResponseClient<PagedResponse<List<SearchServiceClinicalSelectedVM>>>();
+        kq.Data = new PagedResponse<List<SearchServiceClinicalSelectedVM>>();
+        kq.Data.PageSize = pagedResponseSearchText.PageSize;
+        kq.Data.PageNumber = pagedResponseSearchText.PageNumber;
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, pagedResponseSearchText);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<PagedResponse<List<SearchServiceClinicalSelectedVM>>>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage6 = "Lỗi dữ liệu!";
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+                // ErrorMessage6 = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage6 = "Thất bại!";
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+        // isLoaded6 = true;
+        // NotifyStateChanged();
+    }
+
+    public async Task<HTTPResponseClient<PagedResponse<List<SearchServiceParaclinicalSelectedVM>>>> GetAllServiceParaclinicalAsync(PagedResponse<ConditionFilterParaclinicalServiceSelected> condition)
+    {
+        string query = $"api/Service/GetAllServiceParaclinicalAsync";
+        var kq = new HTTPResponseClient<PagedResponse<List<SearchServiceParaclinicalSelectedVM>>>();
+        kq.Data = new PagedResponse<List<SearchServiceParaclinicalSelectedVM>>();
+        kq.Data.PageSize = condition.PageSize;
+        kq.Data.PageNumber = condition.PageNumber;
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, condition);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<PagedResponse<List<SearchServiceParaclinicalSelectedVM>>>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage6 = "Lỗi dữ liệu!";
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                    //ErrorMessage6 = result.Message;
+
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+                // ErrorMessage6 = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage6 = "Thất bại!";
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+        // isLoaded6 = true;
+        // NotifyStateChanged();
+    }
 
     public async Task<dynamic> SaveDiagnosisDoctorAsync(DetailSaveDiagnosisDoctorVM detailSaveDiagnosisDoctorVM)
     {
@@ -92,44 +224,46 @@ public class DoctorFEService
         return false;
     }
 
-    public async Task<dynamic> GetDiagnosisDoctorByIDAsync(int diagnosisID)
+    public async Task<HTTPResponseClient<ServiceVM>> GetServiceVMByIDAsync(int serviceID)
     {
-        string query = $"api/Diagnosis/GetDiagnosisDoctorByIDAsync";
+        string query = $"api/Service/GetServiceVMByIDAsync";
+        HTTPResponseClient<ServiceVM> kq = new HTTPResponseClient<ServiceVM>();
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
             var token = await _localStorage.GetItemAsStringAsync("token");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsJsonAsync(query, diagnosisID);
+            var response = await client.PostAsJsonAsync(query, serviceID);
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<DetailSaveDiagnosisDoctorVM>>();
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<ServiceVM>>();
 
                 if (result == null)
                 {
                     // ErrorMessage6 = "Lỗi dữ liệu!";
+                    kq.Message = "Lỗi dữ liệu!";
                 }
                 else
                 {
                     //ErrorMessage6 = result.Message;
-                    return result.Data ?? new DetailSaveDiagnosisDoctorVM();
+                    kq = result;
                 }
             }
             else
             {
                 // ErrorMessage6 = response.StatusCode.ToString();
+                kq.Message = response.StatusCode.ToString();
             }
         }
         catch (Exception ex)
         {
             // ErrorMessage6 = "Thất bại!";
+            kq.Message = "Thất bại!";
             Console.WriteLine(ex.Message);
         }
-        return new DetailSaveDiagnosisDoctorVM();
-        // isLoaded6 = true;
-        // NotifyStateChanged();
+        return kq;
     } 
 
     public async Task GetAllDiagnosisByAppointmentIDAsync(int appointmentID)
