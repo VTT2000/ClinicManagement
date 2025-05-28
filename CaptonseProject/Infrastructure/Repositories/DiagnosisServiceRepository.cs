@@ -12,4 +12,14 @@ public class DiagnosisServiceRepository : Repository<DiagnosesService>, IDiagnos
     public DiagnosisServiceRepository(ClinicContext context) : base(context)
     {
     }
+    public async Task<List<DiagnosesService>> GetAllDiagnosisService_Service_User_Room(Expression<Func<DiagnosesService, bool>> predicate)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(p => p.Service)
+            .Include(p => p.UserIdperformedNavigation)
+            .Include(p=> p.Room)
+            .Where(predicate)
+            .ToListAsync();
+    }
 }

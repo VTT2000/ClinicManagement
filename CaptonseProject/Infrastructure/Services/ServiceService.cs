@@ -2,6 +2,7 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IServiceService
 {
+    public Task<dynamic> GetAllServiceVMByIDAsync(List<int> list);
     public Task<dynamic> GetServiceVMByIDAsync(int serviceID);
     public Task<dynamic> GetAllServiceClinicalAsync(PagedResponse<string> pagedResponseSearchText);
     public Task<dynamic> GetAllServiceParaclinicalAsync(PagedResponse<ConditionFilterParaclinicalServiceSelected> condition);
@@ -19,6 +20,35 @@ public class ServiceService : IServiceService
     }
 
     // Implement methods for admin functionalities here
+    public async Task<dynamic> GetAllServiceVMByIDAsync(List<int> list)
+    {
+        var result = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
+        try
+        {
+            var listTemp = await _unitOfWork._diagnosisServiceRepository.WhereAsync(p =>list.Any(q=> p.ServiceId == q));
+            var data = listTemp.Select(p => new ParaClinicalServiceInfoForDoctorVM()
+            {
+                ServiceId = p.ServiceId,
+                ServiceName = p.Service.ServiceName,
+                CreatedAt = p.CreatedAt,
+                ServiceResultReport = p.ServiceResultReport,
+                FullNameUserperformed = p.UserIdperformedNavigation.FullName,
+                RoomName = p.Room.RoomName
+            }).ToList();
+            result.Data = data;
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+
     public async Task<dynamic> GetServiceVMByIDAsync(int serviceID)
     {
         var result = new HTTPResponseClient<ServiceVM>();
@@ -93,11 +123,12 @@ public class ServiceService : IServiceService
         try
         {
             var list = await _unitOfWork._serviceRepository.GetAllService_Service(p =>
-                p.Type == TypeServiceConstant.Clinical
+                p.Type == TypeServiceConstant.Paraclinical
             );
+            var list2 = list.Where(p => p.ServiceParentId != null).Select(p => p.ServiceParentId!).Distinct().ToList();
             if (!condition.Data!.IsPackageService)
             {
-                list = list.Where(p => p.ServiceParentId.HasValue && StringHelper.IsMatchSearchKey(condition.Data!.SearchText, p.ServiceName))
+                list = list.Where(p => !list2.Any(q=> q == p.ServiceId) && (StringHelper.IsMatchSearchKey(condition.Data!.SearchText, p.ServiceName) || string.IsNullOrWhiteSpace(condition.Data!.SearchText)))
                 .Skip(result.Data.PageSize * (result.Data.PageNumber - 1))
                 .Take(result.Data.PageSize).ToList();
                 result.Data.TotalRecords = list.Count;
@@ -105,29 +136,22 @@ public class ServiceService : IServiceService
             }
             else
             {
-                list = list.Where(p => !p.ServiceParentId.HasValue && StringHelper.IsMatchSearchKey(condition.Data!.SearchText, p.ServiceName))
+                list = list.Where(p => list2.Any(q=> q == p.ServiceId) && (StringHelper.IsMatchSearchKey(condition.Data!.SearchText, p.ServiceName) || string.IsNullOrWhiteSpace(condition.Data!.SearchText)))
                 .Skip(result.Data.PageSize * (result.Data.PageNumber - 1))
                 .Take(result.Data.PageSize).ToList();
                 result.Data.TotalRecords = list.Count;
                 result.Data.TotalPages = (int)Math.Ceiling((double)list.Count / result.Data.PageSize);
-
-                // Tạo một HashSet để tránh trùng
-                var resultSet = new HashSet<Service>(list);
-
-                foreach (var item in list)
-                {
-                    AddAllChildren(item, resultSet);
-                }
-
-                // Cập nhật lại list đã đầy đủ cả cha và con
-                list = resultSet.ToList();
             }
 
             result.Data.Data = list.Select(p => new SearchServiceParaclinicalSelectedVM()
             {
                 ServiceID = p.ServiceId,
                 ServiceName = p.ServiceName,
-                ServiceIdParent = p.ServiceParentId
+                ServiceChildren = p.InverseServiceParent.Select(q => new SearchServiceParaclinicalSelectedVM()
+                {
+                    ServiceID = q.ServiceId,
+                    ServiceName = q.ServiceName
+                }).ToList()
             })
             .ToList();
 

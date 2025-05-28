@@ -264,6 +264,49 @@ public class DoctorFEService
             Console.WriteLine(ex.Message);
         }
         return kq;
+    }
+
+    public async Task<HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>> GetAllServiceVMByIDAsync(List<int> listServiceID)
+    {
+        string query = $"api/Service/GetAllServiceVMByIDAsync";
+        HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>> kq = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
+        kq.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, listServiceID);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage6 = "Lỗi dữ liệu!";
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage6 = result.Message;
+                    kq = result;
+                }
+            }
+            else
+            {
+                // ErrorMessage6 = response.StatusCode.ToString();
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage6 = "Thất bại!";
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
     } 
 
     public async Task GetAllDiagnosisByAppointmentIDAsync(int appointmentID)

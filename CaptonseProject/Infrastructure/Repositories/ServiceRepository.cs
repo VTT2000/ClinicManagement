@@ -18,6 +18,7 @@ public class ServiceRepository : Repository<Service>, IServiceRepository
         return await _dbSet
             .AsNoTracking()
             .Include(p => p.ServiceParent)
+            .Include(p=>p.InverseServiceParent)
             .Where(predicate)
             .ToListAsync();
     }
