@@ -133,6 +133,7 @@ builder.Services.AddScoped<IDiagnosisServiceRepository, DiagnosisServiceReposito
 builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
 builder.Services.AddScoped<IPrescriptionDetailRepository, PrescriptionDetailRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 //unit
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 //service
@@ -143,6 +144,7 @@ builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IDiagnosisServiceBE, DiagnosisServiceBE>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
+builder.Services.AddScoped<IMedicineService, MedicineService>();
 
 //service FE
 builder.Services.AddScoped<ILoginService, LoginService>();

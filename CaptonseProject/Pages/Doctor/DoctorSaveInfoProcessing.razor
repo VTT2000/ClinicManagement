@@ -80,6 +80,10 @@
                                             <tr>
                                                 <th>Số thứ tự</th>
                                                 <th>Tên xét nghiệm</th>
+                                                <th>Thời gian tạo</th>
+                                                <th>Báo cáo kết quả</th>
+                                                <th>Người thực hiện</th>
+                                                <th>Phòng thực hiện</th>
                                                 <th>Hành động</th>
                                             </tr>
                                         </thead>
@@ -89,21 +93,25 @@
                                             @{
                                                 var i = 1;
                                             }
-                                            @* @foreach (var item in list.Data!.Data!)
+                                            @foreach (var item in listServiceParaclinical.Data!.Data!)
                                             {
                                                 <tr>
                                                     <td>@i</td>
                                                     <td>@(item.ServiceName)</td>
+                                                    <td>@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+                                                    <td>@(item.ServiceResultReport)</td>
+                                                    <td>@(item.FullNameUserperformed)</td>
+                                                    <td>@(item.RoomName)</td>
                                                     <td>
                                                         <div class="btn-group">
-                                                            <button class="btn btn-sm btn-outline-danger">
+                                                            <button @onclick="() => DeleteParaclinicalService(item.ServiceId)" class="btn btn-sm btn-outline-danger">
                                                                 <i class="bi bi-trash"></i> Xóa
                                                             </button>
                                                         </div>
                                                     </td>
                                                 </tr>
                                                 i++;
-                                            } *@
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
@@ -111,8 +119,8 @@
                                 <!-- Phân trang -->
                                 <nav aria-label="Page navigation" class="mt-4">
                                     <ul class="pagination justify-content-center">
-                                        @* <li class="page-item @(list.Data!.PageNumber == 1 ? "disabled" : "")">
-                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(list.Data!.PageNumber - 1)">Trước</a>
+                                        <li class="page-item @(listServiceParaclinical.Data!.PageNumber == 1 ? "disabled" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(listServiceParaclinical.Data!.PageNumber - 1)">Trước</a>
                                         </li>
 
                                         @foreach (var page in GetPageNumbersToDisplay())
@@ -123,15 +131,15 @@
                                             }
                                             else
                                             {
-                                                <li class="page-item @(page == list.Data!.PageNumber ? "active" : "")">
+                                                <li class="page-item @(page == listServiceParaclinical.Data!.PageNumber ? "active" : "")">
                                                     <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page)">@(page)</a>
                                                 </li>
                                             }
                                         }
 
-                                        <li class="page-item @(list.Data!.PageNumber == list.Data!.TotalPages ? "disabled" : "")">
-                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(list.Data!.PageNumber + 1)">Sau</a>
-                                        </li> *@
+                                        <li class="page-item @(listServiceParaclinical.Data!.PageNumber == listServiceParaclinical.Data!.TotalPages ? "disabled" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(listServiceParaclinical.Data!.PageNumber + 1)">Sau</a>
+                                        </li>
                                     </ul>
                                 </nav>
                                 
@@ -143,7 +151,112 @@
             </div>
         </div>
         <div class="tab-pane fade" id="prescription" role="tabpanel">
-            333
+            <div class="container-fluid bg-white text-black">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="me-2 form-label">Các toa thuốc:</label>
+                        <button class="btn btn-primary" 
+                        @onclick="AddInstanceMedicine"
+                        >
+                            <i class="bi bi-plus-circle me-2"></i>Thêm mới
+                        </button>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover table-bordered">
+                                        @* gắn dữ liệu ở đây *@
+                                        <thead>
+                                            <tr>
+                                                <th>Số thứ tự</th>
+                                                <th>Toa thuốc (Chỉ định)</th>
+                                                <th>Tên thuốc</th>
+                                                <th>Số lượng</th>
+                                                <th>Loại</th>
+                                                <th>Hành động</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            @for(int j=1; j <= detailSaveDiagnosisDoctorVM.Prescriptions.Count;j++)
+                                            {
+                                                var temp = detailSaveDiagnosisDoctorVM.Prescriptions[j-1];
+                                                <tr>
+                                                    <td rowspan="@(temp.PrescriptionDetails.Count == 0 ? 1 : temp.PrescriptionDetails.Count)">@j</td>
+                                                    <td rowspan="@(temp.PrescriptionDetails.Count == 0 ? 1 : temp.PrescriptionDetails.Count)" >
+                                                        <textarea @bind="temp.Prescription1" class="form-control" />
+                                                    </td>
+                                                    @if(temp.PrescriptionDetails.Count == 0){
+                                                        <td colspan="3">
+                                                            <button class="btn btn-primary w-100"
+                                                            @* @onclick="ShowModal3" *@ // tao chon thuoc
+                                                            >
+                                                                <i class="bi bi-plus-circle me-2"></i>Chọn thuốc
+                                                            </button>
+                                                        </td>
+                                                    }
+                                                    else{
+                                                        foreach(var item in temp.PrescriptionDetails){
+                                                            <td rowspan="@(temp.PrescriptionDetails.Count)">
+                                                            
+                                                            </td>
+                                                            <td rowspan="@(temp.PrescriptionDetails.Count)">
+                                                            
+                                                            </td>
+                                                            <td rowspan="@(temp.PrescriptionDetails.Count)">
+                                                            
+                                                            </td>
+                                                        }
+                                                        
+                                                    }
+
+                                                    <td rowspan="@(temp.PrescriptionDetails.Count == 0 ? 1 : temp.PrescriptionDetails.Count)">
+                                                        <div class="btn-group">
+                                                            <button class="btn btn-sm btn-outline-danger">
+                                                                <i class="bi bi-trash"></i> Xóa
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Phân trang -->
+                                @* <nav aria-label="Page navigation" class="mt-4">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item @(listServiceParaclinical.Data!.PageNumber == 1 ? "disabled" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(listServiceParaclinical.Data!.PageNumber - 1)">Trước</a>
+                                        </li>
+
+                                        @foreach (var page in GetPageNumbersToDisplay())
+                                        {
+                                            if (page == -1)
+                                            {
+                                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                            }
+                                            else
+                                            {
+                                                <li class="page-item @(page == listServiceParaclinical.Data!.PageNumber ? "active" : "")">
+                                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page)">@(page)</a>
+                                                </li>
+                                            }
+                                        }
+
+                                        <li class="page-item @(listServiceParaclinical.Data!.PageNumber == listServiceParaclinical.Data!.TotalPages ? "disabled" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(listServiceParaclinical.Data!.PageNumber + 1)">Sau</a>
+                                        </li>
+                                    </ul>
+                                </nav> *@
+                                
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
         </div>
 
     </div>
@@ -161,21 +274,49 @@
 
     private HTTPResponseClient<ServiceVM> infoClinicalService = new HTTPResponseClient<ServiceVM>();
     private HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>> listServiceParaclinical = new HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>();
+    private HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>> listMedicineToWatch = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
+    
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+    }
+    protected override async Task OnParametersSetAsync(){
         if(diagnosisID == null){
+            // create
             detailSaveDiagnosisDoctorVM = new DetailSaveDiagnosisDoctorVM();
             detailSaveDiagnosisDoctorVM.AppointmentId = IdAppointment;
         }
         else{
+            // info
             detailSaveDiagnosisDoctorVM = await doctorService.GetDiagnosisDoctorByIDAsync(diagnosisID.Value);
         }
         await SetMessageClinicalService();
-        await base.OnInitializedAsync();
+        await SetParaclinicalService();
+        @* await SetMedicineListToWatch(); *@
+        await base.OnParametersSetAsync();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+    public void Dispose()
+    {
+        // Hủy lắng nghe khi component bị hủy
+        @* doctorService.OnChange -= StateHasChanged; *@
     }
 
-    private async Task SetClinicalServiceIDasNull(){
-        detailSaveDiagnosisDoctorVM.ClinicalServiceId = null;
+
+    private bool isModalVisible = false;
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
+    private async Task OnSeletedClinicalService(int serviceID){
+        detailSaveDiagnosisDoctorVM.ClinicalServiceId = serviceID;
         await SetMessageClinicalService();
     }
     private async Task SetMessageClinicalService(){
@@ -186,184 +327,82 @@
             infoClinicalService = await doctorService.GetServiceVMByIDAsync(detailSaveDiagnosisDoctorVM.ClinicalServiceId.Value);
         }
     }
-
-    private bool isModalVisible = false;
-    private void ShowModal()
-    {
-        isModalVisible = true;
-    }
-    private async Task OnSeletedClinicalService(int serviceID){
-        detailSaveDiagnosisDoctorVM.ClinicalServiceId = serviceID;
+    private async Task SetClinicalServiceIDasNull(){
+        detailSaveDiagnosisDoctorVM.ClinicalServiceId = null;
         await SetMessageClinicalService();
     }
-    private void HideModal()
-    {
-        isModalVisible = false;
-    }
+
 
     private bool isModalVisible2 = false;
     private void ShowModal2()
     {
         isModalVisible2 = true;
     }
-    private async Task OnSeletedParaclinicalService(List<int> parclinicalList){
-        detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.AddRange(parclinicalList);
-        Console.WriteLine(JsonSerializer.Serialize(detailSaveDiagnosisDoctorVM.ParaclinicalServiceList));
-        @* await SetMessageClinicalService(); *@
-    }
     private void HideModal2()
     {
         isModalVisible2 = false;
     }
-
-    @* private List<int> GetPageNumbersToDisplay(string status)
+    private async Task OnSeletedParaclinicalService(List<int> parclinicalList){
+        detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.AddRange(parclinicalList);
+        await SetParaclinicalService();
+    }
+    private async Task SetParaclinicalService(){
+        if(detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.Count > 0){
+            listServiceParaclinical = await doctorService.GetAllServiceVMByIDAsync(new PagedResponse<ConditionParaClinicalServiceInfo>(){
+                PageNumber = listServiceParaclinical.Data!.PageNumber,
+                PageSize = listServiceParaclinical.Data.PageSize,
+                Data = new ConditionParaClinicalServiceInfo(){
+                    DiagnosisID = diagnosisID,
+                    listServiceParaclinical = detailSaveDiagnosisDoctorVM.ParaclinicalServiceList
+                }
+            });
+        }
+        else{
+            listServiceParaclinical = new HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>();
+            listServiceParaclinical.Data = new PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>();
+            listServiceParaclinical.Data.PageSize = 10;
+            listServiceParaclinical.Data.PageNumber = 1;
+            listServiceParaclinical.Data.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
+        }
+    }
+    private async Task DeleteParaclinicalService(int serviceID){
+        detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.Remove(serviceID);
+        await SetParaclinicalService();
+    }
+    private List<int> GetPageNumbersToDisplay()
     {
         const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
         var pages = new List<int>();
         
-        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
-            if (doctorService.listAppointmentPatientForDoctorWaiting.TotalPages <= 7)
-            {
-                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorWaiting.TotalPages; i++) pages.Add(i);
-            }
-            else
-            {
-                pages.Add(1);
-                if (doctorService.listAppointmentPatientForDoctorWaiting.PageNumber > range + 2) pages.Add(-1); // dấu "..."
-
-                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorWaiting.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorWaiting.TotalPages - 1, doctorService.listAppointmentPatientForDoctorWaiting.PageNumber + range); i++)
-                {
-                    pages.Add(i);
-                }
-
-                if (doctorService.listAppointmentPatientForDoctorWaiting.PageNumber < doctorService.listAppointmentPatientForDoctorWaiting.TotalPages - range - 1) pages.Add(-1); // dấu "..."
-                pages.Add(doctorService.listAppointmentPatientForDoctorWaiting.TotalPages);
-            }
+        if (listServiceParaclinical.Data!.TotalPages <= 7)
+        {
+            for (int i = 1; i <= listServiceParaclinical.Data.TotalPages; i++) pages.Add(i);
         }
-        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
-            if (doctorService.listAppointmentPatientForDoctorTurned.TotalPages <= 7)
+        else
+        {
+            pages.Add(1);
+            if (listServiceParaclinical.Data.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+            for (int i = Math.Max(2, listServiceParaclinical.Data.PageNumber - range); i <= Math.Min(listServiceParaclinical.Data.TotalPages - 1, listServiceParaclinical.Data.PageNumber + range); i++)
             {
-                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorTurned.TotalPages; i++) pages.Add(i);
+                pages.Add(i);
             }
-            else
-            {
-                pages.Add(1);
-                if (doctorService.listAppointmentPatientForDoctorTurned.PageNumber > range + 2) pages.Add(-1); // dấu "..."
-
-                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorTurned.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorTurned.TotalPages - 1, doctorService.listAppointmentPatientForDoctorTurned.PageNumber + range); i++)
-                {
-                    pages.Add(i);
-                }
-
-                if (doctorService.listAppointmentPatientForDoctorTurned.PageNumber < doctorService.listAppointmentPatientForDoctorTurned.TotalPages - range - 1) pages.Add(-1); // dấu "..."
-                pages.Add(doctorService.listAppointmentPatientForDoctorTurned.TotalPages);
-            }
+            if (listServiceParaclinical.Data.PageNumber < listServiceParaclinical.Data.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+            pages.Add(listServiceParaclinical.Data.TotalPages);
         }
-        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
-            if (doctorService.listAppointmentPatientForDoctorProcessing.TotalPages <= 7)
-            {
-                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorProcessing.TotalPages; i++) pages.Add(i);
-            }
-            else
-            {
-                pages.Add(1);
-                if (doctorService.listAppointmentPatientForDoctorProcessing.PageNumber > range + 2) pages.Add(-1); // dấu "..."
-
-                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorProcessing.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorProcessing.TotalPages - 1, doctorService.listAppointmentPatientForDoctorProcessing.PageNumber + range); i++)
-                {
-                    pages.Add(i);
-                }
-
-                if (doctorService.listAppointmentPatientForDoctorProcessing.PageNumber < doctorService.listAppointmentPatientForDoctorProcessing.TotalPages - range - 1) pages.Add(-1); // dấu "..."
-                pages.Add(doctorService.listAppointmentPatientForDoctorProcessing.TotalPages);
-            }
-        }
-        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
-            if (doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages <= 7)
-            {
-                for (int i = 1; i <= doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages; i++) pages.Add(i);
-            }
-            else
-            {
-                pages.Add(1);
-                if (doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber > range + 2) pages.Add(-1); // dấu "..."
-
-                for (int i = Math.Max(2, doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber - range); i <= Math.Min(doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages - 1, doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber + range); i++)
-                {
-                    pages.Add(i);
-                }
-
-                if (doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber < doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages - range - 1) pages.Add(-1); // dấu "..."
-                pages.Add(doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages);
-            }
-        }
-        
 
         return pages;
-    } *@
-
-    @* private async Task SelectPage(int page, string status)
+    }
+    private async Task SelectPage(int page)
     {
-        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
-            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorWaiting.TotalPages && page != doctorService.listAppointmentPatientForDoctorWaiting.PageNumber)
-            {
-                doctorService.listAppointmentPatientForDoctorWaiting.PageNumber = page;
-                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
-            }
-        }
-        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
-            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorTurned.TotalPages && page != doctorService.listAppointmentPatientForDoctorTurned.PageNumber)
-            {
-                doctorService.listAppointmentPatientForDoctorTurned.PageNumber = page;
-                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
-            }
-        }
-        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
-            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorProcessing.TotalPages && page != doctorService.listAppointmentPatientForDoctorProcessing.PageNumber)
-            {
-                doctorService.listAppointmentPatientForDoctorProcessing.PageNumber = page;
-                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
-            }
-        }
-        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
-            if (page >= 1 && page <= doctorService.listAppointmentPatientForDoctorDiagnosed.TotalPages && page != doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber)
-            {
-                doctorService.listAppointmentPatientForDoctorDiagnosed.PageNumber = page;
-                await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
-            }
-        }
-        
-    } *@
-
-    @* private async Task SearchRequest(string status){
-        if(status.Equals(StatusConstant.AppointmentStatus.Waiting)){
-            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
-        }
-        if(status.Equals(StatusConstant.AppointmentStatus.Turned)){
-            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
-        }
-        if(status.Equals(StatusConstant.AppointmentStatus.Processing)){
-            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
-        }
-        if(status.Equals(StatusConstant.AppointmentStatus.Diagnosed)){
-            await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
-        }
-    } *@
-
-    
-
-    protected override async Task OnParametersSetAsync(){
-        await base.OnParametersSetAsync();
+        if (page >= 1 && page <= listServiceParaclinical.Data!.TotalPages && page != listServiceParaclinical.Data.PageNumber)
+        {
+            listServiceParaclinical.Data.PageNumber = page;
+            await SetParaclinicalService();
+        }   
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-    public void Dispose()
-    {
-        // Hủy lắng nghe khi component bị hủy
-        @* doctorService.OnChange -= StateHasChanged; *@
+    private void AddInstanceMedicine(){
+        detailSaveDiagnosisDoctorVM.Prescriptions.Add(new PrescriptionDiagnosisDoctorVM());
+        Console.WriteLine(detailSaveDiagnosisDoctorVM.Prescriptions.Count);
     }
 }

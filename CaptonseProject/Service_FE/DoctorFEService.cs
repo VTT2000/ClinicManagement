@@ -52,6 +52,8 @@ public class DoctorFEService
         _localStorage = localStorage;
     }
 
+    //medicine cho list int va medicine cho search modal
+
     public async Task<dynamic> GetDiagnosisDoctorByIDAsync(int diagnosisID)
     {
         string query = $"api/Diagnosis/GetDiagnosisDoctorByIDAsync";
@@ -222,6 +224,52 @@ public class DoctorFEService
             Console.WriteLine(ex.Message);
         }
         return false;
+    }
+    
+    public async Task<HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>> GetAllServiceVMByIDAsync(PagedResponse<ConditionParaClinicalServiceInfo> pageList)
+    {
+        string query = $"api/Service/GetAllServiceVMByIDAsync";
+        HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>> kq = new HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>();
+        kq.Data = new PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>();
+        kq.Data.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
+        kq.Data.PageSize = pageList.PageSize;
+        kq.Data.PageNumber = pageList.PageNumber;
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, pageList);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>>();
+
+                if (result == null)
+                {
+                    // ErrorMessage6 = "Lỗi dữ liệu!";
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage6 = result.Message;
+                    kq = result;
+                }
+            }
+            else
+            {
+                // ErrorMessage6 = response.StatusCode.ToString();
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            // ErrorMessage6 = "Thất bại!";
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
     }
 
     public async Task<HTTPResponseClient<ServiceVM>> GetServiceVMByIDAsync(int serviceID)

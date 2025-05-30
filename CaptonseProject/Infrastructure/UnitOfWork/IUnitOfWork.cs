@@ -11,6 +11,7 @@ public interface IUnitOfWork : IAsyncDisposable
   public IPrescriptionRepository _prescriptionRepository { get; }
   public IPrescriptionDetailRepository _prescriptionDetailRepository { get; }
   public IServiceRepository _serviceRepository { get; }
+  public IMedicineRepository _medicineRepository { get; }
 
   Task<int> SaveChangesAsync();
 
@@ -36,11 +37,12 @@ public class UnitOfWork : IUnitOfWork
   public IPrescriptionRepository _prescriptionRepository { get; }
   public IPrescriptionDetailRepository _prescriptionDetailRepository { get; }
   public IServiceRepository _serviceRepository { get; }
+  public IMedicineRepository _medicineRepository { get; }
 
   private readonly ClinicContext _context;
 
 
-  public UnitOfWork(ClinicContext context, IUserRepository userRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IDoctorRepository doctorRepository, IWorkScheduleRepository workScheduleRepository, IDiagnosisRepository diagnosisRepository, IDiagnosisServiceRepository diagnosisServiceRepository, IPrescriptionRepository prescriptionRepository, IPrescriptionDetailRepository prescriptionDetailRepository, IServiceRepository serviceRepository)
+  public UnitOfWork(ClinicContext context, IUserRepository userRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IDoctorRepository doctorRepository, IWorkScheduleRepository workScheduleRepository, IDiagnosisRepository diagnosisRepository, IDiagnosisServiceRepository diagnosisServiceRepository, IPrescriptionRepository prescriptionRepository, IPrescriptionDetailRepository prescriptionDetailRepository, IServiceRepository serviceRepository, IMedicineRepository medicineRepository)
   {
     _context = context;
     _userRepository = userRepository;
@@ -53,6 +55,7 @@ public class UnitOfWork : IUnitOfWork
     _prescriptionRepository = prescriptionRepository;
     _prescriptionDetailRepository = prescriptionDetailRepository;
     _serviceRepository = serviceRepository;
+    _medicineRepository = medicineRepository;
   }
   public async Task BeginTransaction()
   {
