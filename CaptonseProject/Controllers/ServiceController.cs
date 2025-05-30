@@ -28,7 +28,7 @@ namespace CaptonseProject.Controllers
 
         [Authorize(Roles = RoleConstant.Doctor)]
         [HttpPost("GetAllServiceVMByIDAsync")]
-        public async Task<IActionResult> GetAllServiceVMByIDAsync([FromBody] PagedResponse<ConditionParaClinicalServiceInfo> list)
+        public async Task<IActionResult> GetAllServiceVMByIDAsync([FromBody] ConditionParaClinicalServiceInfo list)
         {
             var result = await _serviceService.GetAllServiceVMByIDAsync(list);
             return Ok(result);

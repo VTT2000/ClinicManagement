@@ -14,9 +14,9 @@
                         <div class="col-md-12">
                             <div class="input-group">
                                 <input @bind="conditionFilter.Data!.SearchText" type="text" class="form-control" placeholder="Tìm kiếm theo tên" />
-                                <select  @onchange="OnIsPackageChanged" class="form-select">
-                                    <option value="false">Đơn dịch vụ</option>
-                                    <option value="true">Gói dịch vụ</option>
+                                <select @onchange="OnIsPackageChanged" class="form-select">
+                                    <option selected="@(!conditionFilter.Data!.IsPackageService)" value="false">Đơn dịch vụ</option>
+                                    <option selected="@(conditionFilter.Data!.IsPackageService)" value="true">Gói dịch vụ</option>
                                 </select>
                                 <button @onclick="SearchCondiotionFilter" class="btn btn-secondary" type="button">
                                     <i class="bi bi-search"></i>
@@ -73,18 +73,20 @@
                                                         </div>
                                                     </td>
                                                 </tr>
-                                                @foreach (var item2 in item.ServiceChildren)
-                                                {
+                                                @if(item.ServiceChildren.Count != 0){
                                                     <tr>
                                                         <td></td>
-                                                        <td>@(item2.ServiceName)</td>
                                                         <td>
+                                                            @foreach (var item2 in item.ServiceChildren)
+                                                            {
+                                                                <div>@(item2.ServiceName)</div>
+                                                            }
                                                         </td>
+                                                        <td></td>
                                                     </tr>
                                                 }
                                                 i++;
                                             }
-                                            
                                             
                                         </tbody>
                                     </table>
@@ -212,8 +214,10 @@
 
     private void OnIsPackageChanged(ChangeEventArgs e)
     {
-        var selected = e.Value?.ToString();
-        conditionFilter.Data!.IsPackageService = selected == "true";
+        if (bool.TryParse(e.Value?.ToString(), out var result))
+        {
+            conditionFilter.Data!.IsPackageService = result;
+        }
     }
 
     private void LoadDataAsDefault(){
@@ -239,5 +243,18 @@
     protected override async Task OnInitializedAsync(){
         LoadDataAsDefault();
         await base.OnInitializedAsync();
+    }
+    private bool lastIsVisible = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && !lastIsVisible)
+        {
+            // Modal vừa được mở => reset dữ liệu
+            LoadDataAsDefault();
+        }
+        lastIsVisible = IsVisible;
+
+        await base.OnParametersSetAsync();
     }
 }

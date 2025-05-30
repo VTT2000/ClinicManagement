@@ -66,7 +66,7 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <label class="me-2 form-label">Các dịch vụ xét nghiệm:</label>
-                        <button class="btn btn-primary" @onclick="ShowModal2">
+                        <button class="btn btn-primary btn-sm" @onclick="ShowModal2">
                             <i class="bi bi-plus-circle me-2"></i>Thêm mới
                         </button>
                     </div>
@@ -93,7 +93,7 @@
                                             @{
                                                 var i = 1;
                                             }
-                                            @foreach (var item in listServiceParaclinical.Data!.Data!)
+                                            @foreach (var item in listServiceParaclinical.Data!)
                                             {
                                                 <tr>
                                                     <td>@i</td>
@@ -116,32 +116,6 @@
                                     </table>
                                 </div>
 
-                                <!-- Phân trang -->
-                                <nav aria-label="Page navigation" class="mt-4">
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item @(listServiceParaclinical.Data!.PageNumber == 1 ? "disabled" : "")">
-                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(listServiceParaclinical.Data!.PageNumber - 1)">Trước</a>
-                                        </li>
-
-                                        @foreach (var page in GetPageNumbersToDisplay())
-                                        {
-                                            if (page == -1)
-                                            {
-                                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                                            }
-                                            else
-                                            {
-                                                <li class="page-item @(page == listServiceParaclinical.Data!.PageNumber ? "active" : "")">
-                                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page)">@(page)</a>
-                                                </li>
-                                            }
-                                        }
-
-                                        <li class="page-item @(listServiceParaclinical.Data!.PageNumber == listServiceParaclinical.Data!.TotalPages ? "disabled" : "")">
-                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(listServiceParaclinical.Data!.PageNumber + 1)">Sau</a>
-                                        </li>
-                                    </ul>
-                                </nav>
                                 
                             </div>
                         </div>
@@ -155,7 +129,7 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <label class="me-2 form-label">Các toa thuốc:</label>
-                        <button class="btn btn-primary" 
+                        <button class="btn btn-primary btn-sm" 
                         @onclick="AddInstanceMedicine"
                         >
                             <i class="bi bi-plus-circle me-2"></i>Thêm mới
@@ -165,7 +139,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-hover table-bordered">
+                                    <table class="table table-hover table-bordered">
                                         @* gắn dữ liệu ở đây *@
                                         <thead>
                                             <tr>
@@ -179,41 +153,56 @@
                                         </thead>
 
                                         <tbody>
-                                            @for(int j=1; j <= detailSaveDiagnosisDoctorVM.Prescriptions.Count;j++)
+                                            @for(int j=0; j < detailSaveDiagnosisDoctorVM.Prescriptions.Count;j++)
                                             {
-                                                var temp = detailSaveDiagnosisDoctorVM.Prescriptions[j-1];
+                                                var temp = detailSaveDiagnosisDoctorVM.Prescriptions[j];
+                                                int index = j;
+                                                List<int> listMedinceID = temp.PrescriptionDetails.Select(p=>p.MedicineId).ToList();
                                                 <tr>
-                                                    <td rowspan="@(temp.PrescriptionDetails.Count == 0 ? 1 : temp.PrescriptionDetails.Count)">@j</td>
-                                                    <td rowspan="@(temp.PrescriptionDetails.Count == 0 ? 1 : temp.PrescriptionDetails.Count)" >
+                                                    <td>@(j+1)</td>
+                                                    <td>
                                                         <textarea @bind="temp.Prescription1" class="form-control" />
                                                     </td>
                                                     @if(temp.PrescriptionDetails.Count == 0){
                                                         <td colspan="3">
-                                                            <button class="btn btn-primary w-100"
-                                                            @* @onclick="ShowModal3" *@ // tao chon thuoc
-                                                            >
-                                                                <i class="bi bi-plus-circle me-2"></i>Chọn thuốc
-                                                            </button>
+                                                            <div class="form-control-plaintext text-center">
+                                                                Chưa kê thuốc
+                                                            </div>
                                                         </td>
                                                     }
                                                     else{
-                                                        foreach(var item in temp.PrescriptionDetails){
-                                                            <td rowspan="@(temp.PrescriptionDetails.Count)">
-                                                            
-                                                            </td>
-                                                            <td rowspan="@(temp.PrescriptionDetails.Count)">
-                                                            
-                                                            </td>
-                                                            <td rowspan="@(temp.PrescriptionDetails.Count)">
-                                                            
-                                                            </td>
-                                                        }
-                                                        
+                                                        <td>
+                                                            @foreach(var item in temp.PrescriptionDetails)
+                                                            {
+                                                                var info = listMedicineToWatch.Data!.SingleOrDefault(p => p.MedicineId == item.MedicineId);
+                                                                @if(info != null){
+                                                                    <div class="form-control-plaintext">@info.MedicineName</div>
+                                                                }
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @foreach(var item in temp.PrescriptionDetails)
+                                                            {
+                                                                <input @bind="item.Quantity" class="form-control" type="number" min="0">
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @foreach(var item in temp.PrescriptionDetails)
+                                                            {
+                                                                var info = listMedicineToWatch.Data!.SingleOrDefault(p => p.MedicineId == item.MedicineId);
+                                                                @if(info != null){
+                                                                    <div class="form-control-plaintext">@info.Unit</div>
+                                                                }
+                                                            }
+                                                        </td>
                                                     }
 
-                                                    <td rowspan="@(temp.PrescriptionDetails.Count == 0 ? 1 : temp.PrescriptionDetails.Count)">
+                                                    <td>
                                                         <div class="btn-group">
-                                                            <button class="btn btn-sm btn-outline-danger">
+                                                            <button class="btn btn-sm btn-outline-primary" @onclick="()=>ShowModal3(index, listMedinceID)">
+                                                                <i class="bi bi-pencil me-2"></i>Kê thuốc
+                                                            </button>
+                                                            <button @onclick="()=>DeletedPrescription(index)" class="btn btn-sm btn-outline-danger">
                                                                 <i class="bi bi-trash"></i> Xóa
                                                             </button>
                                                         </div>
@@ -224,32 +213,6 @@
                                     </table>
                                 </div>
 
-                                <!-- Phân trang -->
-                                @* <nav aria-label="Page navigation" class="mt-4">
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item @(listServiceParaclinical.Data!.PageNumber == 1 ? "disabled" : "")">
-                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(listServiceParaclinical.Data!.PageNumber - 1)">Trước</a>
-                                        </li>
-
-                                        @foreach (var page in GetPageNumbersToDisplay())
-                                        {
-                                            if (page == -1)
-                                            {
-                                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                                            }
-                                            else
-                                            {
-                                                <li class="page-item @(page == listServiceParaclinical.Data!.PageNumber ? "active" : "")">
-                                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page)">@(page)</a>
-                                                </li>
-                                            }
-                                        }
-
-                                        <li class="page-item @(listServiceParaclinical.Data!.PageNumber == listServiceParaclinical.Data!.TotalPages ? "disabled" : "")">
-                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(listServiceParaclinical.Data!.PageNumber + 1)">Sau</a>
-                                        </li>
-                                    </ul>
-                                </nav> *@
                                 
                             </div>
                         </div>
@@ -264,7 +227,7 @@
 
 <ModalSelectedClinicalService IsVisible="@isModalVisible" OnSeletedClinicalService="OnSeletedClinicalService" OnClose="HideModal" />
 <ModalSelectedParaclinicalService IsVisible="@isModalVisible2" OnSeletedParaclinicalService="OnSeletedParaclinicalService" OnClose="HideModal2" />
-
+<ModalSelectedPrescription IsVisible="@isModalVisible3" OnClose="HideModal3" IndexMedicineCurent="@indexMedicineCurent" MedicineListCurrent="@medicineListCurrent" OnSeletedPrescriptionDetail="OnSeletedPrescriptionDetail" />
 @code {
     [Parameter]
     public int IdAppointment {get; set;}
@@ -273,7 +236,7 @@
     private DetailSaveDiagnosisDoctorVM detailSaveDiagnosisDoctorVM = new DetailSaveDiagnosisDoctorVM();
 
     private HTTPResponseClient<ServiceVM> infoClinicalService = new HTTPResponseClient<ServiceVM>();
-    private HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>> listServiceParaclinical = new HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>();
+    private HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>> listServiceParaclinical = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
     private HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>> listMedicineToWatch = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
     
     protected override async Task OnInitializedAsync()
@@ -292,7 +255,7 @@
         }
         await SetMessageClinicalService();
         await SetParaclinicalService();
-        @* await SetMedicineListToWatch(); *@
+        await SetlistMedicineToWatch();
         await base.OnParametersSetAsync();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -343,66 +306,93 @@
         isModalVisible2 = false;
     }
     private async Task OnSeletedParaclinicalService(List<int> parclinicalList){
-        detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.AddRange(parclinicalList);
+        foreach(var i in parclinicalList){
+            if(!detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.Contains(i)){
+                detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.Add(i);
+            }
+        }
         await SetParaclinicalService();
     }
     private async Task SetParaclinicalService(){
         if(detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.Count > 0){
-            listServiceParaclinical = await doctorService.GetAllServiceVMByIDAsync(new PagedResponse<ConditionParaClinicalServiceInfo>(){
-                PageNumber = listServiceParaclinical.Data!.PageNumber,
-                PageSize = listServiceParaclinical.Data.PageSize,
-                Data = new ConditionParaClinicalServiceInfo(){
-                    DiagnosisID = diagnosisID,
-                    listServiceParaclinical = detailSaveDiagnosisDoctorVM.ParaclinicalServiceList
-                }
+            listServiceParaclinical = await doctorService.GetAllServiceVMByIDAsync(new ConditionParaClinicalServiceInfo(){
+                DiagnosisID = diagnosisID,
+                listServiceParaclinical = detailSaveDiagnosisDoctorVM.ParaclinicalServiceList
             });
         }
         else{
-            listServiceParaclinical = new HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>();
-            listServiceParaclinical.Data = new PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>();
-            listServiceParaclinical.Data.PageSize = 10;
-            listServiceParaclinical.Data.PageNumber = 1;
-            listServiceParaclinical.Data.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
+            listServiceParaclinical = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
+            listServiceParaclinical.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
         }
     }
     private async Task DeleteParaclinicalService(int serviceID){
         detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.Remove(serviceID);
         await SetParaclinicalService();
     }
-    private List<int> GetPageNumbersToDisplay()
+
+    private bool isModalVisible3 = false;
+    private int indexMedicineCurent = -1;
+    private List<int> medicineListCurrent = new List<int>();
+    private void ShowModal3(int index, List<int> list)
     {
-        const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
-        var pages = new List<int>();
-        
-        if (listServiceParaclinical.Data!.TotalPages <= 7)
-        {
-            for (int i = 1; i <= listServiceParaclinical.Data.TotalPages; i++) pages.Add(i);
-        }
-        else
-        {
-            pages.Add(1);
-            if (listServiceParaclinical.Data.PageNumber > range + 2) pages.Add(-1); // dấu "..."
-            for (int i = Math.Max(2, listServiceParaclinical.Data.PageNumber - range); i <= Math.Min(listServiceParaclinical.Data.TotalPages - 1, listServiceParaclinical.Data.PageNumber + range); i++)
-            {
-                pages.Add(i);
+        indexMedicineCurent = index;
+        medicineListCurrent = list;
+        isModalVisible3 = true;
+    }
+    private void HideModal3()
+    {
+        indexMedicineCurent = -1;
+        medicineListCurrent = new List<int>();
+        isModalVisible3 = false;
+    }
+    private async Task OnSeletedPrescriptionDetail((int, List<int>) para){
+        Console.WriteLine(JsonSerializer.Serialize(para));
+        int index = para.Item1;
+        List<int> medicineList = para.Item2;
+        foreach(var item in detailSaveDiagnosisDoctorVM.Prescriptions[index].PrescriptionDetails){
+            if(medicineList.Contains(item.MedicineId)){
+                medicineList.Remove(item.MedicineId);
             }
-            if (listServiceParaclinical.Data.PageNumber < listServiceParaclinical.Data.TotalPages - range - 1) pages.Add(-1); // dấu "..."
-            pages.Add(listServiceParaclinical.Data.TotalPages);
+            else{
+                detailSaveDiagnosisDoctorVM.Prescriptions[index].PrescriptionDetails.Remove(item);
+            }
+        }
+        foreach(var item in medicineList){
+            detailSaveDiagnosisDoctorVM.Prescriptions[index].PrescriptionDetails.Add(new PrescriptionDetailDiagnosisDoctorVM(){
+                MedicineId = item,
+                Quantity = 1
+            });
         }
 
-        return pages;
-    }
-    private async Task SelectPage(int page)
-    {
-        if (page >= 1 && page <= listServiceParaclinical.Data!.TotalPages && page != listServiceParaclinical.Data.PageNumber)
-        {
-            listServiceParaclinical.Data.PageNumber = page;
-            await SetParaclinicalService();
-        }   
+        await SetlistMedicineToWatch();
     }
 
+    private async Task SetlistMedicineToWatch(){
+        List<int> listMedicineID = new List<int>();
+        foreach(var item in detailSaveDiagnosisDoctorVM.Prescriptions){
+            var listTemp = item.PrescriptionDetails;
+            foreach(var item2 in listTemp){
+                if(!listMedicineID.Contains(item2.MedicineId)){
+                    listMedicineID.Add(item2.MedicineId);
+                }
+            }
+        }
+        if(listMedicineID.Count != 0){
+            listMedicineToWatch = await doctorService.GetAllMedicineForDoctorByIdAsync(listMedicineID);
+        }
+        else{
+            listMedicineToWatch = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
+            listMedicineToWatch.Data = new List<MedicineForDiagnosisDoctorVM>();
+        }
+    }
+    
     private void AddInstanceMedicine(){
         detailSaveDiagnosisDoctorVM.Prescriptions.Add(new PrescriptionDiagnosisDoctorVM());
-        Console.WriteLine(detailSaveDiagnosisDoctorVM.Prescriptions.Count);
     }
+
+    private void DeletedPrescription(int index){
+        detailSaveDiagnosisDoctorVM.Prescriptions.RemoveAt(index);
+    }
+
+    // tien hành save và button trở về 
 }

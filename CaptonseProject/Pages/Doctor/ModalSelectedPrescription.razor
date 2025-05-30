@@ -5,7 +5,7 @@
     <div class="modal-dialog modal-lg" @onclick:stopPropagation>
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Chọn dịch vụ khám lâm sàng</h5>
+                <h5 class="modal-title">Kê thuốc</h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
@@ -14,7 +14,7 @@
                         <div class="col-md-12">
                             <div class="input-group">
                                 <input @bind="pagedResponseSearchText!.Data" type="text" class="form-control" placeholder="Tìm kiếm theo tên" />
-                                <button @onclick="SearchClinicalService" class="btn btn-secondary" type="button">
+                                <button @onclick="SearchInputKey" class="btn btn-secondary" type="button">
                                     <i class="bi bi-search"></i>
                                 </button>
                             </div>
@@ -46,7 +46,8 @@
                                         <thead>
                                             <tr>
                                                 <th>Số thứ tự</th>
-                                                <th>Tên dịch vụ</th>
+                                                <th>Tên thuốc</th>
+                                                <th>Dạng thuốc</th>
                                                 <th>Hành động</th>
                                             </tr>
                                         </thead>
@@ -56,21 +57,22 @@
                                             @{
                                                 var i = 1;
                                             }
-                                            @* @foreach (var item in list.Data!.Data!)
+                                            @foreach (var item in list.Data!.Data!)
                                             {
                                                 <tr>
                                                     <td>@i</td>
-                                                    <td>@(item.ServiceName)</td>
+                                                    <td>@(item.MedicineName)</td>
+                                                    <td>@(item.Unit)</td>
                                                     <td>
                                                         <div class="btn-group">
-                                                            <button @onclick="()=>SeletedClinicalService(item.ServiceID)" class="btn btn-sm btn-outline-primary">
+                                                            <button @onclick="()=>SeletedMedicine(item.MedicineId)" class="btn btn-sm btn-outline-primary">
                                                                 Chọn
                                                             </button>
                                                         </div>
                                                     </td>
                                                 </tr>
                                                 i++;
-                                            } *@
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
@@ -105,30 +107,76 @@
                             </div>
                         </div>
                     }
+                    <h3>Danh sách thuốc hiện tại</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-bordered">
+                                    @* gắn dữ liệu ở đây *@
+                                    <thead>
+                                        <tr>
+                                            <th>Số thứ tự</th>
+                                            <th>Tên thuốc</th>
+                                            <th>Dạng thuốc</th>
+                                            <th>Hành động</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <!-- Dòng 1 -->
+                                        @{
+                                            var st = 1;
+                                        }
+                                        @foreach (var item in listTemp.Data!)
+                                        {
+                                            <tr>
+                                                <td>@st</td>
+                                                <td>@(item.MedicineName)</td>
+                                                <td>@(item.Unit)</td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button @onclick="()=>DeletedMedicine(item.MedicineId)" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i> Xóa
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            st++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
 
                 </div>
             </div>
 
-            @* <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="Close">Đóng</button>
-            </div> *@
+            <div class="modal-footer">
+                <button class="btn btn-primary" @onclick="SavePrescriptionDetail">Lưu</button>
+                @* <button class="btn btn-secondary" @onclick="Close">Đóng</button> *@
+            </div>
         </div>
     </div>
 </div>
 
 @code {
     [Parameter]
+    public bool IsVisible { get; set; }
+    [Parameter]
     public EventCallback OnClose { get; set; }
     [Parameter]
-    public EventCallback<int> OnSeletedClinicalService {get;set;}
+    public EventCallback<(int, List<int>)> OnSeletedPrescriptionDetail {get;set;}
     [Parameter]
-    public bool IsVisible { get; set; }
-
+    public int IndexMedicineCurent { get; set; }
+    [Parameter]
+    public List<int> MedicineListCurrent { get; set; } = new List<int>();
 
     private bool? isLoaded;
     private PagedResponse<string> pagedResponseSearchText = new PagedResponse<string>();
     private HTTPResponseClient<PagedResponse<List<MedicineForDiagnosisDoctorVM>>> list = new HTTPResponseClient<PagedResponse<List<MedicineForDiagnosisDoctorVM>>>();
-    
+    private HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>> listTemp = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
 
     private List<int> GetPageNumbersToDisplay()
     {
@@ -157,36 +205,60 @@
         if (page >= 1 && page <= list.Data!.TotalPages && page != list.Data!.PageNumber)
         {
             list.Data!.PageNumber = page;
-            await SearchClinicalService();
+            await SearchInputKey();
         }
     }
 
-    private async Task SearchClinicalService(){
+    private async Task SearchInputKey(){
         pagedResponseSearchText.PageSize = list.Data!.PageSize;
         pagedResponseSearchText.PageNumber = list.Data!.PageNumber;
         isLoaded = false;
-        list = await doctorService.GetAllServiceClinicalAsync(pagedResponseSearchText);
+        list = await doctorService.GetAllMedicineForSearchDoctor(pagedResponseSearchText);
         isLoaded = true;
     }
 
-    private async Task SeletedClinicalService(int serviceID){
-        await OnSeletedClinicalService.InvokeAsync(serviceID);
-        await Close();
+    private async Task SeletedMedicine(int medicineID){
+        if(!MedicineListCurrent.Contains(medicineID)){
+            MedicineListCurrent.Add(medicineID);
+            await SetMedicineListCurrentShow();
+        }
+    }
+
+    private async Task DeletedMedicine(int medicineID){
+        MedicineListCurrent.Remove(medicineID);
+        await SetMedicineListCurrentShow();
+    }
+
+    private async Task SetMedicineListCurrentShow(){
+        if(MedicineListCurrent.Count != 0){
+            listTemp = await doctorService.GetAllMedicineForDoctorByIdAsync(MedicineListCurrent);
+        }
+        else{
+            listTemp = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
+            listTemp.Data = new List<MedicineForDiagnosisDoctorVM>();
+        }
     }
 
     private void LoadDataAsDefault(){
         isLoaded = null;
         pagedResponseSearchText = new PagedResponse<string>();
         pagedResponseSearchText.Data = string.Empty;
-        @* list = new HTTPResponseClient<PagedResponse<List<SearchServiceClinicalSelectedVM>>>();
-        list.Data = new PagedResponse<List<SearchServiceClinicalSelectedVM>>();
-        list.Data.Data = new List<SearchServiceClinicalSelectedVM>(); *@
+        list = new HTTPResponseClient<PagedResponse<List<MedicineForDiagnosisDoctorVM>>>();
+        list.Data = new PagedResponse<List<MedicineForDiagnosisDoctorVM>>();
+        list.Data.Data = new List<MedicineForDiagnosisDoctorVM>();
         list.Data.PageSize = 10;
         list.Data.PageNumber = 1;
         list.Data.TotalRecords = 0;
         list.Data.TotalPages = 0;
+        listTemp = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
+        listTemp.Data = new List<MedicineForDiagnosisDoctorVM>();
     }
 
+    private async Task SavePrescriptionDetail()
+    {
+        await OnSeletedPrescriptionDetail.InvokeAsync((IndexMedicineCurent, MedicineListCurrent));
+        await Close();
+    }
     private async Task Close()
     {
         LoadDataAsDefault();
@@ -196,5 +268,10 @@
     protected override async Task OnInitializedAsync(){
         LoadDataAsDefault();
         await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync(){
+        await SetMedicineListCurrentShow();
+        await base.OnParametersSetAsync();
     }
 }

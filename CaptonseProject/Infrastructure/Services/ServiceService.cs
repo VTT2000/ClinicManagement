@@ -2,7 +2,7 @@ using web_api_base.Models.ClinicManagement;
 
 public interface IServiceService
 {
-    public Task<dynamic> GetAllServiceVMByIDAsync(PagedResponse<ConditionParaClinicalServiceInfo> pageList);
+    public Task<dynamic> GetAllServiceVMByIDAsync(ConditionParaClinicalServiceInfo pageList);
     public Task<dynamic> GetServiceVMByIDAsync(int serviceID);
     public Task<dynamic> GetAllServiceClinicalAsync(PagedResponse<string> pagedResponseSearchText);
     public Task<dynamic> GetAllServiceParaclinicalAsync(PagedResponse<ConditionFilterParaclinicalServiceSelected> condition);
@@ -20,18 +20,15 @@ public class ServiceService : IServiceService
     }
 
     // Implement methods for admin functionalities here
-    public async Task<dynamic> GetAllServiceVMByIDAsync(PagedResponse<ConditionParaClinicalServiceInfo> pageList)
+    public async Task<dynamic> GetAllServiceVMByIDAsync(ConditionParaClinicalServiceInfo list)
     {
-        var result = new HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>();
-        result.Data = new PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>();
-        result.Data.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
-        result.Data.PageSize = pageList.PageSize;
-        result.Data.PageNumber = pageList.PageNumber;
+        var result = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
+        result.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
         try
         {
-            var listTemp = await _unitOfWork._serviceRepository.WhereAsync(p => pageList.Data!.listServiceParaclinical.Contains(p.ServiceId));
-            var listTemp2 = await _unitOfWork._diagnosisServiceRepository.WhereAsync(p => p.DiagnosisId == pageList.Data!.DiagnosisID && pageList.Data.listServiceParaclinical.Contains(p.ServiceId));
-            var data = pageList.Data!.listServiceParaclinical.Select(p =>
+            var listTemp = await _unitOfWork._serviceRepository.WhereAsync(p => list.listServiceParaclinical.Contains(p.ServiceId));
+            var listTemp2 = await _unitOfWork._diagnosisServiceRepository.WhereAsync(p => p.DiagnosisId == list.DiagnosisID && list.listServiceParaclinical.Contains(p.ServiceId));
+            var data = list.listServiceParaclinical.Select(p =>
             {
                 ParaClinicalServiceInfoForDoctorVM kq = new ParaClinicalServiceInfoForDoctorVM();
                 kq.ServiceId = p;
@@ -47,13 +44,8 @@ public class ServiceService : IServiceService
                 }
                 return kq;
             }).ToList();
-
-            result.Data.TotalRecords = data.Count;
-            result.Data.TotalPages = (int)Math.Ceiling((double)data.Count / result.Data.PageSize);
-            result.Data.Data = data
-            .Skip(result.Data.PageSize * (result.Data.PageNumber - 1))
-            .Take(result.Data.PageSize).ToList();
             
+            result.Data = data;
             result.Message = "Thành công";
             result.StatusCode = StatusCodes.Status200OK;
         }

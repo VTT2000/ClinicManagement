@@ -52,7 +52,86 @@ public class DoctorFEService
         _localStorage = localStorage;
     }
 
-    //medicine cho list int va medicine cho search modal
+    public async Task<dynamic> GetAllMedicineForSearchDoctor(PagedResponse<string> pageSearch)
+    {
+        string query = $"api/Medicine/GetAllMedicineForSearchDoctor";
+        HTTPResponseClient<PagedResponse<List<MedicineForDiagnosisDoctorVM>>> kq = new HTTPResponseClient<PagedResponse<List<MedicineForDiagnosisDoctorVM>>>();
+        kq.Data = new PagedResponse<List<MedicineForDiagnosisDoctorVM>>();
+        kq.Data.PageSize = pageSearch.PageSize;
+        kq.Data.PageNumber = pageSearch.PageNumber;
+        kq.Data.Data = new List<MedicineForDiagnosisDoctorVM>();
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, pageSearch);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<PagedResponse<List<MedicineForDiagnosisDoctorVM>>>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+    }
+
+    public async Task<dynamic> GetAllMedicineForDoctorByIdAsync(List<int> list)
+    {
+        string query = $"api/Medicine/GetAllMedicineForDoctorByIdAsync";
+        HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>> kq = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
+        kq.Data = new List<MedicineForDiagnosisDoctorVM>();
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, list);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+    }
 
     public async Task<dynamic> GetDiagnosisDoctorByIDAsync(int diagnosisID)
     {
@@ -226,25 +305,22 @@ public class DoctorFEService
         return false;
     }
     
-    public async Task<HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>> GetAllServiceVMByIDAsync(PagedResponse<ConditionParaClinicalServiceInfo> pageList)
+    public async Task<HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>> GetAllServiceVMByIDAsync(ConditionParaClinicalServiceInfo condition)
     {
         string query = $"api/Service/GetAllServiceVMByIDAsync";
-        HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>> kq = new HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>();
-        kq.Data = new PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>();
-        kq.Data.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
-        kq.Data.PageSize = pageList.PageSize;
-        kq.Data.PageNumber = pageList.PageNumber;
+        HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>> kq = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
+        kq.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
             var token = await _localStorage.GetItemAsStringAsync("token");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsJsonAsync(query, pageList);
+            var response = await client.PostAsJsonAsync(query, condition);
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<PagedResponse<List<ParaClinicalServiceInfoForDoctorVM>>>>();
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>>();
 
                 if (result == null)
                 {
