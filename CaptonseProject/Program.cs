@@ -2,7 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using Blazored.LocalStorage;
-
+using Blazored.Toast;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
@@ -134,6 +134,7 @@ builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
 builder.Services.AddScoped<IPrescriptionDetailRepository, PrescriptionDetailRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 //unit
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 //service
@@ -145,6 +146,7 @@ builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IDiagnosisServiceBE, DiagnosisServiceBE>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IMedicineService, MedicineService>();
+builder.Services.AddScoped<IRoomService, RoomService>();
 
 //service FE
 builder.Services.AddScoped<ILoginService, LoginService>();
@@ -152,6 +154,9 @@ builder.Services.AddScoped<ILoginService, LoginService>();
 //service FE
 builder.Services.AddScoped<ReceptionistService>();
 builder.Services.AddScoped<DoctorFEService>();
+builder.Services.AddScoped<RoomServiceFE>();
+
+builder.Services.AddBlazoredToast();
 
 var app = builder.Build();
 

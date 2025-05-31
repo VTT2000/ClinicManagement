@@ -53,7 +53,8 @@ public class MedicineService : IMedicineService
         result.Data.Data = new List<MedicineForDiagnosisDoctorVM>();
         try
         {
-            var list = await _unitOfWork._medicineRepository.WhereAsync(p => string.IsNullOrWhiteSpace(pageSearch.Data) || StringHelper.IsMatchSearchKey(pageSearch.Data!, p.MedicineName));
+            var list = await _unitOfWork._medicineRepository.GetAllAsync();
+            list = list.Where(p => string.IsNullOrWhiteSpace(pageSearch.Data) || StringHelper.IsMatchSearchKey(pageSearch.Data!, p.MedicineName));
             var data = list.Select(p => new MedicineForDiagnosisDoctorVM()
             {
                 MedicineId = p.MedicineId,

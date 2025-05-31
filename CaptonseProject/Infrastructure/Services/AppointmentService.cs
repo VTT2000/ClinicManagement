@@ -11,7 +11,6 @@ public interface IAppointmentService
     public Task<dynamic> ChangeStatusWaitingForPatient(int appointmentId);
     public Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId);
     public Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status);
-    //public Task<dynamic> GetAllListPatientForDocTor(DateOnly date);
     public Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);
 }
 
@@ -230,35 +229,6 @@ public class AppointmentService : IAppointmentService
         }
         return result;
     }
-
-    // public async Task<dynamic> GetAllListPatientForDocTor(DateOnly date)
-    // {
-    //     var result = new HTTPResponseClient<List<AppointmentPatientForDoctorVM>>();
-    //     try
-    //     {
-    //         var list = await _unitOfWork._appointmentRepository.GetAllAppointmentPatientUserAsync(date);
-    //         var data = list.Select(x => new AppointmentPatientForDoctorVM()
-    //         {
-    //             AppointmentId = x.AppointmentId,
-    //             PatientId = x.PatientId,
-    //             PatientFullName = x.Patient!.User!.FullName,
-    //             AppointmentDate = x.AppointmentDate,
-    //             AppointmentTime = x.AppointmentTime,
-    //             Status = x.Status,
-    //             Dob = x.Patient.Dob,
-    //             Phone = x.Patient.Phone
-    //         }).ToList();
-    //         result.Data = data;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine(ex.Message);
-    //         result.Message = "Thất bại";
-    //         result.StatusCode = StatusCodes.Status500InternalServerError;
-    //     }
-    //     result.DateTime = DateTime.Now;
-    //     return result;
-    // }
     
     public async Task<dynamic> GetAllAppointmentPatientAsync2(PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition)
     {

@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 
 <CascadingAuthenticationState>
+    <BlazoredToasts Position="Blazored.Toast.Configuration.ToastPosition.BottomRight"  />
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">

@@ -1,18 +1,38 @@
 @page "/doctor/diagnosis/{IdAppointment:int}"
 @using System.Text;
+
 @layout AdminLayout
 
+@inject RoomServiceFE roomService
 @inject DoctorFEService doctorService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
 
 <div class="container-fluid">
     <!-- Phần tiêu đề và tìm kiếm -->
     <div class="row mb-4 align-items-center">
         <div class="col-md-10">
-            
+            <label class="me-2 form-label">Phòng thực hiện:</label>
+                @if(!roomService.SelectedRoomID.HasValue || roomService.SelectedRoomID.Value == 0){
+                    <button class="btn btn-primary" @onclick="ShowModal">
+                        <i class="bi bi-pencil me-2"></i>Chọn phòng
+                    </button>
+                }
+                else{
+                    if(infoRoom.StatusCode == StatusCodes.Status200OK){
+                        <span>@infoRoom.Data!.RoomName</span>
+                    }
+                    else{
+                        <span>@infoRoom.Message</span>
+                    }
+                    <button @onclick="SetRoomIDasNull" class="ms-2 btn btn-danger" >
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </button>
+                }
         </div>
         <div class="col-md-2">
-            <a href="/doctor/infoProcessing/@IdAppointment" class="btn btn-primary w-100"><i class="bi bi-plus-circle me-2"></i>Thêm
-                mới</a>
+            <button @onclick="()=>GoToPageInfoProcessing()" class="btn btn-primary w-100"><i class="bi bi-plus-circle me-2"></i>Thêm
+                mới</button>
         </div>
     </div>
     <!-- Loading spinner -->
@@ -67,7 +87,11 @@
                                     <td>@item.ClinicalServiceResultReport</td>
                                     <td>@item.Symptoms</td>
                                     <td>@item.Diagnosis1</td>
-
+                                    <td>
+                                        <button @onclick="()=>GoToPageInfoProcessing(item.DiagnosisId)" class="btn btn-primary w-100">
+                                            <i class="bi bi-pencil me-2"></i> Chi tiết
+                                        </button>
+                                    </td>
                                 </tr>
                                 i++;
                             }
@@ -80,10 +104,27 @@
     }
 </div>
 
+<ModalSelectedRoom IsVisible="@isModalVisible" OnSeletedRoomID="OnSeletedRoomID" OnClose="HideModal" />
 
 @code {
     [Parameter]
     public int IdAppointment {get; set;}
+
+    public HTTPResponseClient<RoomVM> infoRoom = new HTTPResponseClient<RoomVM>();
+
+    private void GoToPageInfoProcessing(int? diagnosisID = null){
+        if(!diagnosisID.HasValue){
+            if(!roomService.SelectedRoomID.HasValue){
+                ToastService.ShowWarning("Hãy chọn phòng trước!");
+            }
+            else{
+                Navigation.NavigateTo($"/doctor/infoProcessing/{IdAppointment}");
+            }
+        }
+        else{
+            Navigation.NavigateTo($"/doctor/infoProcessing/{IdAppointment}/{diagnosisID}");
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,6 +134,7 @@
 
     protected override async Task OnParametersSetAsync(){
         await doctorService.GetAllDiagnosisByAppointmentIDAsync(IdAppointment);
+        await SetInfoRoomID();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -105,4 +147,31 @@
         // Hủy lắng nghe khi component bị hủy
         doctorService.OnChange -= StateHasChanged;
     }
+
+    private bool isModalVisible = false;
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
+    private async Task OnSeletedRoomID(int roomID){
+        roomService.SelectedRoomID = roomID;
+        await SetInfoRoomID();
+    }
+    private async Task SetInfoRoomID(){
+        if(!roomService.SelectedRoomID.HasValue || roomService.SelectedRoomID.Value == 0){
+            infoRoom = new HTTPResponseClient<RoomVM>();
+        }
+        else{
+            infoRoom = await roomService.GetRoomVMByIDAsync(roomService.SelectedRoomID.Value);
+        }
+    }
+    
+    private void SetRoomIDasNull(){
+        roomService.SelectedRoomID = null;
+    }
 }
+
