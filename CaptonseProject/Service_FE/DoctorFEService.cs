@@ -133,9 +133,11 @@ public class DoctorFEService
         return kq;
     }
 
-    public async Task<dynamic> GetDiagnosisDoctorByIDAsync(int diagnosisID)
+    public async Task<HTTPResponseClient<DetailSaveDiagnosisDoctorVM>> GetDiagnosisDoctorByIDAsync(int diagnosisID)
     {
         string query = $"api/Diagnosis/GetDiagnosisDoctorByIDAsync";
+        HTTPResponseClient<DetailSaveDiagnosisDoctorVM> kq = new HTTPResponseClient<DetailSaveDiagnosisDoctorVM>();
+        kq.Data = new DetailSaveDiagnosisDoctorVM();
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
@@ -150,27 +152,24 @@ public class DoctorFEService
 
                 if (result == null)
                 {
-                    // ErrorMessage6 = "Lỗi dữ liệu!";
+                    kq.Message = "Lỗi dữ liệu!";
                 }
                 else
                 {
-                    //ErrorMessage6 = result.Message;
-                    return result.Data ?? new DetailSaveDiagnosisDoctorVM();
+                    kq = result;
                 }
             }
             else
             {
-                // ErrorMessage6 = response.StatusCode.ToString();
+                kq.Message = response.StatusCode.ToString();
             }
         }
         catch (Exception ex)
         {
-            // ErrorMessage6 = "Thất bại!";
+            kq.Message = "Thất bại!";
             Console.WriteLine(ex.Message);
         }
-        return new DetailSaveDiagnosisDoctorVM();
-        // isLoaded6 = true;
-        // NotifyStateChanged();
+        return kq;
     }
 
     public async Task<dynamic> GetAllServiceClinicalAsync(PagedResponse<string> pagedResponseSearchText)
@@ -267,9 +266,51 @@ public class DoctorFEService
         // NotifyStateChanged();
     }
 
-    public async Task<dynamic> SaveDiagnosisDoctorAsync(DetailSaveDiagnosisDoctorVM detailSaveDiagnosisDoctorVM)
+    public async Task<HTTPResponseClient<bool>> DeleteDiagnosisDoctorAsync(int diagnosisID)
+    {
+        string query = $"api/Diagnosis/DeleteDiagnosisDoctorAsync/{diagnosisID}";
+        HTTPResponseClient<bool> kq = new HTTPResponseClient<bool>();
+        kq.Data = false;
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.DeleteAsync(query);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<bool>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    //ErrorMessage = result.Message;
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+    }
+
+    public async Task<HTTPResponseClient<bool>> SaveDiagnosisDoctorAsync(DetailSaveDiagnosisDoctorVM detailSaveDiagnosisDoctorVM)
     {
         string query = $"api/Diagnosis/SaveDiagnosisDoctorAsync";
+        HTTPResponseClient<bool> kq = new HTTPResponseClient<bool>();
+        kq.Data = false;
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
@@ -284,25 +325,25 @@ public class DoctorFEService
 
                 if (result == null)
                 {
-                    // ErrorMessage = "Lỗi dữ liệu!";
+                    kq.Message = "Lỗi dữ liệu!";
                 }
                 else
                 {
                     //ErrorMessage = result.Message;
-                    return result.Data;
+                    kq = result;
                 }
             }
             else
             {
-                Console.WriteLine(response.StatusCode + "/" + response.ReasonPhrase);
+                kq.Message = response.StatusCode.ToString();
             }
         }
         catch (Exception ex)
         {
-            // ErrorMessage = "Thất bại!";
+            kq.Message = "Thất bại!";
             Console.WriteLine(ex.Message);
         }
-        return false;
+        return kq;
     }
     
     public async Task<HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>> GetAllServiceVMByIDAsync(ConditionParaClinicalServiceInfo condition)

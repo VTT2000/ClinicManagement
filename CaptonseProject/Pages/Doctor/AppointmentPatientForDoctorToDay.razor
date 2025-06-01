@@ -648,6 +648,7 @@
         await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
         await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
         await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
+        Console.WriteLine(JsonSerializer.Serialize(doctorService.listAppointmentPatientForDoctorDiagnosed));
         await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
     }
 

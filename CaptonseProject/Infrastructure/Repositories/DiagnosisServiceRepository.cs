@@ -5,6 +5,7 @@ using web_api_base.Models.ClinicManagement;
 public interface IDiagnosisServiceRepository : IRepository<DiagnosesService>
 {
     // Add custom methods for DiagnosisService here if needed
+    public Task<List<DiagnosesService>> GetAllDiagnosisService_Service_User_Room(Expression<Func<DiagnosesService, bool>> predicate);
 }
 
 public class DiagnosisServiceRepository : Repository<DiagnosesService>, IDiagnosisServiceRepository

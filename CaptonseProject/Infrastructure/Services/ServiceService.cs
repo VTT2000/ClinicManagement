@@ -20,30 +20,43 @@ public class ServiceService : IServiceService
     }
 
     // Implement methods for admin functionalities here
-    public async Task<dynamic> GetAllServiceVMByIDAsync(ConditionParaClinicalServiceInfo list)
+    public async Task<dynamic> GetAllServiceVMByIDAsync(ConditionParaClinicalServiceInfo condition)
     {
         var result = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
         result.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
         try
         {
-            var listTemp = await _unitOfWork._serviceRepository.WhereAsync(p => list.listServiceParaclinical.Contains(p.ServiceId));
-            var listTemp2 = await _unitOfWork._diagnosisServiceRepository.WhereAsync(p => p.DiagnosisId == list.DiagnosisID && list.listServiceParaclinical.Contains(p.ServiceId));
-            var data = list.listServiceParaclinical.Select(p =>
+            var tempServicePara = await _unitOfWork._serviceRepository.WhereAsync(p => p.Type == TypeServiceConstant.Paraclinical);
+            var tempData = await _unitOfWork._diagnosisServiceRepository.GetAllDiagnosisService_Service_User_Room(p =>
+            condition.DiagnosisID.HasValue && p.DiagnosisId == condition.DiagnosisID.Value
+            && p.Service.Type == TypeServiceConstant.Paraclinical);
+
+            List<ParaClinicalServiceInfoForDoctorVM> data = new List<ParaClinicalServiceInfoForDoctorVM>();
+            foreach (var i in condition.listServiceParaclinical)
             {
-                ParaClinicalServiceInfoForDoctorVM kq = new ParaClinicalServiceInfoForDoctorVM();
-                kq.ServiceId = p;
-                var temp = listTemp.SingleOrDefault(x=>x.ServiceId == p);
-                kq.ServiceName = temp == null ? "" : temp.ServiceName;
-                var temp2 = listTemp2.SingleOrDefault(x => x.ServiceId == p);
+                ParaClinicalServiceInfoForDoctorVM temp = new ParaClinicalServiceInfoForDoctorVM();
+                temp.ServiceId = i;
+                var temp1 = tempServicePara.SingleOrDefault(p => p.ServiceId == i);
+                if (temp1 != null)
+                {
+                    temp.ServiceName = temp1.ServiceName;
+                }
+                var temp2 = tempData.SingleOrDefault(p => p.ServiceId == i);
                 if (temp2 != null)
                 {
-                    kq.CreatedAt = temp2.CreatedAt;
-                    kq.ServiceResultReport = temp2.ServiceResultReport;
-                    kq.FullNameUserperformed = temp2.UserIdperformedNavigation.FullName;
-                    kq.RoomName = temp2.Room.RoomName;
+                    temp.CreatedAt = temp2.CreatedAt;
+                    temp.ServiceResultReport = temp2.ServiceResultReport;
+                    if (temp2.UserIdperformed.HasValue)
+                    {
+                        temp.FullNameUserperformed = temp2.UserIdperformedNavigation.FullName;
+                    }
+                    if (temp2.Room != null)
+                    {
+                        temp.RoomName = temp2.Room.RoomName;
+                    }
                 }
-                return kq;
-            }).ToList();
+                data.Add(temp);
+            }
             
             result.Data = data;
             result.Message = "Thành công";

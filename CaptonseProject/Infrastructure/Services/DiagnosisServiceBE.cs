@@ -5,6 +5,7 @@ public interface IDiagnosisServiceBE
     public Task<dynamic> GetDiagnosisDoctorByIDAsync(int diagnosisID, string authorization);
     public Task<dynamic> GetAllDiagnosisByAppointmentIDAsync(int appointmentID, string authorization);
     public Task<dynamic> SaveDiagnosisDoctorAsync(DetailSaveDiagnosisDoctorVM item, string authorization);
+    public Task<dynamic> DeleteDiagnosisDoctorAsync(int diagnosisID, string authorization);
 }
 
 public class DiagnosisServiceBE : IDiagnosisServiceBE
@@ -19,6 +20,7 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
 
     public async Task<dynamic> GetDiagnosisDoctorByIDAsync(int diagnosisID, string authorization){
         var result = new HTTPResponseClient<DetailSaveDiagnosisDoctorVM>();
+        result.Data = new DetailSaveDiagnosisDoctorVM();
         try
         {
             string token = authorization.Substring("Bearer ".Length);
@@ -49,7 +51,7 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                 else
                 {
                     var data2 = found.DiagnosesServices.SingleOrDefault(p => p.Service.Type == TypeServiceConstant.Clinical);
-                    var data3 = found.DiagnosesServices.Where(p => p.Service.Type == TypeServiceConstant.Paraclinical).Select(p=>p.ServiceId).ToList();
+                    var data3 = found.DiagnosesServices.Where(p => p.Service.Type == TypeServiceConstant.Paraclinical).Select(p => p.ServiceId).ToList();
                     var data4 = found.Prescriptions.Select(p => new PrescriptionDiagnosisDoctorVM()
                     {
                         PrescriptionId = p.PrescriptionId,
@@ -67,16 +69,16 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                     var data = new DetailSaveDiagnosisDoctorVM()
                     {
                         DiagnosisId = found.DiagnosisId,
-                        AppointmentId = found.AppointmentId??0,
+                        AppointmentId = found.AppointmentId ?? 0,
                         Symptoms = found.Symptoms,
-                        Diagnosis1 = found.Diagnosis1, 
+                        Diagnosis1 = found.Diagnosis1,
                         ClinicalServiceId = data2 == null ? null : data2.ServiceId,
                         ClinicalServiceServiceResultReport = data2 == null ? "" : data2.ServiceResultReport,
                         ClinicalServiceRoomId = data2 == null ? null : data2.RoomId,
                         ParaclinicalServiceList = data3,
                         Prescriptions = data4
                     };
-                    
+
                     result.Message = "Thành công";
                     result.StatusCode = StatusCodes.Status200OK;
                     result.Data = data;
@@ -146,6 +148,77 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
         return result;
     }
 
+    public async Task<dynamic> DeleteDiagnosisDoctorAsync(int diagnosisID, string authorization)
+    {
+        var result = new HTTPResponseClient<bool>();
+        result.Data = false;
+        try
+        {
+            string token = authorization.Substring("Bearer ".Length);
+            string fullName = _jwtAuthService.DecodePayloadToken(token);
+            var user = await _unitOfWork._userRepository.SingleOrDefaultAsync(p => p.FullName == fullName
+            && RoleConstant.Doctor == p.Role);
+
+            if (user == null)
+            {
+                result.Message = "Thất bại";
+                result.StatusCode = StatusCodes.Status401Unauthorized;
+                result.Data = false;
+            }
+            else
+            {
+                var doctor = await _unitOfWork._doctorRepository.SingleOrDefaultAsync(p => p.UserId == user.UserId);
+                var diagnosisDeleted = await _unitOfWork._diagnosisRepository.GetByIdAsync(diagnosisID);
+                var appointment = await _unitOfWork._appointmentRepository.GetByIdAsync(diagnosisDeleted.AppointmentId ?? 0);
+                
+                if (doctor == null || diagnosisDeleted == null || appointment == null || doctor.DoctorId != appointment.DoctorId)
+                {
+                    result.Message = "Thất bại";
+                    result.StatusCode = StatusCodes.Status400BadRequest;
+                    result.Data = false;
+                }
+                else
+                {
+                    var diagnosesServicesDeleted = await _unitOfWork._diagnosisServiceRepository.WhereAsync(p => p.DiagnosisId == diagnosisDeleted.DiagnosisId);
+                    var prescriptionDeleted = await _unitOfWork._prescriptionRepository.GetAllPrescription_PrescriptionDetail(p => p.DiagnosisId == diagnosisDeleted.DiagnosisId);
+
+                    await _unitOfWork.BeginTransaction();
+
+                    
+                    foreach (var item in prescriptionDeleted)
+                    {
+                        foreach (var item2 in item.PrescriptionDetails)
+                        {
+                            await _unitOfWork._prescriptionDetailRepository.DeleteAsync(item2.PrescriptionDetailId);
+                        }
+                        await _unitOfWork._prescriptionRepository.DeleteAsync(item.PrescriptionId);
+                    }
+                    foreach (var item in diagnosesServicesDeleted)
+                    {
+                        await _unitOfWork._diagnosisServiceRepository.DeleteAsync(item.DiagnosesServiceId);
+                    }
+                    await _unitOfWork._diagnosisRepository.DeleteAsync(diagnosisDeleted.DiagnosisId);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    result.Message = "Thành công";
+                    result.StatusCode = StatusCodes.Status200OK;
+                    result.Data = true;
+
+                    await _unitOfWork.CommitTransaction();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollBack();
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+
     public async Task<dynamic> SaveDiagnosisDoctorAsync(DetailSaveDiagnosisDoctorVM item, string authorization)
     {
         var result = new HTTPResponseClient<bool>();
@@ -157,7 +230,7 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
             string fullName = _jwtAuthService.DecodePayloadToken(token);
             var user = await _unitOfWork._userRepository.SingleOrDefaultAsync(p => p.FullName == fullName
             && RoleConstant.Doctor == p.Role);
-            
+
             if (user == null)
             {
                 result.Message = "Thất bại";
@@ -214,7 +287,7 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                         {
                             Prescription save1 = new Prescription()
                             {
-                                DiagnosisId = i.DiagnosisId,
+                                DiagnosisId = temp.DiagnosisId,
                                 Prescription1 = i.Prescription1
                             };
                             await _unitOfWork._prescriptionRepository.AddAsync(save1);
@@ -234,11 +307,6 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                     }
                     else
                     {
-                        var found = await _unitOfWork._diagnosisRepository.GetDiagnosis_Appointment_DiagnosisService_Service_Prescription_PrescriptionDetail(
-                            p =>
-                            p.DiagnosisId == item.DiagnosisId && doctor != null && p.Appointment != null && p.Appointment.DoctorId == doctor.DoctorId
-                        );
-
                         // update
                         Diagnosis? temp = await _unitOfWork._diagnosisRepository.GetByIdAsync(item.DiagnosisId.Value);
                         temp!.AppointmentId = item.AppointmentId;
@@ -247,26 +315,29 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                         _unitOfWork._diagnosisRepository.Update(temp);
                         await _unitOfWork.SaveChangesAsync();
 
-                        var diagnosesServices = found!.DiagnosesServices.Where(p => p.DiagnosisId == item.DiagnosisId.Value && p.Service.Type == TypeServiceConstant.Clinical);
-                        DiagnosesService clinicalService = diagnosesServices.FirstOrDefault()!;
+                        var diagnosesServices = await _unitOfWork._diagnosisServiceRepository.GetAllDiagnosisService_Service_User_Room(p => p.DiagnosisId == item.DiagnosisId.Value);
+
+                        DiagnosesService clinicalService = await _unitOfWork._diagnosisServiceRepository.GetByIdAsync(diagnosesServices.Single(p=>p.Service.Type == TypeServiceConstant.Clinical).DiagnosesServiceId);
                         clinicalService.DiagnosisId = temp.DiagnosisId;
                         clinicalService.ServiceId = item.ClinicalServiceId ?? 0;
                         clinicalService.ServiceResultReport = item.ClinicalServiceServiceResultReport;
                         clinicalService.UserIdperformed = user.UserId;
                         clinicalService.RoomId = item.ClinicalServiceRoomId ?? 0;
-                        _unitOfWork._diagnosisServiceRepository.Update(clinicalService);
+                        _unitOfWork._diagnosisServiceRepository.Update(clinicalService); // sai cho nay
 
-                        var diagnosesServices2 = found.DiagnosesServices.Where(p => p.DiagnosisId == item.DiagnosisId.Value && p.Service.Type == TypeServiceConstant.Paraclinical);
-                        foreach (var i in diagnosesServices2)
+                        foreach (var i in diagnosesServices)
                         {
-                            if (item.ParaclinicalServiceList.Contains(i.ServiceId))
+                            if (i.Service.Type == TypeServiceConstant.Paraclinical)
                             {
-                                item.ParaclinicalServiceList.Remove(i.ServiceId);
-                            }
-                            else
-                            {
-                                // remove
-                                await _unitOfWork._diagnosisServiceRepository.DeleteAsync(i.DiagnosesServiceId);
+                                if (item.ParaclinicalServiceList.Contains(i.ServiceId))
+                                {
+                                    item.ParaclinicalServiceList.Remove(i.ServiceId);
+                                }
+                                else
+                                {
+                                    // remove
+                                    await _unitOfWork._diagnosisServiceRepository.DeleteAsync(i.DiagnosesServiceId);
+                                }
                             }
                         }
                         foreach (var i in item.ParaclinicalServiceList)
@@ -280,7 +351,7 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                         await _unitOfWork.SaveChangesAsync();
 
                         // toa thuoc nua o day
-                        var prescription = found.Prescriptions;
+                        var prescription = await _unitOfWork._prescriptionRepository.GetAllPrescription_PrescriptionDetail(p => p.DiagnosisId == item.DiagnosisId.Value);
                         foreach (var i in prescription)
                         {
                             var foundInItem = item.Prescriptions.SingleOrDefault(p => p.PrescriptionId == i.PrescriptionId);
@@ -343,7 +414,7 @@ public class DiagnosisServiceBE : IDiagnosisServiceBE
                         {
                             var add1 = new Prescription()
                             {
-                                DiagnosisId = i.DiagnosisId,
+                                DiagnosisId = item.DiagnosisId,
                                 Prescription1 = i.Prescription1
                             };
                             await _unitOfWork._prescriptionRepository.AddAsync(add1);

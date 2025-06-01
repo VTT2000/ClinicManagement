@@ -14,8 +14,7 @@ public class DetailSaveDiagnosisDoctorVM
 
     public int? ClinicalServiceRoomId { get; set; }
 
-    public List<int> ParaclinicalServiceList = new List<int>();
-
+    public List<int> ParaclinicalServiceList { get; set; } = new List<int>();
     public List<PrescriptionDiagnosisDoctorVM> Prescriptions { get; set; } = new List<PrescriptionDiagnosisDoctorVM>();
 }
 

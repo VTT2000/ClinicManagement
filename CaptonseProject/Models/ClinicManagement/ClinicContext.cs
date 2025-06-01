@@ -41,8 +41,8 @@ public partial class ClinicContext : DbContext
 
     public virtual DbSet<WorkSchedule> WorkSchedules { get; set; }
 
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //     => optionsBuilder.UseSqlServer("Name=ConnectionString0");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Name=ConnectionString0");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -89,12 +89,8 @@ public partial class ClinicContext : DbContext
         {
             entity.ToTable("Diagnoses_Services");
 
-            entity.Property(e => e.DiagnosesServiceId)
-                .ValueGeneratedNever()
-                .HasColumnName("DiagnosesServiceID");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+            entity.Property(e => e.DiagnosesServiceId).HasColumnName("DiagnosesServiceID");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DiagnosisId).HasColumnName("DiagnosisID");
             entity.Property(e => e.RoomId).HasColumnName("RoomID");
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
@@ -107,7 +103,6 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.Room).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.RoomId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Diagnoses__RoomI__6E01572D");
 
             entity.HasOne(d => d.Service).WithMany(p => p.DiagnosesServices)
@@ -117,7 +112,6 @@ public partial class ClinicContext : DbContext
 
             entity.HasOne(d => d.UserIdperformedNavigation).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.UserIdperformed)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Diagnoses__UserI__6D0D32F4");
         });
 

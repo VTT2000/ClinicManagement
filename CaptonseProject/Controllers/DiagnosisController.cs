@@ -35,6 +35,14 @@ namespace CaptonseProject.Controllers
         }
 
         [Authorize(Roles = RoleConstant.Doctor)]
+        [HttpDelete("DeleteDiagnosisDoctorAsync/{diagnosisID}")]
+        public async Task<IActionResult> DeleteDiagnosisDoctorAsync([FromHeader] string authorization, [FromRoute] int diagnosisID)
+        {
+            var result = await _diagnosisService.DeleteDiagnosisDoctorAsync(diagnosisID, authorization);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Doctor)]
         [HttpPost("GetAllDiagnosisByAppointmentIDAsync")]
         public async Task<IActionResult> GetAllAppointmentPatientAsync2([FromHeader] string authorization, [FromBody] int appointmentID)
         {

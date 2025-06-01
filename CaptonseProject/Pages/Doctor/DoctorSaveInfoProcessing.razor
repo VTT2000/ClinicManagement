@@ -3,6 +3,8 @@
 
 @layout AdminLayout
 @inject DoctorFEService doctorService
+@inject RoomServiceFE roomService
+@inject IToastService ToastService
 
 <div class="container-fluid">
     <!-- Tabs -->
@@ -47,15 +49,15 @@
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Triệu chứng</label>
-                        <textarea rows="2" class="form-control" placeholder="Nhập triệu chứng" /> 
+                        <textarea @bind="detailSaveDiagnosisDoctorVM.Symptoms" rows="2" class="form-control" placeholder="Nhập triệu chứng" /> 
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Kết quả khám</label>
-                        <textarea rows="3" class="form-control" placeholder="Nhập kết quả khám của cơ thể bệnh nhân" /> 
+                        <textarea @bind="detailSaveDiagnosisDoctorVM.ClinicalServiceServiceResultReport" rows="3" class="form-control" placeholder="Nhập kết quả khám của cơ thể bệnh nhân" /> 
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Kết luận (chẩn đoán)</label>
-                        <textarea rows="2" class="form-control" placeholder="Nhập kết luận (chẩn đoán)" /> 
+                        <textarea @bind="detailSaveDiagnosisDoctorVM.Diagnosis1" rows="2" class="form-control" placeholder="Nhập kết luận (chẩn đoán)" /> 
                     </div>
                     
                 </div>
@@ -244,23 +246,59 @@
     private HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>> listServiceParaclinical = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
     private HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>> listMedicineToWatch = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
     
-    private void SaveDetailDiagnosisServicePrescriptionForDoctor(){
+    private async Task SaveDetailDiagnosisServicePrescriptionForDoctor(){
+        if(!detailSaveDiagnosisDoctorVM.ClinicalServiceId.HasValue){
+            ToastService.ShowWarning("Hãy chọn dịch vụ khám bệnh lâm sàng (chính)!");
+            return;
+        }
+        if(diagnosisID == null){
+            // create
+            detailSaveDiagnosisDoctorVM.ClinicalServiceRoomId = roomService.SelectedRoomID;
+        }
+
+        Console.WriteLine(JsonSerializer.Serialize(detailSaveDiagnosisDoctorVM));
         // code luu
+        var result = await doctorService.SaveDiagnosisDoctorAsync(detailSaveDiagnosisDoctorVM);
+        if(result.Data)
+        {
+            ToastService.ShowSuccess("Lưu thành công!");
+            await OnParametersSetAsync();
+        }
+        else{
+            ToastService.ShowError("Lưu thất bại!");
+            Console.WriteLine(result.Message);
+        }
+    }
+    private async Task GetDetailSaveDiagnosisDoctorVM(){
+        if(diagnosisID.HasValue){
+            var result = await doctorService.GetDiagnosisDoctorByIDAsync(diagnosisID.Value);
+            if(result.StatusCode.HasValue && result.StatusCode.Value == StatusCodes.Status200OK){
+                detailSaveDiagnosisDoctorVM = result.Data ?? new DetailSaveDiagnosisDoctorVM();
+            }
+            else{
+                ToastService.ShowError("Không tìm thấy thông tin của chẫn đoán!");
+            }
+        }
+        else{
+            detailSaveDiagnosisDoctorVM.AppointmentId = IdAppointment;
+        }
+    }
+    private void LoadAsDefault(){
+        detailSaveDiagnosisDoctorVM = new DetailSaveDiagnosisDoctorVM();
+        infoClinicalService = new HTTPResponseClient<ServiceVM>();
+        infoClinicalService.Data = new ServiceVM();
+        listServiceParaclinical = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
+        listServiceParaclinical.Data = new List<ParaClinicalServiceInfoForDoctorVM>();
+        listMedicineToWatch = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
+        listMedicineToWatch.Data = new List<MedicineForDiagnosisDoctorVM>();
     }
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
     }
     protected override async Task OnParametersSetAsync(){
-        if(diagnosisID == null){
-            // create
-            detailSaveDiagnosisDoctorVM = new DetailSaveDiagnosisDoctorVM();
-            detailSaveDiagnosisDoctorVM.AppointmentId = IdAppointment;
-        }
-        else{
-            // info
-            detailSaveDiagnosisDoctorVM = await doctorService.GetDiagnosisDoctorByIDAsync(diagnosisID.Value);
-        }
+        LoadAsDefault();
+        await GetDetailSaveDiagnosisDoctorVM();
         await SetMessageClinicalService();
         await SetParaclinicalService();
         await SetlistMedicineToWatch();
@@ -293,6 +331,7 @@
     private async Task SetMessageClinicalService(){
         if(!detailSaveDiagnosisDoctorVM.ClinicalServiceId.HasValue || detailSaveDiagnosisDoctorVM.ClinicalServiceId == 0){
             infoClinicalService = new HTTPResponseClient<ServiceVM>();
+            infoClinicalService.Data = new ServiceVM();
         }
         else{
             infoClinicalService = await doctorService.GetServiceVMByIDAsync(detailSaveDiagnosisDoctorVM.ClinicalServiceId.Value);
@@ -322,7 +361,7 @@
         await SetParaclinicalService();
     }
     private async Task SetParaclinicalService(){
-        if(detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.Count > 0){
+        if(detailSaveDiagnosisDoctorVM.ParaclinicalServiceList.Count != 0){
             listServiceParaclinical = await doctorService.GetAllServiceVMByIDAsync(new ConditionParaClinicalServiceInfo(){
                 DiagnosisID = diagnosisID,
                 listServiceParaclinical = detailSaveDiagnosisDoctorVM.ParaclinicalServiceList
@@ -401,6 +440,4 @@
     private void DeletedPrescription(int index){
         detailSaveDiagnosisDoctorVM.Prescriptions.RemoveAt(index);
     }
-
-    // tien hành save và button trở về 
 }
