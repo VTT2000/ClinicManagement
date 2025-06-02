@@ -12,6 +12,8 @@ public interface IAppointmentService
     public Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId);
     public Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status);
     public Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);
+    public Task<dynamic> GetStatusAppointmentForDoctorAsync(int appointmentID);
+    public Task<dynamic> IsChangeStatusAppointmentToDiagnosedAsync(int appointmentID);
 }
 
 public class AppointmentService : IAppointmentService
@@ -26,6 +28,50 @@ public class AppointmentService : IAppointmentService
     }
 
     // Implement methods for admin functionalities here
+    public async Task<dynamic> IsChangeStatusAppointmentToDiagnosedAsync(int appointmentID)
+    {
+        var result = new HTTPResponseClient<bool>();
+        result.Data = false;
+        try
+        {
+            var appointment = await _unitOfWork._appointmentRepository.GetByIdAsync(appointmentID);
+            var diagnosis = await _unitOfWork._diagnosisRepository.WhereAsync(p => p.AppointmentId == appointment!.AppointmentId);
+            if (diagnosis.Count() > 0 && !diagnosis.Any(p => string.IsNullOrWhiteSpace(p.Diagnosis1)))
+            {
+                result.Data = true;
+            }
+            
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+    public async Task<dynamic> GetStatusAppointmentForDoctorAsync(int appointmentID)
+    {
+        var result = new HTTPResponseClient<string>();
+        try
+        {
+            var temp = await _unitOfWork._appointmentRepository.GetByIdAsync(appointmentID);
+            result.Data = temp == null ? null : temp.Status == null ? "" : temp.Status;
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
     public async Task<dynamic> GetAllListPatientForDocTorAsync2(PagedResponse<ConditionFilterPatientForAppointmentDoctor> condition, string authorization)
     {
         var result = new HTTPResponseClient<PagedResponse<List<AppointmentPatientForDoctorVM>>>();

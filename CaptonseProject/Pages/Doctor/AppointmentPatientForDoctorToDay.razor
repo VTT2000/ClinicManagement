@@ -2,6 +2,7 @@
 @using System.Text;
 @layout AdminLayout
 @inject DoctorFEService doctorService
+@inject IToastService ToastService
 
 <div class="container-fluid">
     <!-- Tabs -->
@@ -324,7 +325,7 @@
                                                     <a href="doctor/diagnosis/@item.AppointmentId" class="btn btn-sm btn-outline-primary">
                                                         Chẩn đoán (xét nghiệm, kê thuốc)
                                                     </a>
-                                                    <button @onclick="()=>UpdateStatusAppointment(item.AppointmentId, StatusConstant.AppointmentStatus.Diagnosed)"  class="btn btn-sm btn-outline-danger">
+                                                    <button @onclick="()=>ChangeStatusDiagnosed(item.AppointmentId)"  class="btn btn-sm btn-outline-danger">
                                                         Khám xong
                                                     </button>
                                                 </div>
@@ -436,9 +437,9 @@
                                             <td>@item.Status</td>
                                             <td>
                                                 <div class="btn-group">
-                                                    <button class="btn btn-sm btn-outline-primary">
+                                                    <a href="doctor/diagnosis/@item.AppointmentId" class="btn btn-sm btn-outline-primary">
                                                         Thông tin khám
-                                                    </button>
+                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -490,6 +491,9 @@
     private ConditionFilterPatientForAppointmentDoctor conditionFilter4 = new ConditionFilterPatientForAppointmentDoctor();
     private bool isModalVisible = false;
 
+    private HTTPResponseClient<bool> IsChangeStatusDiagnosed = new HTTPResponseClient<bool>(){
+        Data = false
+    };
     private List<int> GetPageNumbersToDisplay(string status)
     {
         const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
@@ -622,13 +626,27 @@
         }
     }
 
+    private async Task ChangeStatusDiagnosed(int appointmentId){
+        IsChangeStatusDiagnosed = await doctorService.IsChangeStatusAppointmentToDiagnosedAsync(appointmentId);
+        if(IsChangeStatusDiagnosed.Data){
+            await UpdateStatusAppointment(appointmentId, StatusConstant.AppointmentStatus.Diagnosed);
+        }
+        else{
+            ToastService.ShowWarning("Lịch khám phải có ít nhất 1 chẩn đoán và tất cả các chẫn đoán phải có kết quả!");
+        }
+    }
+
     private async Task UpdateStatusAppointment(int appointmentId, string status){
         var check0 = await doctorService.UpdateStatusAppointmentForDoctor(appointmentId, status);
         if(check0){
+            ToastService.ShowSuccess("Chuyển trạng thái lịch khám thành công!");
             await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter);
             await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter2);
             await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter3);
             await doctorService.GetAllListPatientForDocTorAsync2(conditionFilter4);
+        }
+        else{
+            ToastService.ShowError("Chuyển trạng thái lịch khám thất bại!");
         }
     }
 

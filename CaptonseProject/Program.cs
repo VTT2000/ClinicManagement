@@ -135,6 +135,7 @@ builder.Services.AddScoped<IPrescriptionDetailRepository, PrescriptionDetailRepo
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IDiagnosisServiceRepository, DiagnosisServiceRepository>();
 //unit
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 //service
@@ -147,6 +148,7 @@ builder.Services.AddScoped<IDiagnosisServiceBE, DiagnosisServiceBE>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IMedicineService, MedicineService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<IDiagnosisServiceService, DiagnosisServiceService>();
 
 //service FE
 builder.Services.AddScoped<ILoginService, LoginService>();
@@ -155,6 +157,7 @@ builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<ReceptionistService>();
 builder.Services.AddScoped<DoctorFEService>();
 builder.Services.AddScoped<RoomServiceFE>();
+builder.Services.AddScoped<TechnicianService>();
 
 builder.Services.AddBlazoredToast();
 

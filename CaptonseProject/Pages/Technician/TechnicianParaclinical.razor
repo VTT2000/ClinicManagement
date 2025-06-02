@@ -1,0 +1,272 @@
+@page "/technician/paraclinical"
+
+@layout AdminLayout
+@inject TechnicianService technicianService
+@inject IToastService ToastService
+@inject RoomServiceFE roomService
+
+<div class="container-fluid">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-12">
+            <div class="form-control d-block">
+                <div class="d-inline">
+                    <label class="me-3 form-label">Phòng thực hiện:</label>
+                    @if(!roomService.SelectedRoomIdTechnician.HasValue || roomService.SelectedRoomIdTechnician.Value == 0){
+                        <button class="btn btn-sm btn-primary" @onclick="ShowModal">
+                            <i class="bi bi-pencil me-2"></i>Chọn phòng
+                        </button>
+                    }
+                    else{
+                        if(infoRoom.StatusCode == StatusCodes.Status200OK){
+                            <span>@infoRoom.Data!.RoomName</span>
+                        }
+                        else{
+                            <span>@infoRoom.Message</span>
+                        }
+                        <button @onclick="SetRoomIDasNull" class="ms-2 btn-sm btn btn-danger" >
+                            <i class="bi bi-x-circle me-2"></i>Hủy
+                        </button>
+                    }
+                </div>
+                <div class="d-inline">
+                    <label class="mx-3 form-label">Dịch vụ xét nghiệm:</label>
+                    @if(!technicianService.SelectedServiceIdTechnician.HasValue || technicianService.SelectedServiceIdTechnician.Value == 0){
+                        <button class="btn btn-sm btn-primary" @onclick="ShowModal2">
+                            <i class="bi bi-pencil me-2"></i>Chọn xét nghiệm
+                        </button>
+                    }
+                    else{
+                        if(infoService.StatusCode == StatusCodes.Status200OK){
+                            <span>@infoService.Data!.ServiceName </span>
+                        }
+                        else{
+                            <span>@infoService.Message</span>
+                        }
+                        <button @onclick="SetServiceIdAsNull" class="ms-2 btn-sm btn btn-danger" >
+                            <i class="bi bi-x-circle me-2"></i>Hủy
+                        </button>
+                    }
+                </div>
+
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Phần tiêu đề và tìm kiếm -->
+    <div class="row align-items-center">
+        <div class="col-md-12">
+            <div class="input-group">
+                <input @bind="technicianService.condition.SearchNamePatient" type="text" class="form-control" placeholder="Tìm kiếm theo tên bệnh nhân" />
+                <input @bind="technicianService.condition.SearchDate" type="date" class="form-control" placeholder="Tìm kiếm theo ngày khám"/>
+                <select @onchange="OnChangedSelectOption" class="form-select">
+                    <option selected="@(!technicianService.condition.IsTested.HasValue)" value="">Toàn bộ xét nghiệm</option>
+                    <option selected="@(technicianService.condition.IsTested.HasValue && !technicianService.condition.IsTested.Value)" value="false">Chưa xét nghiệm</option>
+                    <option selected="@(technicianService.condition.IsTested.HasValue && technicianService.condition.IsTested.Value)" value="true">Đã xét nghiệm</option>
+                </select>
+                <button @onclick="()=>SearchRequest()" class="btn btn-secondary" type="button">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Loading spinner -->
+    @if (technicianService.IsLoaded.HasValue && !technicianService.IsLoaded.Value)
+    {
+        <div class="d-flex justify-content-center my-5">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!(technicianService.list.StatusCode.HasValue && technicianService.list.StatusCode.Value == StatusCodes.Status200OK) && !string.IsNullOrWhiteSpace(technicianService.list.Message))
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @technicianService.list.Message
+        </div>
+    }
+    else
+    {
+        <!-- Bảng hiển thị danh sách người dùng -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered">
+                        @* gắn dữ liệu ở đây *@
+                        <thead>
+                            <tr>
+                                <th>Số thứ tự</th>
+                                <th>Tên bệnh nhân</th>
+                                <th>Ngày sinh</th>
+                                <th>Số điện thoại</th>
+                                <th>Tên xét nghiệm</th>
+                                <th>Bác sỉ chỉ định</th>
+                                <th>Phòng thực hiện</th>
+                                <th>Người thực hiện</th>
+                                <th>Thời gian tạo</th>
+                                <th>Kết quả xét nghiệm</th>
+                                <th>Tiến hành</th>
+                            </tr>
+                        </thead
+                        <tbody>
+                            <!-- Dòng 1 -->
+                            @{
+                                var i = 1;
+                            }
+                            @foreach (var item in technicianService.list.Data!.Data!)
+                            {
+                                <tr>
+                                    <td>@i</td>
+                                    <td>@(item.FullNamePatient)</td>
+                                    <td>@(item.DobPatient.HasValue ? item.DobPatient.Value.ToString("dd/MM/yyyy") :"")</td>
+                                    <td>@item.PhonePatient</td>
+                                    <td>@item.ServiceName</td>
+                                    <td>@item.DoctorName</td>
+                                    <td>@item.RoomName</td>
+                                    <td>@item.FullNamePerformed</td>
+                                    <td>@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+                                    <td>@item.ServiceResultReport</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                Xét nghiệm
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                i++;
+                            }
+                        </tbody>
+                    </table>
+                </div
+                <!-- Phân trang -->
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(technicianService.list.Data.PageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(technicianService.list.Data.PageNumber - 1)">Trước</a>
+                        </li>
+                        @foreach (var page in GetPageNumbersToDisplay())
+                        {
+                            if (page == -1)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+                            else
+                            {
+                                <li class="page-item @(page == technicianService.list.Data.PageNumber ? "active" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page)">@(page)</a>
+                                </li>
+                            }
+                        }
+                        <li class="page-item @(technicianService.list.Data.PageNumber == technicianService.list.Data.TotalPages ? "disabled" : "")">
+                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(technicianService.list.Data.PageNumber + 1)">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+                
+            </div>
+        </div>
+    }   
+</div>
+
+<ModalSelectedRoom IsVisible="@isModalVisible" OnSeletedRoomID="OnSeletedRoomID" OnClose="HideModal" />
+<ModalSelectedParaclinicalServiceForTechnician IsVisible="@isModalVisible2" OnSeletedService="OnSeletedService" OnClose="HideModal2" />
+@code {
+    public HTTPResponseClient<RoomVM> infoRoom = new HTTPResponseClient<RoomVM>(){
+        Data = new RoomVM()
+    };
+    public HTTPResponseClient<TechnicianServiceVM> infoService = new HTTPResponseClient<TechnicianServiceVM>(){
+        Data = new TechnicianServiceVM()
+    };
+
+    private bool isModalVisible = false;
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
+    private async Task OnSeletedRoomID(int roomID){
+        roomService.SelectedRoomIdTechnician = roomID;
+        await SetInfoRoomID();
+    }
+    private async Task SetInfoRoomID(){
+        if(!roomService.SelectedRoomIdTechnician.HasValue || roomService.SelectedRoomIdTechnician.Value == 0){
+            infoRoom = new HTTPResponseClient<RoomVM>();
+            infoRoom.Data = new RoomVM();
+        }
+        else{
+            infoRoom = await roomService.GetRoomVMByIDAsync(roomService.SelectedRoomIdTechnician.Value);
+        }
+    }
+    private void SetRoomIDasNull(){
+        roomService.SelectedRoomIdTechnician = null;
+    }
+
+    private bool isModalVisible2 = false;
+    private void ShowModal2()
+    {
+        isModalVisible2 = true;
+    }
+    private void HideModal2()
+    {
+        isModalVisible2 = false;
+    }
+    private async Task OnSeletedService(int serviceID){
+        technicianService.SelectedServiceIdTechnician = serviceID;
+        await SetInfoService();
+    }
+    private async Task SetInfoService(){
+        if(!technicianService.SelectedServiceIdTechnician.HasValue || technicianService.SelectedServiceIdTechnician.Value == 0){
+            infoService = new HTTPResponseClient<TechnicianServiceVM>();
+            infoService.Data = new TechnicianServiceVM();
+        }
+        else{
+            infoService = await technicianService.GetServiceVMByIDAsync2(technicianService.SelectedServiceIdTechnician.Value);
+        }
+    }
+    private async Task SetServiceIdAsNull(){
+        technicianService.SelectedServiceIdTechnician = null;
+        await SetInfoService();
+    }
+
+    private List<int> GetPageNumbersToDisplay()
+    {
+        return technicianService.GetPageNumbersToDisplay();
+    }
+    private async Task SelectPage(int page)
+    {
+        await technicianService.SelectPage(page);
+    }
+    private async Task SearchRequest(){
+        await technicianService.GetAllDiagnosisServiceForTechcian();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        technicianService.OnChange += StateHasChanged;
+        await SetInfoRoomID();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public void Dispose()
+    {
+        technicianService.OnChange -= StateHasChanged;
+    }
+
+    private void OnChangedSelectOption(ChangeEventArgs e)
+    {
+        if(string.IsNullOrWhiteSpace(e.Value?.ToString())){
+            technicianService.condition.IsTested = null;
+        }
+        else{
+            technicianService.condition.IsTested = bool.Parse(e.Value.ToString()!);
+        }
+    }
+}

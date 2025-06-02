@@ -52,6 +52,84 @@ public class DoctorFEService
         _localStorage = localStorage;
     }
 
+    public async Task<HTTPResponseClient<bool>> IsChangeStatusAppointmentToDiagnosedAsync(int appointmentID)
+    {
+        string query = $"api/Appointment/IsChangeStatusAppointmentToDiagnosedAsync";
+        HTTPResponseClient<bool> kq = new HTTPResponseClient<bool>();
+        kq.Data = false;
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, appointmentID);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<bool>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+    }
+
+    public async Task<HTTPResponseClient<string>> GetStatusAppointmentForDoctorAsync(int appointmentID)
+    {
+        string query = $"api/Appointment/GetStatusAppointmentForDoctorAsync";
+        HTTPResponseClient<string> kq = new HTTPResponseClient<string>();
+        kq.Data = string.Empty;
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, appointmentID);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<string>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+    }
+
     public async Task<dynamic> GetAllMedicineForSearchDoctor(PagedResponse<string> pageSearch)
     {
         string query = $"api/Medicine/GetAllMedicineForSearchDoctor";
@@ -67,7 +145,7 @@ public class DoctorFEService
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.PostAsJsonAsync(query, pageSearch);
-
+            
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<PagedResponse<List<MedicineForDiagnosisDoctorVM>>>>();

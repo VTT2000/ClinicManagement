@@ -26,6 +26,14 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = RoleConstant.Technician)]
+        [HttpPost("GetServiceVMByIDAsync2")]
+        public async Task<IActionResult> GetServiceVMByIDAsync2([FromBody] int serviceID)
+        {
+            var result = await _serviceService.GetServiceVMByIDAsync2(serviceID);
+            return Ok(result);
+        }
+
         [Authorize(Roles = RoleConstant.Doctor)]
         [HttpPost("GetAllServiceVMByIDAsync")]
         public async Task<IActionResult> GetAllServiceVMByIDAsync([FromBody] ConditionParaClinicalServiceInfo list)
@@ -39,6 +47,14 @@ namespace CaptonseProject.Controllers
         public async Task<IActionResult> GetAllServiceClinicalAsync([FromBody] PagedResponse<string> pagedResponseSearchText)
         {
             var result = await _serviceService.GetAllServiceClinicalAsync(pagedResponseSearchText);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Technician)]
+        [HttpPost("GetAllServiceParaclinicalAsync2")]
+        public async Task<IActionResult> GetAllServiceParaclinicalAsync2([FromBody] PagedResponse<string> condition)
+        {
+            var result = await _serviceService.GetAllServiceParaclinicalAsync2(condition);
             return Ok(result);
         }
 

@@ -28,37 +28,67 @@
         <div class="tab-pane fade show active" id="diagnosis" role="tabpanel">
             <div class="container-fluid bg-white text-black">
                 <div class="row mb-3">
-                    <div class="col-md-12">
-                        <label class="me-2 form-label">Dịch vụ khám bệnh lâm sàng:</label>
-                        @if(!infoClinicalService.StatusCode.HasValue){
-                            <button class="btn btn-primary" @onclick="ShowModal">
-                                <i class="bi bi-plus-circle me-2"></i>Thêm mới
-                            </button>
-                        }
-                        else{
-                            if(infoClinicalService.StatusCode == StatusCodes.Status200OK){
-                                <span>@infoClinicalService.Data!.ServiceName</span>
+                    @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                        <div class="col-md-12">
+                            <label class="me-2 form-label">Dịch vụ khám bệnh lâm sàng:</label>
+                            @if(!infoClinicalService.StatusCode.HasValue){
+                                <button class="btn btn-primary" @onclick="ShowModal">
+                                    <i class="bi bi-plus-circle me-2"></i>Thêm mới
+                                </button>
                             }
                             else{
-                                <span>@infoClinicalService.Message</span>
+                                if(infoClinicalService.StatusCode == StatusCodes.Status200OK){
+                                    <span>@infoClinicalService.Data!.ServiceName</span>
+                                }
+                                else{
+                                    <span>@infoClinicalService.Message</span>
+                                }
+                                <button @onclick="SetClinicalServiceIDasNull" class="ms-2 btn btn-danger" >
+                                    <i class="bi bi-x-circle me-2"></i>Hủy
+                                </button>
                             }
-                            <button @onclick="SetClinicalServiceIDasNull" class="ms-2 btn btn-danger" >
-                                <i class="bi bi-x-circle me-2"></i>Hủy
-                            </button>
-                        }
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Triệu chứng</label>
-                        <textarea @bind="detailSaveDiagnosisDoctorVM.Symptoms" rows="2" class="form-control" placeholder="Nhập triệu chứng" /> 
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Kết quả khám</label>
-                        <textarea @bind="detailSaveDiagnosisDoctorVM.ClinicalServiceServiceResultReport" rows="3" class="form-control" placeholder="Nhập kết quả khám của cơ thể bệnh nhân" /> 
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Kết luận (chẩn đoán)</label>
-                        <textarea @bind="detailSaveDiagnosisDoctorVM.Diagnosis1" rows="2" class="form-control" placeholder="Nhập kết luận (chẩn đoán)" /> 
-                    </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Triệu chứng</label>
+                            <textarea @bind="detailSaveDiagnosisDoctorVM.Symptoms" rows="2" class="form-control" placeholder="Nhập triệu chứng" /> 
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Kết quả khám</label>
+                            <textarea @bind="detailSaveDiagnosisDoctorVM.ClinicalServiceServiceResultReport" rows="3" class="form-control" placeholder="Nhập kết quả khám của cơ thể bệnh nhân" /> 
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Kết luận (chẩn đoán)</label>
+                            <textarea @bind="detailSaveDiagnosisDoctorVM.Diagnosis1" rows="2" class="form-control" placeholder="Nhập kết luận (chẩn đoán)" /> 
+                        </div>
+                    }
+                    @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Diagnosed){
+                        <div class="col-md-12">
+                            <label class="me-2 form-label">Dịch vụ khám bệnh lâm sàng:</label>
+                            @if(!infoClinicalService.StatusCode.HasValue){
+                                <span>Chưa chọn</span>
+                            }
+                            else{
+                                if(infoClinicalService.StatusCode == StatusCodes.Status200OK){
+                                    <span>@infoClinicalService.Data!.ServiceName</span>
+                                }
+                                else{
+                                    <span>@infoClinicalService.Message</span>
+                                }
+                            }
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Triệu chứng</label>
+                            <textarea readonly @bind="detailSaveDiagnosisDoctorVM.Symptoms" rows="2" class="form-control" placeholder="Nhập triệu chứng" /> 
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Kết quả khám</label>
+                            <textarea readonly @bind="detailSaveDiagnosisDoctorVM.ClinicalServiceServiceResultReport" rows="3" class="form-control" placeholder="Nhập kết quả khám của cơ thể bệnh nhân" /> 
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Kết luận (chẩn đoán)</label>
+                            <textarea readonly @bind="detailSaveDiagnosisDoctorVM.Diagnosis1" rows="2" class="form-control" placeholder="Nhập kết luận (chẩn đoán)" /> 
+                        </div>
+                    }
                     
                 </div>
             </div>
@@ -67,10 +97,12 @@
             <div class="container-fluid bg-white text-black">
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <label class="me-2 form-label">Các dịch vụ xét nghiệm:</label>
-                        <button class="btn btn-primary btn-sm" @onclick="ShowModal2">
-                            <i class="bi bi-plus-circle me-2"></i>Thêm mới
-                        </button>
+                        @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                            <label class="me-2 form-label">Các dịch vụ xét nghiệm:</label>
+                            <button class="btn btn-primary btn-sm" @onclick="ShowModal2">
+                                <i class="bi bi-plus-circle me-2"></i>Thêm mới
+                            </button>
+                        }
                     </div>
                     <div class="col-md-12">
                         <div class="card">
@@ -86,7 +118,9 @@
                                                 <th>Báo cáo kết quả</th>
                                                 <th>Người thực hiện</th>
                                                 <th>Phòng thực hiện</th>
-                                                <th>Hành động</th>
+                                                @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                                                    <th>Hành động</th>
+                                                }
                                             </tr>
                                         </thead>
 
@@ -104,13 +138,15 @@
                                                     <td>@(item.ServiceResultReport)</td>
                                                     <td>@(item.FullNameUserperformed)</td>
                                                     <td>@(item.RoomName)</td>
-                                                    <td>
-                                                        <div class="btn-group">
-                                                            <button @onclick="() => DeleteParaclinicalService(item.ServiceId)" class="btn btn-sm btn-outline-danger">
-                                                                <i class="bi bi-trash"></i> Xóa
-                                                            </button>
-                                                        </div>
-                                                    </td>
+                                                    @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                                                        <td>
+                                                            <div class="btn-group">
+                                                                <button @onclick="() => DeleteParaclinicalService(item.ServiceId)" class="btn btn-sm btn-outline-danger">
+                                                                    <i class="bi bi-trash"></i> Xóa
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    }
                                                 </tr>
                                                 i++;
                                             }
@@ -130,12 +166,14 @@
             <div class="container-fluid bg-white text-black">
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <label class="me-2 form-label">Các toa thuốc:</label>
-                        <button class="btn btn-primary btn-sm" 
-                        @onclick="AddInstanceMedicine"
-                        >
-                            <i class="bi bi-plus-circle me-2"></i>Thêm mới
-                        </button>
+                        @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                            <label class="me-2 form-label">Các toa thuốc:</label>
+                            <button class="btn btn-primary btn-sm" 
+                            @onclick="AddInstanceMedicine"
+                            >
+                                <i class="bi bi-plus-circle me-2"></i>Thêm mới
+                            </button>
+                        }
                     </div>
                     <div class="col-md-12">
                         <div class="card">
@@ -150,7 +188,9 @@
                                                 <th>Tên thuốc</th>
                                                 <th>Số lượng</th>
                                                 <th>Loại</th>
-                                                <th>Hành động</th>
+                                                @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                                                    <th>Hành động</th>
+                                                }
                                             </tr>
                                         </thead>
 
@@ -163,7 +203,12 @@
                                                 <tr>
                                                     <td>@(j+1)</td>
                                                     <td>
-                                                        <textarea @bind="temp.Prescription1" class="form-control" />
+                                                        @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                                                            <textarea @bind="temp.Prescription1" class="form-control" />
+                                                        }
+                                                        @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Diagnosed){
+                                                            <textarea readonly @bind="temp.Prescription1" class="form-control" />
+                                                        }
                                                     </td>
                                                     @if(temp.PrescriptionDetails.Count == 0){
                                                         <td colspan="3">
@@ -183,9 +228,17 @@
                                                             }
                                                         </td>
                                                         <td>
-                                                            @foreach(var item in temp.PrescriptionDetails)
-                                                            {
-                                                                <input @bind="item.Quantity" class="form-control" type="number" min="0">
+                                                            @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                                                                @foreach(var item in temp.PrescriptionDetails)
+                                                                {
+                                                                    <input @bind="item.Quantity" class="form-control" type="number" min="0">
+                                                                }
+                                                            }
+                                                            @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Diagnosed){
+                                                                @foreach(var item in temp.PrescriptionDetails)
+                                                                {
+                                                                    <input readonly @bind="item.Quantity" class="form-control" type="number" min="0">
+                                                                }
                                                             }
                                                         </td>
                                                         <td>
@@ -199,16 +252,19 @@
                                                         </td>
                                                     }
 
-                                                    <td>
-                                                        <div class="btn-group">
-                                                            <button class="btn btn-sm btn-outline-primary" @onclick="()=>ShowModal3(index, listMedinceID)">
-                                                                <i class="bi bi-pencil me-2"></i>Kê thuốc
-                                                            </button>
-                                                            <button @onclick="()=>DeletedPrescription(index)" class="btn btn-sm btn-outline-danger">
-                                                                <i class="bi bi-trash"></i> Xóa
-                                                            </button>
-                                                        </div>
-                                                    </td>
+                                                    @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+                                                        <td>
+                                                            <div class="btn-group">
+                                                                <button class="btn btn-sm btn-outline-primary" @onclick="()=>ShowModal3(index, listMedinceID)">
+                                                                    <i class="bi bi-pencil me-2"></i>Kê thuốc
+                                                                </button>
+                                                                <button @onclick="()=>DeletedPrescription(index)" class="btn btn-sm btn-outline-danger">
+                                                                    <i class="bi bi-trash"></i> Xóa
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    }   
+                                                    
                                                 </tr>
                                             }
                                         </tbody>
@@ -225,10 +281,17 @@
         </div>
 
     </div>
-    <div class="d-flex justify-content-between my-2">
-        <a href="/doctor/diagnosis/@IdAppointment" class="btn btn-secondary">Trở về</a>
-        <button @onclick="() => SaveDetailDiagnosisServicePrescriptionForDoctor()" class="btn btn-primary w-25">Lưu</button>
-    </div>
+    @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Processing){
+        <div class="d-flex justify-content-between my-2">
+            <a href="/doctor/diagnosis/@IdAppointment" class="btn btn-secondary">Trở về</a>
+            <button @onclick="() => SaveDetailDiagnosisServicePrescriptionForDoctor()" class="btn btn-primary w-25">Lưu</button>
+        </div>
+    }
+    @if(statusAppointment.Data != null && statusAppointment.Data == StatusConstant.AppointmentStatus.Diagnosed){
+        <div class="my-2">
+            <a href="/doctor/diagnosis/@IdAppointment" class="btn btn-secondary">Trở về</a>
+        </div>
+    }
 </div>
 
 
@@ -242,9 +305,19 @@
     public int? diagnosisID {get; set;}
     private DetailSaveDiagnosisDoctorVM detailSaveDiagnosisDoctorVM = new DetailSaveDiagnosisDoctorVM();
 
-    private HTTPResponseClient<ServiceVM> infoClinicalService = new HTTPResponseClient<ServiceVM>();
-    private HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>> listServiceParaclinical = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>();
-    private HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>> listMedicineToWatch = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>();
+    private HTTPResponseClient<ServiceVM> infoClinicalService = new HTTPResponseClient<ServiceVM>(){
+        Data = new ServiceVM()    
+    };
+    private HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>> listServiceParaclinical = new HTTPResponseClient<List<ParaClinicalServiceInfoForDoctorVM>>(){
+        Data = new List<ParaClinicalServiceInfoForDoctorVM>()
+    };
+    private HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>> listMedicineToWatch = new HTTPResponseClient<List<MedicineForDiagnosisDoctorVM>>(){
+        Data = new List<MedicineForDiagnosisDoctorVM>()
+    };
+    
+    private HTTPResponseClient<string> statusAppointment = new HTTPResponseClient<string>(){
+        Data = string.Empty
+    };
     
     private async Task SaveDetailDiagnosisServicePrescriptionForDoctor(){
         if(!detailSaveDiagnosisDoctorVM.ClinicalServiceId.HasValue){
@@ -297,6 +370,7 @@
         await base.OnInitializedAsync();
     }
     protected override async Task OnParametersSetAsync(){
+        statusAppointment = await doctorService.GetStatusAppointmentForDoctorAsync(IdAppointment);
         LoadAsDefault();
         await GetDetailSaveDiagnosisDoctorVM();
         await SetMessageClinicalService();

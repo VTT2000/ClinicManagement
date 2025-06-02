@@ -4,7 +4,9 @@ public interface IServiceService
 {
     public Task<dynamic> GetAllServiceVMByIDAsync(ConditionParaClinicalServiceInfo pageList);
     public Task<dynamic> GetServiceVMByIDAsync(int serviceID);
+    public Task<dynamic> GetServiceVMByIDAsync2(int serviceID);
     public Task<dynamic> GetAllServiceClinicalAsync(PagedResponse<string> pagedResponseSearchText);
+    public Task<dynamic>  GetAllServiceParaclinicalAsync2(PagedResponse<string> condition);
     public Task<dynamic> GetAllServiceParaclinicalAsync(PagedResponse<ConditionFilterParaclinicalServiceSelected> condition);
 }
 
@@ -84,6 +86,70 @@ public class ServiceService : IServiceService
                 ServiceName = temp.ServiceName
             };
             result.Data = data;
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+
+    public async Task<dynamic> GetServiceVMByIDAsync2(int serviceID)
+    {
+        var result = new HTTPResponseClient<TechnicianServiceVM>();
+        try
+        {
+            var temp = await _unitOfWork._serviceRepository.GetByIdAsync(serviceID);
+            var data = new TechnicianServiceVM()
+            {
+                ServiceId = temp!.ServiceId,
+                ServiceName = temp.ServiceName
+            };
+            result.Data = data;
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+    public async Task<dynamic> GetAllServiceParaclinicalAsync2(PagedResponse<string> condition)
+    {
+        var result = new HTTPResponseClient<PagedResponse<List<TechnicianServiceVM>>>();
+        result.Data = new PagedResponse<List<TechnicianServiceVM>>();
+        result.Data.Data = new List<TechnicianServiceVM>();
+        result.Data.PageSize = condition.PageSize;
+        result.Data.PageNumber = condition.PageNumber;
+        try
+        {
+            var list = await _unitOfWork._serviceRepository.WhereAsync(p =>
+                p.Type == TypeServiceConstant.Paraclinical
+            );
+            list = list.Where(p => string.IsNullOrWhiteSpace(condition.Data) || StringHelper.IsMatchSearchKey(condition.Data!, p.ServiceName));
+            var data = list.Select(p => new TechnicianServiceVM()
+            {
+                ServiceId = p.ServiceId,
+                ServiceName = p.ServiceName
+            })
+            .ToList();
+
+            result.Data.TotalRecords = data.Count;
+            result.Data.TotalPages = (int)Math.Ceiling((double)data.Count / result.Data.PageSize);
+
+            result.Data.Data = data
+            .Skip(result.Data.PageSize * (result.Data.PageNumber - 1))
+            .Take(result.Data.PageSize).ToList();
+
             result.Message = "Thành công";
             result.StatusCode = StatusCodes.Status200OK;
         }

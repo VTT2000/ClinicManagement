@@ -41,6 +41,13 @@
                         <NavLink class="nav-link text-white" href="/doctor">Danh sách bệnh nhân hôm nay</NavLink>
                     </li>
                 }
+
+                if (userRole.Equals(RoleConstant.Technician))
+                {
+                    <li class="nav-item">
+                        <NavLink class="nav-link text-white" href="/technician/paraclinical">Danh sách xét nghiệm</NavLink>
+                    </li>
+                }
             }
 
         </ul>

@@ -10,6 +10,8 @@ public class RoomServiceFE
 
     public int? SelectedRoomID;
 
+    public int? SelectedRoomIdTechnician;
+
     public RoomServiceFE(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage)
     {
         _httpClientFactory = httpClientFactory;

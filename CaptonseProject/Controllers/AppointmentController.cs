@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
 //using CaptonseProject.Models;
 
 namespace CaptonseProject.Controllers
@@ -42,13 +43,21 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role doctor
-        // [HttpGet("GetAllListPatientForDocTor/{date}")]
-        // public async Task<IActionResult> GetAllListPatientForDocTor([FromRoute] DateOnly date)
-        // {
-        //     var result = await _appointmentService.GetAllListPatientForDocTor(date);
-        //     return Ok(result);
-        // }
+        [Authorize(Roles = RoleConstant.Doctor)]
+        [HttpPost("GetStatusAppointmentForDoctorAsync")]
+        public async Task<IActionResult> GetStatusAppointmentForDoctorAsync([FromBody] int appointmentID)
+        {
+            var result = await _appointmentService.GetStatusAppointmentForDoctorAsync(appointmentID);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Doctor)]
+        [HttpPost("IsChangeStatusAppointmentToDiagnosedAsync")]
+        public async Task<IActionResult> IsChangeStatusAppointmentToDiagnosedAsync([FromBody] int appointmentID)
+        {
+            var result = await _appointmentService.IsChangeStatusAppointmentToDiagnosedAsync(appointmentID);
+            return Ok(result);
+        }
 
         // role doctor
         [Authorize]

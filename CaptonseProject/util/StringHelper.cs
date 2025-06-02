@@ -24,13 +24,30 @@ public static class StringHelper
         return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 
+    // public static bool IsMatchSearchKey(string searchKey, string input)
+    // {
+    //     // Chuẩn hóa keyword: bỏ dấu, lowercase, tách từ
+    //     var keywords = RemoveDiacritics(searchKey).ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    //     var normalizedName = RemoveDiacritics(input).ToLower();
+
+    //     // Đảm bảo tất cả từ khóa đều xuất hiện trong tên
+    //     return keywords.All(word => normalizedName.Contains(word));
+    // }
     public static bool IsMatchSearchKey(string searchKey, string input)
     {
-        // Chuẩn hóa keyword: bỏ dấu, lowercase, tách từ
         var keywords = RemoveDiacritics(searchKey).ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var normalizedName = RemoveDiacritics(input).ToLower();
-        
-        // Đảm bảo tất cả từ khóa đều xuất hiện trong tên
-        return keywords.All(word => normalizedName.Contains(word));
+        var inputWords = RemoveDiacritics(input).ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        int keywordIndex = 0;
+
+        foreach (var word in inputWords)
+        {
+            if (keywordIndex < keywords.Length && word.Contains(keywords[keywordIndex]))
+            {
+                keywordIndex++;
+            }
+        }
+
+        return keywordIndex == keywords.Length;
     }
 }
