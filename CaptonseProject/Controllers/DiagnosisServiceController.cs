@@ -25,5 +25,21 @@ namespace CaptonseProject.Controllers
             var result = await _diagnosisServiceService.GetAllDiagnosisServiceForTechcian(condition);
             return Ok(result);
         }
+
+        [Authorize(Roles = RoleConstant.Technician)]
+        [HttpGet("GetInfoTestForTechcian/{diagnosisServiceID}")]
+        public async Task<IActionResult> GetInfoTestForTechcian([FromRoute] int diagnosisServiceID)
+        {
+            var result = await _diagnosisServiceService.GetInfoTestForTechcian(diagnosisServiceID);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Technician)]
+        [HttpPut("SaveInfoTestForTechcian")]
+        public async Task<IActionResult> SaveInfoTestForTechcian([FromHeader] string authorization, [FromBody] TechnicianTestInfoParaclinicalSeviceVM item)
+        {
+            var result = await _diagnosisServiceService.SaveInfoTestForTechcian(item, authorization);
+            return Ok(result);
+        }
     }
 }

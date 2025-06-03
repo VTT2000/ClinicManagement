@@ -7,7 +7,6 @@ public interface IDiagnosisServiceRepository : IRepository<DiagnosesService>
     // Add custom methods for DiagnosisService here if needed
     public Task<List<DiagnosesService>> GetAllDiagnosisService_Service_User_Room(Expression<Func<DiagnosesService, bool>> predicate);
     public Task<List<DiagnosesService>> GetAllDiagnosisService_Diagnosis_Appointment_Patient_Doctor_User_Service_User_Room(Expression<Func<DiagnosesService, bool>> predicate);
-
 }
 
 public class DiagnosisServiceRepository : Repository<DiagnosesService>, IDiagnosisServiceRepository

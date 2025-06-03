@@ -3,6 +3,7 @@
 @layout AdminLayout
 @inject TechnicianService technicianService
 @inject IToastService ToastService
+@inject NavigationManager Navigation
 @inject RoomServiceFE roomService
 
 <div class="container-fluid">
@@ -10,7 +11,7 @@
         <div class="col-md-12">
             <div class="form-control d-block">
                 <div class="d-inline">
-                    <label class="me-3 form-label">Phòng thực hiện:</label>
+                    <label class="me-2 form-label">Phòng thực hiện:</label>
                     @if(!roomService.SelectedRoomIdTechnician.HasValue || roomService.SelectedRoomIdTechnician.Value == 0){
                         <button class="btn btn-sm btn-primary" @onclick="ShowModal">
                             <i class="bi bi-pencil me-2"></i>Chọn phòng
@@ -28,8 +29,8 @@
                         </button>
                     }
                 </div>
-                <div class="d-inline">
-                    <label class="mx-3 form-label">Dịch vụ xét nghiệm:</label>
+                <div class="d-inline ms-2">
+                    <label class="me-2 form-label">Dịch vụ xét nghiệm:</label>
                     @if(!technicianService.SelectedServiceIdTechnician.HasValue || technicianService.SelectedServiceIdTechnician.Value == 0){
                         <button class="btn btn-sm btn-primary" @onclick="ShowModal2">
                             <i class="bi bi-pencil me-2"></i>Chọn xét nghiệm
@@ -47,7 +48,12 @@
                         </button>
                     }
                 </div>
-
+                <div class="d-inline ms-2">
+                    <div class="form-check form-switch d-inline-block">
+                        <input @bind="technicianService.IsFindServiceID" class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
+                        <label class="form-check-label" for="flexSwitchCheckDefault">Tìm kiếm theo dịch vụ xét nghiệm</label>
+                    </div>
+                </div>
                 
             </div>
         </div>
@@ -102,9 +108,7 @@
                                 <th>Số điện thoại</th>
                                 <th>Tên xét nghiệm</th>
                                 <th>Bác sỉ chỉ định</th>
-                                <th>Phòng thực hiện</th>
-                                <th>Người thực hiện</th>
-                                <th>Thời gian tạo</th>
+                                <th>Ngày khám</th>
                                 <th>Kết quả xét nghiệm</th>
                                 <th>Tiến hành</th>
                             </tr>
@@ -123,14 +127,12 @@
                                     <td>@item.PhonePatient</td>
                                     <td>@item.ServiceName</td>
                                     <td>@item.DoctorName</td>
-                                    <td>@item.RoomName</td>
-                                    <td>@item.FullNamePerformed</td>
-                                    <td>@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+                                    <td>@(item.AppointmentDate.HasValue ? item.AppointmentDate.Value.ToString("dd/MM/yyyy") : "")</td>
                                     <td>@item.ServiceResultReport</td>
                                     <td>
                                         <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-primary">
-                                                Xét nghiệm
+                                            <button @onclick="()=>GoToPageTest(item.DiagnosesServiceId, item.ParaclinicalServiceID)" class="btn btn-sm btn-outline-primary">
+                                                Thông tin xét nghiệm
                                             </button>
                                         </div>
                                     </td>
@@ -244,6 +246,24 @@
     private async Task SearchRequest(){
         await technicianService.GetAllDiagnosisServiceForTechcian();
     }
+
+    private void GoToPageTest(int diagnosisServiceID, int paraclinicalServiceID){
+        if(!roomService.SelectedRoomIdTechnician.HasValue || roomService.SelectedRoomIdTechnician.Value == 0){
+            ToastService.ShowWarning("Hãy chọn phòng trước!");
+        }
+        else
+        if(!technicianService.SelectedServiceIdTechnician.HasValue || technicianService.SelectedServiceIdTechnician.Value == 0){
+            ToastService.ShowWarning("Hãy chọn dịch vụ xét nghiệm trước!");
+        }
+        else
+        if(technicianService.SelectedServiceIdTechnician.Value != paraclinicalServiceID){
+            ToastService.ShowWarning("Dịch vụ xét nghiệm không phù hợp với hồ sơ xét nghiệm!");
+        }
+        else{
+            Navigation.NavigateTo($"/technician/paraclinical/infotest/{diagnosisServiceID}");
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         technicianService.OnChange += StateHasChanged;

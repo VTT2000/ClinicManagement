@@ -9,10 +9,10 @@ public class TechnicianService
     private void NotifyStateChanged() => OnChange?.Invoke();
 
     public bool? IsLoaded;
+    public bool IsFindServiceID = false;
+    public int? SelectedServiceIdTechnician;
     public TechnicianConditionFilterParaclinical condition = new TechnicianConditionFilterParaclinical();
     public HTTPResponseClient<PagedResponse<List<TechnicianParaclinical>>> list = new HTTPResponseClient<PagedResponse<List<TechnicianParaclinical>>>();
-
-    public int? SelectedServiceIdTechnician;
 
     public TechnicianService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage)
     {
@@ -29,6 +29,84 @@ public class TechnicianService
             PageSize = 10,
             PageNumber = 1
         };
+    }
+
+    public async Task<HTTPResponseClient<bool>> SaveInfoTestForTechcian(TechnicianTestInfoParaclinicalSeviceVM item)
+    {
+        string query = $"api/DiagnosisService/SaveInfoTestForTechcian";
+        HTTPResponseClient<bool> kq = new HTTPResponseClient<bool>();
+        kq.Data = false;
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PutAsJsonAsync(query, item);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<bool>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+    }
+
+    public async Task<HTTPResponseClient<TechnicianTestInfoParaclinicalSeviceVM>> GetInfoTestForTechcian(int diagnosisServiceID)
+    {
+        string query = $"api/DiagnosisService/GetInfoTestForTechcian/{diagnosisServiceID}";
+        HTTPResponseClient<TechnicianTestInfoParaclinicalSeviceVM> kq = new HTTPResponseClient<TechnicianTestInfoParaclinicalSeviceVM>();
+        kq.Data = new TechnicianTestInfoParaclinicalSeviceVM();
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync(query);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<TechnicianTestInfoParaclinicalSeviceVM>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
     }
 
     public async Task<HTTPResponseClient<TechnicianServiceVM>> GetServiceVMByIDAsync2(int serviceID)
@@ -80,6 +158,14 @@ public class TechnicianService
         PagedResponse<TechnicianConditionFilterParaclinical> conditionFilter = new PagedResponse<TechnicianConditionFilterParaclinical>();
         conditionFilter.PageNumber = list.Data!.PageNumber;
         conditionFilter.PageSize = list.Data.PageSize;
+        if (IsFindServiceID)
+        {
+            condition.ServiceID = SelectedServiceIdTechnician;
+        }
+        else
+        {
+            condition.ServiceID = null;
+        }
         conditionFilter.Data = condition;
         try
         {

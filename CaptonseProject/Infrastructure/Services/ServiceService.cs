@@ -135,7 +135,11 @@ public class ServiceService : IServiceService
             var list = await _unitOfWork._serviceRepository.WhereAsync(p =>
                 p.Type == TypeServiceConstant.Paraclinical
             );
-            list = list.Where(p => string.IsNullOrWhiteSpace(condition.Data) || StringHelper.IsMatchSearchKey(condition.Data!, p.ServiceName));
+            var parentList = list.Where(p => p.ServiceParentId.HasValue).Select(p=>p.ServiceParentId)!;
+            list = list.Where(p =>
+                (string.IsNullOrWhiteSpace(condition.Data) || StringHelper.IsMatchSearchKey(condition.Data!, p.ServiceName))
+                && !parentList.Any(q=>q == p.ServiceId)
+            );
             var data = list.Select(p => new TechnicianServiceVM()
             {
                 ServiceId = p.ServiceId,

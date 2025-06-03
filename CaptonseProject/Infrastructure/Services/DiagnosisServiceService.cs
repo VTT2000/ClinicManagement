@@ -3,6 +3,8 @@ using System.Text.Json;
 public interface IDiagnosisServiceService
 {
     public Task<dynamic> GetAllDiagnosisServiceForTechcian(PagedResponse<TechnicianConditionFilterParaclinical> condition);
+    public Task<dynamic> GetInfoTestForTechcian(int diagnosisServiceID);
+    public Task<dynamic> SaveInfoTestForTechcian(TechnicianTestInfoParaclinicalSeviceVM item, string authorization);
 }
 
 public class DiagnosisServiceService : IDiagnosisServiceService
@@ -19,7 +21,6 @@ public class DiagnosisServiceService : IDiagnosisServiceService
     // Implement methods for admin functionalities here
     public async Task<dynamic> GetAllDiagnosisServiceForTechcian(PagedResponse<TechnicianConditionFilterParaclinical> condition)
     {
-        Console.WriteLine(JsonSerializer.Serialize(condition));
         var result = new HTTPResponseClient<PagedResponse<List<TechnicianParaclinical>>>();
         result.Data = new PagedResponse<List<TechnicianParaclinical>>();
         result.Data.PageNumber = condition.PageNumber;
@@ -55,11 +56,10 @@ public class DiagnosisServiceService : IDiagnosisServiceService
                 FullNamePatient = p.Diagnosis.Appointment!.Patient!.User!.FullName,
                 DobPatient = p.Diagnosis.Appointment.Patient.Dob,
                 PhonePatient = p.Diagnosis.Appointment.Patient.Phone,
+                ParaclinicalServiceID = p.ServiceId,
                 ServiceName = p.Service.ServiceName,
-                RoomName = p.Room!.RoomName,
                 DoctorName = p.Diagnosis.Appointment.Doctor!.User!.FullName,
-                FullNamePerformed = p.UserIdperformedNavigation!.FullName,
-                CreatedAt = p.CreatedAt,
+                AppointmentDate = p.Diagnosis.Appointment.AppointmentDate,
                 ServiceResultReport = p.ServiceResultReport
             }).ToList();
 
@@ -74,6 +74,82 @@ public class DiagnosisServiceService : IDiagnosisServiceService
         }
         catch (Exception ex)
         {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+
+    public async Task<dynamic> GetInfoTestForTechcian(int diagnosisServiceID)
+    {
+        var result = new HTTPResponseClient<TechnicianTestInfoParaclinicalSeviceVM>();
+        result.Data = new TechnicianTestInfoParaclinicalSeviceVM();
+        try
+        {
+            var temp = await _unitOfWork._diagnosisServiceRepository.GetByIdAsync(diagnosisServiceID);
+            string name = string.Empty;
+            if (temp!.UserIdperformed.HasValue)
+            {
+                var temp2 = await _unitOfWork._userRepository.GetByIdAsync(temp.UserIdperformed.Value);
+                name = temp2 == null ? string.Empty : temp2.FullName;
+            }
+            
+            var data = new TechnicianTestInfoParaclinicalSeviceVM()
+            {
+                DiagnosesServiceId = temp!.DiagnosesServiceId,
+                RoomID = temp.RoomId,
+                ServiceID = temp.ServiceId,
+                NameUserperformed = name,
+                CreatedAt = temp.CreatedAt,
+                ServiceResultReport = temp.ServiceResultReport
+            };
+            result.Data = data;
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            result.Message = "Thất bại";
+            result.StatusCode = StatusCodes.Status500InternalServerError;
+        }
+        result.DateTime = DateTime.Now;
+        return result;
+    }
+    public async Task<dynamic> SaveInfoTestForTechcian(TechnicianTestInfoParaclinicalSeviceVM item, string authorization)
+    {
+        var result = new HTTPResponseClient<bool>();
+        result.Data = false;
+        try
+        {
+            await _unitOfWork.BeginTransaction();
+
+            string token = authorization.Substring("Bearer ".Length);
+            string fullName = _jwtAuthService.DecodePayloadToken(token);
+            var user = await _unitOfWork._userRepository.SingleOrDefaultAsync(p => p.FullName == fullName
+            && RoleConstant.Technician == p.Role);
+
+            var temp = await _unitOfWork._diagnosisServiceRepository.GetByIdAsync(item.DiagnosesServiceId);
+
+            temp!.UserIdperformed = user!.UserId;
+            temp.RoomId = item.RoomID;
+            temp.CreatedAt = DateTime.Now;
+            temp.ServiceResultReport = item.ServiceResultReport;
+
+            _unitOfWork._diagnosisServiceRepository.Update(temp);
+            await _unitOfWork.SaveChangesAsync();
+
+            result.Data = true;
+            result.Message = "Thành công";
+            result.StatusCode = StatusCodes.Status200OK;
+            
+            await _unitOfWork.CommitTransaction();
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollBack();
             Console.WriteLine(ex.Message);
             result.Message = "Thất bại";
             result.StatusCode = StatusCodes.Status500InternalServerError;

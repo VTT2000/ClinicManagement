@@ -1,0 +1,131 @@
+@page "/technician/paraclinical/infotest/{DiagnosisServiceID:int}"
+
+
+@layout AdminLayout
+
+@inject RoomServiceFE roomService
+@inject TechnicianService technicianService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@inject ILoginService loginService
+
+<div class="container-fluid bg-white text-black">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label class="form-label">Tên phòng xét nghiệm: </label>
+            <input type="text" @bind="infoRoom.Data!.RoomName" class="form-control" readonly />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Tên dịch vụ xét nghiệm: </label>
+            <input type="text" @bind="infoService.Data!.ServiceName" class="form-control" readonly />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Thời gian tạo: </label>
+            <input type="datetime-local" @bind="infoItem.CreatedAt" class="form-control" readonly />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Người thực hiện: </label>
+            <input type="text" @bind="infoItem.NameUserperformed" class="form-control" readonly />
+        </div>
+        <div class="col-md-12">
+            <label class="form-label">Kết quả xét nghiệm</label>
+            <textarea @bind="infoItem.ServiceResultReport" rows="5" class="form-control" placeholder="Nhập kết quả xét nghiệm" readonly="@(!CanSave())" /> 
+        </div>
+    </div>
+    <div class="d-flex justify-content-between my-2">
+        <a href="/technician/paraclinical" class="btn btn-secondary">Trở về</a>
+        @if(CanSave()){
+            <button @onclick="SaveItem" class="btn btn-primary">Lưu</button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int DiagnosisServiceID {get; set;}
+
+    public TechnicianTestInfoParaclinicalSeviceVM infoItem = new TechnicianTestInfoParaclinicalSeviceVM();
+
+    public HTTPResponseClient<RoomVM> infoRoom = new HTTPResponseClient<RoomVM>(){
+        Data = new RoomVM()
+    };
+    public HTTPResponseClient<TechnicianServiceVM> infoService = new HTTPResponseClient<TechnicianServiceVM>(){
+        Data = new TechnicianServiceVM()
+    };
+
+    private bool HasServiceResultReport(){
+        return !string.IsNullOrWhiteSpace(infoItem.ServiceResultReport);
+    }
+
+    private bool CanSave(){
+        if(HasServiceResultReport() && infoItem.CreatedAt.HasValue && DateOnly.FromDateTime(infoItem.CreatedAt.Value).CompareTo(DateOnly.FromDateTime(DateTime.Now)) != 0){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+    private async Task SaveItem(){
+        if(HasServiceResultReport()){
+            var result = await technicianService.SaveInfoTestForTechcian(infoItem);
+            if(result.Data){
+                ToastService.ShowSuccess("Lưu xét nghiệm thành công!");
+            }
+            else{
+                ToastService.ShowError("Lưu xét nghiệm thất bại!");
+            }
+        }
+        else{
+            ToastService.ShowWarning("Nhập kết quả xét nghiệm!");
+        }
+    }
+
+    private async Task GetInfoItem(){
+        var result = await technicianService.GetInfoTestForTechcian(DiagnosisServiceID);
+        if(result.StatusCode == StatusCodes.Status200OK){
+            infoItem = result.Data ?? new TechnicianTestInfoParaclinicalSeviceVM();
+            infoItem.RoomID = roomService.SelectedRoomIdTechnician;
+            if(string.IsNullOrWhiteSpace(infoItem.NameUserperformed)){
+                var temp = await loginService.GetUserInfoAsync();
+                infoItem.NameUserperformed = temp.FullName;
+            }
+        }
+        else{
+            Console.WriteLine(result.Message);
+        }
+    }
+    private async Task SetInfoRoomID(){
+        if(!roomService.SelectedRoomIdTechnician.HasValue || roomService.SelectedRoomIdTechnician.Value == 0){
+            infoRoom = new HTTPResponseClient<RoomVM>();
+        }
+        else{
+            infoRoom = await roomService.GetRoomVMByIDAsync(roomService.SelectedRoomIdTechnician.Value);
+        }
+    }
+    private async Task SetInfoService(){
+        infoService = await technicianService.GetServiceVMByIDAsync2(infoItem.ServiceID);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync(){
+        await GetInfoItem();
+        await SetInfoService();
+        await SetInfoRoomID();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public void Dispose()
+    {
+        
+    }
+}
+
