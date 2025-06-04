@@ -19,7 +19,7 @@ namespace CaptonseProject.Controllers
             _appointmentService = appoinmentService;
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpPost("GetAllAppointmentPatientAsync")]
         public async Task<IActionResult> GetAllAppointmentPatientAsync2([FromBody] PagedResponse<ConditionFilterPatientForAppointmentReceptionist> condition)
         {
@@ -27,7 +27,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpPost("CreateAppointmentFromReceptionist")]
         public async Task<IActionResult> CreateAppointmentFromReceptionist([FromBody] AppointmentReceptionistCreateVM item)
         {
@@ -35,7 +35,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpPost("ChangeStatusWaitingForPatient")]
         public async Task<IActionResult> ChangeStatusWaitingForPatient([FromBody]int appointmentId)
         {
@@ -59,8 +59,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role doctor
-        [Authorize]
+        [Authorize(Roles = RoleConstant.Doctor)]
         [HttpPost("GetAllListPatientForDocTorAsync2")]
         public async Task<IActionResult> GetAllListPatientForDocTorAsync2([FromHeader] string authorization, [FromBody] PagedResponse<ConditionFilterPatientForAppointmentDoctor> condition)
         {
@@ -68,7 +67,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role doctor
+        [Authorize(Roles = RoleConstant.Doctor)]
         [HttpPut("UpdateStatusAppointmentForDoctor/{appointmentId}")]
         public async Task<IActionResult> UpdateStatusAppointmentForDoctor([FromRoute] int appointmentId, [FromBody] string status)
         {
@@ -76,7 +75,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
         
-        // role doctor
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpGet("GetAllFreeTimeAppointmentForDoctor/{date}/{doctorId}")]
         public async Task<IActionResult> GetAllFreeTimeAppointmentForDoctor([FromRoute] DateOnly date,[FromRoute] int doctorId)
         {

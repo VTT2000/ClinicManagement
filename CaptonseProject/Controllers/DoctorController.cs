@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 //using CaptonseProject.Models;
 
@@ -17,7 +18,7 @@ namespace CaptonseProject.Controllers
             _doctorService = doctorService;
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpGet("GetByNameForReceptionistAsync/{searchKey}")]
         public async Task<IActionResult> GetByNameForReceptionistAsync([FromRoute]string searchKey)
         {
@@ -25,7 +26,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpGet("GetDoctorByIdAsync/{id}")]
         public async Task<IActionResult> GetDoctorByIdAsync([FromRoute]int id)
         {

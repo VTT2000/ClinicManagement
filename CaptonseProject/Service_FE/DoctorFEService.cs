@@ -598,7 +598,9 @@ public class DoctorFEService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
-
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
             var response = await client.PutAsJsonAsync(query, status);
 
             if (response.IsSuccessStatusCode)

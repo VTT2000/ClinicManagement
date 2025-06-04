@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 //using CaptonseProject.Models;
 
@@ -17,7 +18,7 @@ namespace CaptonseProject.Controllers
             _workScheduleService = workScheduleService;
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpGet("GetAllWorkScheduleDortorAsync")]
         public async Task<IActionResult> GetAllWorkScheduleDortorAsync()
         {
@@ -25,7 +26,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpGet("GetWorkScheduleDortorAsync/{id}")]
         public async Task<IActionResult> GetWorkScheduleDortorAsync([FromRoute]int id)
         {
@@ -33,7 +34,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpPost("SaveWorkScheduleDortorAsync")]
         public async Task<IActionResult> SaveWorkScheduleDortorAsync([FromBody]WorkScheduleDoctorDetailVM item)
         {
@@ -41,7 +42,7 @@ namespace CaptonseProject.Controllers
             return Ok(result);
         }
 
-        // role receptionist
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpDelete("DeleteWorkScheduleDortorAsync/{id}")]
         public async Task<IActionResult> DeleteWorkScheduleDortorAsync([FromRoute]int id)
         {

@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
@@ -14,6 +15,7 @@ public class ReceptionistService
 
 
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILocalStorageService _localStorage;
     public event Action? OnChange;
     private void NotifyStateChanged() => OnChange?.Invoke();
 
@@ -21,9 +23,10 @@ public class ReceptionistService
     public string ErrorMessage2 = string.Empty;
     public List<WorkScheduleDoctorVM> listWorkScheduleDoctor = new List<WorkScheduleDoctorVM>();
 
-    public ReceptionistService(IHttpClientFactory httpClientFactory)
+    public ReceptionistService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage)
     {
         _httpClientFactory = httpClientFactory;
+        _localStorage = localStorage;
         listAppointment2.PageNumber = 1;
         listAppointment2.PageSize = 10;
     }
@@ -38,7 +41,9 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
-
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
             var response = await client.PostAsJsonAsync(query, conditionfilter);
 
             if (response.IsSuccessStatusCode)
@@ -76,7 +81,9 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
-
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
             var response = await client.PostAsJsonAsync(query, apppointmentId);
 
             if (response.IsSuccessStatusCode)
@@ -111,9 +118,13 @@ public class ReceptionistService
     public async Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId)
     {
         string query = $"api/Appointment/GetAllFreeTimeAppointmentForDoctor/{date}/{doctorId}";
+        List<TimeOnly> kq = new List<TimeOnly>();
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var response = await client.GetAsync(query);
 
             if (response.IsSuccessStatusCode)
@@ -128,7 +139,7 @@ public class ReceptionistService
                 {
                     //ErrorMessage = result.Message;
                     Console.WriteLine(result.Message);
-                    return result.Data ?? new List<TimeOnly>();
+                    kq = result.Data ?? new List<TimeOnly>();
                 }
             }
             else
@@ -142,7 +153,7 @@ public class ReceptionistService
             // ErrorMessage = "Thất bại!";
             Console.WriteLine(ex.Message);
         }
-        return new DoctorSearchedForCreateAppointmentVM();
+        return kq;
     }
 
     public async Task<dynamic> GetDoctorByIdAsync(int id)
@@ -155,6 +166,9 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var response = await client.GetAsync(query);
 
             if (response.IsSuccessStatusCode)
@@ -192,6 +206,8 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.DeleteAsync(query);
 
@@ -230,6 +246,8 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.PostAsJsonAsync(query, item);
 
@@ -272,6 +290,9 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var response = await client.GetAsync(query);
 
             if (response.IsSuccessStatusCode)
@@ -309,6 +330,9 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var response = await client.GetAsync(query);
 
             if (response.IsSuccessStatusCode)
@@ -345,6 +369,8 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.PostAsJsonAsync(query, appointmentReceptionistCreateVM);
 
@@ -385,6 +411,9 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
             var response = await client.GetAsync(query);
 
             if (response.IsSuccessStatusCode)
@@ -423,6 +452,9 @@ public class ReceptionistService
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
             var response = await client.GetAsync(query);
 
             if (response.IsSuccessStatusCode)
