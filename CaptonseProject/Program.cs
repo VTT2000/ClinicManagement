@@ -14,7 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.JSInterop;
 using Microsoft.OpenApi.Models;
 using web_api_base.Models.ClinicManagement;
-using web_api_base.Pages.Receptionist;
+
 using web_api_base.Service_FE.Services;
 using web_api_base.Models.Configuration;
 
@@ -163,7 +163,7 @@ builder.Services.AddScoped<ReceptionistService>();
 builder.Services.AddScoped<DoctorFEService>();
 builder.Services.AddScoped<RoomServiceFE>();
 builder.Services.AddScoped<TechnicianService>();
-
+builder.Services.AddScoped<ProfileService>(); 
 builder.Services.AddBlazoredToast();
 
 var app = builder.Build();
