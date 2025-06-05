@@ -33,8 +33,6 @@ public partial class ClinicContext : DbContext
 
     public virtual DbSet<PrescriptionDetail> PrescriptionDetails { get; set; }
 
-    public virtual DbSet<PrescriptionDetail> PrescriptionDetails { get; set; }
-
     public virtual DbSet<Room> Rooms { get; set; }
 
     public virtual DbSet<Service> Services { get; set; }
@@ -90,10 +88,7 @@ public partial class ClinicContext : DbContext
         modelBuilder.Entity<DiagnosesService>(entity =>
         {
             entity.ToTable("Diagnoses_Services");
-            entity.ToTable("Diagnoses_Services");
 
-            entity.Property(e => e.DiagnosesServiceId).HasColumnName("DiagnosesServiceID");
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DiagnosesServiceId).HasColumnName("DiagnosesServiceID");
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DiagnosisId).HasColumnName("DiagnosisID");
@@ -102,29 +97,21 @@ public partial class ClinicContext : DbContext
             entity.Property(e => e.UserIdperformed).HasColumnName("UserIDperformed");
 
             entity.HasOne(d => d.Diagnosis).WithMany(p => p.DiagnosesServices)
-            entity.HasOne(d => d.Diagnosis).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.DiagnosisId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Diagnoses__Diagn__6B24EA82");
-                .HasConstraintName("FK__Diagnoses__Diagn__6B24EA82");
 
-            entity.HasOne(d => d.Room).WithMany(p => p.DiagnosesServices)
             entity.HasOne(d => d.Room).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.RoomId)
                 .HasConstraintName("FK__Diagnoses__RoomI__6E01572D");
-                .HasConstraintName("FK__Diagnoses__RoomI__6E01572D");
 
-            entity.HasOne(d => d.Service).WithMany(p => p.DiagnosesServices)
             entity.HasOne(d => d.Service).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Diagnoses__Servi__6C190EBB");
-                .HasConstraintName("FK__Diagnoses__Servi__6C190EBB");
 
             entity.HasOne(d => d.UserIdperformedNavigation).WithMany(p => p.DiagnosesServices)
-            entity.HasOne(d => d.UserIdperformedNavigation).WithMany(p => p.DiagnosesServices)
                 .HasForeignKey(d => d.UserIdperformed)
-                .HasConstraintName("FK__Diagnoses__UserI__6D0D32F4");
                 .HasConstraintName("FK__Diagnoses__UserI__6D0D32F4");
         });
 
@@ -193,7 +180,6 @@ public partial class ClinicContext : DbContext
             entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
             entity.Property(e => e.DiagnosisId).HasColumnName("DiagnosisID");
             entity.Property(e => e.Prescription1).HasColumnName("Prescription");
-            entity.Property(e => e.Prescription1).HasColumnName("Prescription");
 
             entity.HasOne(d => d.Diagnosis).WithMany(p => p.Prescriptions)
                 .HasForeignKey(d => d.DiagnosisId)
@@ -207,23 +193,7 @@ public partial class ClinicContext : DbContext
             entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
 
             entity.HasOne(d => d.Medicine).WithMany(p => p.PrescriptionDetails)
-                .HasConstraintName("FK_Prescriptions_Diagnoses");
-        });
-
-        modelBuilder.Entity<PrescriptionDetail>(entity =>
-        {
-            entity.Property(e => e.PrescriptionDetailId).HasColumnName("PrescriptionDetailID");
-            entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
-            entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
-
-            entity.HasOne(d => d.Medicine).WithMany(p => p.PrescriptionDetails)
                 .HasForeignKey(d => d.MedicineId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PrescriptionDetails_Medicines");
-
-            entity.HasOne(d => d.Prescription).WithMany(p => p.PrescriptionDetails)
-                .HasForeignKey(d => d.PrescriptionId)
-                .HasConstraintName("FK_PrescriptionDetails_Prescriptions");
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PrescriptionDetails_Medicines");
 
@@ -250,7 +220,6 @@ public partial class ClinicContext : DbContext
             entity.Property(e => e.Price).HasColumnType("decimal(15, 3)");
             entity.Property(e => e.ServiceName).HasMaxLength(100);
             entity.Property(e => e.ServiceParentId).HasColumnName("ServiceParentID");
-            entity.Property(e => e.Type).HasMaxLength(50);
             entity.Property(e => e.Type).HasMaxLength(50);
 
             entity.HasOne(d => d.ServiceParent).WithMany(p => p.InverseServiceParent)
@@ -281,11 +250,7 @@ public partial class ClinicContext : DbContext
 
             entity.Property(e => e.WorkScheduleId).HasColumnName("WorkScheduleID");
             entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
-            entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
 
-            entity.HasOne(d => d.Doctor).WithMany(p => p.WorkSchedules)
-                .HasForeignKey(d => d.DoctorId)
-                .HasConstraintName("FK_WorkSchedules_Doctors");
             entity.HasOne(d => d.Doctor).WithMany(p => p.WorkSchedules)
                 .HasForeignKey(d => d.DoctorId)
                 .HasConstraintName("FK_WorkSchedules_Doctors");

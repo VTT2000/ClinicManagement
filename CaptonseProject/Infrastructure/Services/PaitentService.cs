@@ -15,11 +15,11 @@ public class PatientService : IPatientService
 {
   private readonly IPatientRepository _patientRepository;
   private readonly IUserRepository _userRepository;
-  private readonly UnitOfWork _unitOfWork;
+  private readonly IUnitOfWork _unitOfWork;
 
 
 
-  public PatientService(IPatientRepository patientRepository, UnitOfWork unitOfWork, IUserRepository userRepository)
+  public PatientService(IPatientRepository patientRepository, IUnitOfWork unitOfWork, IUserRepository userRepository)
   {
     _unitOfWork = unitOfWork;
     _patientRepository = patientRepository;
