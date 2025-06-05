@@ -1,11 +1,11 @@
-@inject TechnicianService technicianService
+@inject ReceptionistService receptionistService
 
 <!-- Modal.razor -->
 <div class="modal fade @(IsVisible ? "show d-block" : "")" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-lg" @onclick:stopPropagation>
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Chọn dịch vụ xét nghiệm</h5>
+                <h5 class="modal-title">Chọn bác sĩ: </h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
@@ -13,8 +13,9 @@
                     <div class="row align-items-center">
                         <div class="col-md-12">
                             <div class="input-group">
-                                <input @bind="pagedResponseSearchText!.Data" type="text" class="form-control" placeholder="Tìm kiếm theo tên" />
-                                <button @onclick="SearchClinicalService" class="btn btn-secondary" type="button">
+                                <input @bind="condition.Data!.NameDoctor" type="text" class="form-control" placeholder="Tìm kiếm theo tên bác sĩ" />
+                                <input @bind="condition.Data.NameSpecialization" type="text" class="form-control" placeholder="Tìm kiếm theo tên chuyên môn" />
+                                <button @onclick="()=>SearchCondition()" class="btn btn-secondary" type="button">
                                     <i class="bi bi-search"></i>
                                 </button>
                             </div>
@@ -60,10 +61,10 @@
                                             {
                                                 <tr>
                                                     <td>@i</td>
-                                                    <td>@(item.ServiceName)</td>
+                                                    <td>@(item.FullName)</td>
                                                     <td>
                                                         <div class="btn-group">
-                                                            <button @onclick="()=>SeletedService(item.ServiceId)" class="btn btn-sm btn-outline-primary">
+                                                            <button @onclick="()=>SeletedItem(item.DoctorId)" class="btn btn-sm btn-outline-primary">
                                                                 Chọn
                                                             </button>
                                                         </div>
@@ -120,14 +121,14 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
     [Parameter]
-    public EventCallback<int> OnSeletedService {get;set;}
+    public EventCallback<int> OnSeletedItem {get;set;}
     [Parameter]
     public bool IsVisible { get; set; }
 
 
     private bool? isLoaded;
-    private PagedResponse<string> pagedResponseSearchText = new PagedResponse<string>();
-    private HTTPResponseClient<PagedResponse<List<TechnicianServiceVM>>> list = new HTTPResponseClient<PagedResponse<List<TechnicianServiceVM>>>();
+    private PagedResponse<ReceptionistConditionFIlterForSelectedDoctor> condition = new PagedResponse<ReceptionistConditionFIlterForSelectedDoctor>();
+    private HTTPResponseClient<PagedResponse<List<ReceptionistSelectedDoctorVM>>> list = new HTTPResponseClient<PagedResponse<List<ReceptionistSelectedDoctorVM>>>();
     
 
     private List<int> GetPageNumbersToDisplay()
@@ -157,34 +158,37 @@
         if (page >= 1 && page <= list.Data!.TotalPages && page != list.Data!.PageNumber)
         {
             list.Data!.PageNumber = page;
-            await SearchClinicalService();
+            await SearchCondition();
         }
     }
 
-    private async Task SearchClinicalService(){
-        pagedResponseSearchText.PageSize = list.Data!.PageSize;
-        pagedResponseSearchText.PageNumber = list.Data!.PageNumber;
+    private async Task SearchCondition(){
+        condition.PageSize = list.Data!.PageSize;
+        condition.PageNumber = list.Data!.PageNumber;
         isLoaded = false;
-        list = await technicianService.GetAllServiceParaclinicalAsync2(pagedResponseSearchText);
+        list = await receptionistService.GetAllDoctorForSelectedDoctorAsync(condition);
         isLoaded = true;
     }
 
-    private async Task SeletedService(int serviceID){
-        await OnSeletedService.InvokeAsync(serviceID);
+    private async Task SeletedItem(int itemID){
+        await OnSeletedItem.InvokeAsync(itemID);
         await Close();
     }
 
     private void LoadDataAsDefault(){
         isLoaded = null;
-        pagedResponseSearchText = new PagedResponse<string>();
-        pagedResponseSearchText.Data = string.Empty;
-        list = new HTTPResponseClient<PagedResponse<List<TechnicianServiceVM>>>();
-        list.Data = new PagedResponse<List<TechnicianServiceVM>>();
-        list.Data.Data = new List<TechnicianServiceVM>();
-        list.Data.PageSize = 10;
-        list.Data.PageNumber = 1;
-        list.Data.TotalRecords = 0;
-        list.Data.TotalPages = 0;
+        condition = new PagedResponse<ReceptionistConditionFIlterForSelectedDoctor>(){
+            Data = new ReceptionistConditionFIlterForSelectedDoctor()
+        };
+        list = new HTTPResponseClient<PagedResponse<List<ReceptionistSelectedDoctorVM>>>(){
+            Data = new PagedResponse<List<ReceptionistSelectedDoctorVM>>(){
+                Data = new List<ReceptionistSelectedDoctorVM>(),
+                PageNumber = 1,
+                PageSize = 10,
+                TotalPages = 0,
+                TotalRecords = 0
+            }    
+        };
     }
 
     private async Task Close()

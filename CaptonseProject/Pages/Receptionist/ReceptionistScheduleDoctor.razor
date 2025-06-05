@@ -2,34 +2,28 @@
 
 @layout AdminLayout
 @inject ReceptionistService receptionistService
+@inject IToastService ToastService
+@inject NavigationManager Navigation
 
 <div class="container-fluid">
     <!-- Phần tiêu đề và tìm kiếm -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
+        <div class="col-md-10">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Tìm kiếm người dùng..." />
-                <button class="btn btn-outline-secondary" type="button">
+                <input @bind="receptionistService.condition2.NameDoctor" type="text" class="form-control" placeholder="Tìm kiếm theo tên bác sĩ" />
+                <input @bind="receptionistService.condition2.WorkDate" type="date" class="form-control" />
+                <input @bind="receptionistService.condition2.WorkTime" type="time" class="form-control" />
+                <button @onclick="()=>SearchCondition()" class="btn btn-outline-secondary" type="button">
                     <i class="bi bi-search"></i>
                 </button>
             </div>
         </div>
-        <div class="col-md-4">
-            <select class="form-select">
-                <option selected>Tất cả vai trò</option>
-                <option value="Admin">Admin</option>
-                <option value="Bác sĩ">Bác sĩ</option>
-                <option value="Lễ tân">Lễ tân</option>
-                <option value="Kỹ thuật viên">Kỹ thuật viên</option>
-                <option value="Bệnh nhân">Bệnh nhân</option>
-            </select>
-        </div>
         <div class="col-md-2">
-            <button class="btn btn-primary w-100" @onclick="()=>ShowModalDetail()"><i class="bi bi-plus-circle me-2"></i>Thêm mới</button>
+            <button class="btn btn-primary w-100" @onclick="()=>GoToPageDetail()"><i class="bi bi-plus-circle me-2"></i>Thêm mới</button>
         </div>
     </div>
     <!-- Loading spinner -->
-    @if (!receptionistService.isLoaded2)
+    @if (IsLoaded.HasValue && !IsLoaded.Value)
     {
         <div class="d-flex justify-content-center my-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -37,11 +31,11 @@
             </div>
         </div>
     }
-    else if (!string.IsNullOrEmpty(receptionistService.ErrorMessage2))
+    else if (!(receptionistService.list2.StatusCode.HasValue && receptionistService.list2.StatusCode.Value == StatusCodes.Status200OK) && !string.IsNullOrWhiteSpace(receptionistService.list2.Message))
     {
         <div class="alert alert-danger" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            @receptionistService.ErrorMessage2
+            @receptionistService.list2.Message
         </div>
     }
     else
@@ -69,7 +63,7 @@
                             @{
                                 var i = 1;
                             }
-                            @foreach (var item in receptionistService.listWorkScheduleDoctor.OrderByDescending(p=>p.EndDate))
+                            @foreach (var item in receptionistService.list2.Data!.Data!.OrderByDescending(p=>p.EndDate))
                             {
                                 <tr>
                                     <td>@i</td>
@@ -80,7 +74,7 @@
                                     <td>@item.DoctorName</td>
                                     <td>
                                         <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-primary" @onclick="()=>ShowModalDetail(item.WorkScheduleId)">
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="()=>GoToPageDetail(item.WorkScheduleId)">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
                                             <button class="btn btn-sm btn-outline-danger" @onclick="()=>ShowModalDelete(item.WorkScheduleId)">
@@ -98,61 +92,126 @@
                 <!-- Phân trang -->
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                        <li class="page-item @(receptionistService.list2.Data.PageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link" style="cursor: pointer;" @onclick="() =>  SelectPage(receptionistService.list2.Data!.PageNumber - 1)">Trước</a>
                         </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">Sau</a>
+
+                        @foreach (var page in GetPageNumbersToDisplay())
+                        {
+                            if (page == -1)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+                            else
+                            {
+                                <li class="page-item @(page == receptionistService.list2.Data!.PageNumber ? "active" : "")">
+                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page)">@(page)</a>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(receptionistService.list2.Data!.PageNumber == receptionistService.list2.Data!.TotalPages ? "disabled" : "")">
+                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(receptionistService.list2.Data!.PageNumber + 1)">Sau</a>
                         </li>
                     </ul>
                 </nav>
+
             </div>
         </div>
     }
 </div>
 
-<ReceptionistScheduleDoctorModalDetail WorKScheduleId="@WorKScheduleId" IsVisible="@isModalVisible" OnClose="HideModalDetail" />
-<ReceptionistScheduleDoctorModalDelete WorKScheduleId="@WorKScheduleId" Message="@NotificationDelete" IsVisible="@isModalVisible2" OnClose="HideModalDetail" />
+<ReceptionistScheduleDoctorModalDelete OnDeleteItemSelected="DeleteItem" MessageNotification="@NotificationDelete" IsVisible="@isModalVisible" OnClose="HideModalDelete" />
 @code {
-    private int WorKScheduleId = 0;
     private bool isModalVisible = false;
-
-    private bool isModalVisible2 = false;
-
+    private int? ItemDeletedId;
     private string NotificationDelete = string.Empty;
 
     private void ShowModalDelete(int workScheduleId)
     {
-        WorKScheduleId = workScheduleId;
-        isModalVisible2 = true;
-        var temp = receptionistService.listWorkScheduleDoctor.First(p=>p.WorkScheduleId == WorKScheduleId);
+        ItemDeletedId = workScheduleId;
+        isModalVisible = true;
+        var temp = receptionistService.list2.Data!.Data!.First(p=>p.WorkScheduleId == ItemDeletedId);
         NotificationDelete = $"Bạn có chắc chắn muốn xóa lịch làm việc của bác sĩ "+ temp.DoctorName; 
     }
 
-
-    private void ShowModalDetail(int workScheduleId = 0)
-    {
-        WorKScheduleId = workScheduleId;
-        isModalVisible = true;
+    private async Task DeleteItem(){
+        if(ItemDeletedId.HasValue){
+            var result = await receptionistService.DeleteWorkScheduleDoctorAsync(ItemDeletedId.Value);
+            if(result.Data){
+                ToastService.ShowSuccess("Xóa lịch làm việc thành công!");
+            }
+            else{
+                ToastService.ShowError("Xóa lịch làm việc thất bại!");
+            }
+        }
+        
     }
 
-    private async Task HideModalDetail()
+
+    private void GoToPageDetail(int? workScheduleId = null)
+    {
+        string query = "/receptionist/schedule/doctor/detail";
+        if(workScheduleId.HasValue){
+            query += $"/{workScheduleId.Value}";
+        }
+        Navigation.NavigateTo(query);
+    }
+
+    private async Task HideModalDelete()
     {
         isModalVisible = false;
-        isModalVisible2 = false;
+        ItemDeletedId = null;
         NotificationDelete = string.Empty;
-        WorKScheduleId = 0;
+        await SearchCondition();
+    }
+    private bool? IsLoaded;
 
-        await receptionistService.GetAllWorkScheduleDoctorAsync();
+    private async Task SearchCondition(){
+        IsLoaded = false;
+        await receptionistService.GetAllWorkScheduleDoctorAsync2();
+        IsLoaded = true;
+    }
+
+    
+
+    public List<int> GetPageNumbersToDisplay()
+    {
+        var list = receptionistService.list2;
+        const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
+        var pages = new List<int>();
+        if (list.Data!.TotalPages <= 7)
+        {
+            for (int i = 1; i <= list.Data!.TotalPages; i++) pages.Add(i);
+        }
+        else
+        {
+            pages.Add(1);
+            if (list.Data!.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+            for (int i = Math.Max(2, list.Data!.PageNumber - range); i <= Math.Min(list.Data!.TotalPages - 1, list.Data!.PageNumber + range); i++)
+            {
+                pages.Add(i);
+            }
+            if (list.Data!.PageNumber < list.Data!.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+            pages.Add(list.Data!.TotalPages);
+        }
+        return pages;
+    }
+
+    private async Task SelectPage(int page)
+    {
+        var list = receptionistService.list2;
+        if (page >= 1 && page <= list.Data!.TotalPages && page != list.Data!.PageNumber)
+        {
+            list.Data!.PageNumber = page;
+            await SearchCondition();
+        }
     }
 
     protected override async Task OnInitializedAsync()
     {
         receptionistService.OnChange += StateHasChanged;
-        await receptionistService.GetAllWorkScheduleDoctorAsync();
+        await SearchCondition();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -162,7 +221,6 @@
 
     public void Dispose()
     {
-        // Hủy lắng nghe khi component bị hủy
         receptionistService.OnChange -= StateHasChanged;
     }
 }

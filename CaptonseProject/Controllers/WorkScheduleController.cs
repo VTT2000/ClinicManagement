@@ -27,6 +27,14 @@ namespace CaptonseProject.Controllers
         }
 
         [Authorize(Roles = RoleConstant.Receptionist)]
+        [HttpPost("GetAllWorkScheduleDortorAsync2")]
+        public async Task<IActionResult> GetAllWorkScheduleDortorAsync2(PagedResponse<ReceptionistConditionFilterWorkScheduleDoctor> pagedResponse)
+        {
+            var result = await _workScheduleService.GetAllWorkScheduleDortorAsync2(pagedResponse);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpGet("GetWorkScheduleDortorAsync/{id}")]
         public async Task<IActionResult> GetWorkScheduleDortorAsync([FromRoute]int id)
         {
@@ -35,10 +43,10 @@ namespace CaptonseProject.Controllers
         }
 
         [Authorize(Roles = RoleConstant.Receptionist)]
-        [HttpPost("SaveWorkScheduleDortorAsync")]
-        public async Task<IActionResult> SaveWorkScheduleDortorAsync([FromBody]WorkScheduleDoctorDetailVM item)
+        [HttpPut("SaveWorkScheduleDoctorAsync")]
+        public async Task<IActionResult> SaveWorkScheduleDoctorAsync([FromBody]WorkScheduleDoctorDetailVM item)
         {
-            var result = await _workScheduleService.SaveWorkScheduleDortorAsync(item);
+            var result = await _workScheduleService.SaveWorkScheduleDoctorAsync(item);
             return Ok(result);
         }
 

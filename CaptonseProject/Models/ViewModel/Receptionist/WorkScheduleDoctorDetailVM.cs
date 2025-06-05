@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+
 public class WorkScheduleDoctorDetailVM
 {
-    public int WorkScheduleId { get; set; }
+    public int? WorkScheduleId { get; set; }
 
     public DateOnly? StartDate { get; set; }
 

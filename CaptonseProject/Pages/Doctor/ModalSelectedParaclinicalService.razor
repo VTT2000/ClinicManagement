@@ -32,7 +32,7 @@
                             </div>
                         </div>
                     }
-                    else if (list.StatusCode.HasValue && !(list.StatusCode.Value == StatusCodes.Status200OK))
+                    else if (!(list.StatusCode.HasValue && list.StatusCode.Value == StatusCodes.Status200OK) && !string.IsNullOrWhiteSpace(list.Message))
                     {
                         <div class="alert alert-danger" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>

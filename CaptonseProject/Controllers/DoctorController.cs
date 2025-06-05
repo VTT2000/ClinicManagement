@@ -20,19 +20,34 @@ namespace CaptonseProject.Controllers
 
         [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpGet("GetByNameForReceptionistAsync/{searchKey}")]
-        public async Task<IActionResult> GetByNameForReceptionistAsync([FromRoute]string searchKey)
+        public async Task<IActionResult> GetByNameForReceptionistAsync([FromRoute] string searchKey)
         {
             var result = await _doctorService.GetByNameForReceptionistAsync(searchKey);
             return Ok(result);
         }
 
         [Authorize(Roles = RoleConstant.Receptionist)]
+        [HttpPost("GetAllDoctorForSelectedDoctorAsync")]
+        public async Task<IActionResult> GetAllDoctorForSelectedDoctorAsync([FromBody] PagedResponse<ReceptionistConditionFIlterForSelectedDoctor> pagedResponse)
+        {
+            var result = await _doctorService.GetAllDoctorForSelectedDoctorAsync(pagedResponse);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpGet("GetDoctorByIdAsync/{id}")]
-        public async Task<IActionResult> GetDoctorByIdAsync([FromRoute]int id)
+        public async Task<IActionResult> GetDoctorByIdAsync([FromRoute] int id)
         {
             var result = await _doctorService.GetDoctorByIdAsync(id);
             return Ok(result);
         }
 
+        [Authorize(Roles = RoleConstant.Receptionist)]
+        [HttpGet("GetDoctorSelectedByIdAsync/{id}")]
+        public async Task<IActionResult> GetDoctorSelectedByIdAsync([FromRoute] int id)
+        {
+            var result = await _doctorService.GetDoctorSelectedByIdAsync(id);
+            return Ok(result);
+        }
    }
 }
