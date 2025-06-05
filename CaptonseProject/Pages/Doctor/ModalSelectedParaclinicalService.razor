@@ -58,7 +58,7 @@
                                         <tbody>
                                             <!-- Dòng 1 -->
                                             @{
-                                                var i = 1;
+                                                var i = 1 + ((list.Data.PageNumber-1) * list.Data.PageSize);
                                             }
                                             @foreach (var item in list.Data!.Data!)
                                             {

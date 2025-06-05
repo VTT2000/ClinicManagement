@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Blazored.LocalStorage;
 
 public class DoctorFEService
@@ -9,38 +10,14 @@ public class DoctorFEService
     public event Action? OnChange;
     private void NotifyStateChanged() => OnChange?.Invoke();
 
-    public bool isLoaded = false;
-    public string ErrorMessage = string.Empty;
-    public bool isLoaded2 = false;
-    public string ErrorMessage2 = string.Empty;
-    public bool isLoaded3 = false;
-    public string ErrorMessage3 = string.Empty;
-    public bool isLoaded4 = false;
-    public string ErrorMessage4 = string.Empty;
-    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorWaiting = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
-    {
-        Data = new List<AppointmentPatientForDoctorVM>(),
-        PageSize = 10,
-        PageNumber = 1
-    };
-    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorTurned = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
-    {
-        Data = new List<AppointmentPatientForDoctorVM>(),
-        PageSize = 10,
-        PageNumber = 1
-    };
-    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorProcessing = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
-    {
-        Data = new List<AppointmentPatientForDoctorVM>(),
-        PageSize = 10,
-        PageNumber = 1
-    };
-    public PagedResponse<List<AppointmentPatientForDoctorVM>> listAppointmentPatientForDoctorDiagnosed  = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
-    {
-        Data = new List<AppointmentPatientForDoctorVM>(),
-        PageSize = 10,
-        PageNumber = 1
-    };
+    public string currentTab = string.Empty;
+    public bool? isLoaded;
+    public ConditionFilterPatientForAppointmentDoctor conditionFilter = new ConditionFilterPatientForAppointmentDoctor();
+    public ConditionFilterPatientForAppointmentDoctor conditionFilter2 = new ConditionFilterPatientForAppointmentDoctor();
+    public ConditionFilterPatientForAppointmentDoctor conditionFilter3 = new ConditionFilterPatientForAppointmentDoctor();
+    public ConditionFilterPatientForAppointmentDoctor conditionFilter4 = new ConditionFilterPatientForAppointmentDoctor();
+    public HTTPResponseClient<PagedResponse<List<AppointmentPatientForDoctorVM>>> list = new HTTPResponseClient<PagedResponse<List<AppointmentPatientForDoctorVM>>>();
+
 
     public bool isLoaded5 = false;
     public string ErrorMessage5 = string.Empty;
@@ -50,6 +27,23 @@ public class DoctorFEService
     {
         _httpClientFactory = httpClientFactory;
         _localStorage = localStorage;
+
+        currentTab = StatusConstant.AppointmentStatus.Waiting;
+        conditionFilter.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
+        conditionFilter.status = StatusConstant.AppointmentStatus.Waiting;
+        conditionFilter2.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
+        conditionFilter2.status = StatusConstant.AppointmentStatus.Turned;
+        conditionFilter3.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
+        conditionFilter3.status = StatusConstant.AppointmentStatus.Processing;
+        conditionFilter4.dateAppointment = DateOnly.FromDateTime(DateTime.Now);
+        conditionFilter4.status = StatusConstant.AppointmentStatus.Diagnosed;
+
+        list.Data = new PagedResponse<List<AppointmentPatientForDoctorVM>>()
+        {
+            Data = new List<AppointmentPatientForDoctorVM>(),
+            PageNumber = 1,
+            PageSize = 10
+        };
     }
 
     public async Task<HTTPResponseClient<bool>> IsChangeStatusAppointmentToDiagnosedAsync(int appointmentID)
@@ -630,32 +624,32 @@ public class DoctorFEService
         return false;
     }
 
-    
-    public async Task GetAllListPatientForDocTorAsync2(ConditionFilterPatientForAppointmentDoctor condition)
-    {
-        string query = $"api/Appointment/GetAllListPatientForDocTorAsync2";
 
-        PagedResponse<ConditionFilterPatientForAppointmentDoctor> conditionfilter = new PagedResponse<ConditionFilterPatientForAppointmentDoctor>();
-        conditionfilter.Data = condition;
-        if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
+    public async Task GetAllListPatientForDocTorAsync2()
+    {
+        isLoaded = false;
+        string query = $"api/Appointment/GetAllListPatientForDocTorAsync2";
+        PagedResponse<ConditionFilterPatientForAppointmentDoctor> condition = new PagedResponse<ConditionFilterPatientForAppointmentDoctor>()
         {
-            conditionfilter.PageSize = listAppointmentPatientForDoctorWaiting.PageSize;
-            conditionfilter.PageNumber = listAppointmentPatientForDoctorWaiting.PageNumber;
+            Data = new ConditionFilterPatientForAppointmentDoctor(),
+            PageNumber = list.Data.PageNumber,
+            PageSize = list.Data.PageSize
+        };
+        if (currentTab.Equals(StatusConstant.AppointmentStatus.Waiting))
+        {
+            condition.Data = conditionFilter;
         }
-        if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
+        if (currentTab.Equals(StatusConstant.AppointmentStatus.Turned))
         {
-            conditionfilter.PageSize = listAppointmentPatientForDoctorTurned.PageSize;
-            conditionfilter.PageNumber = listAppointmentPatientForDoctorTurned.PageNumber;
+            condition.Data = conditionFilter2;
         }
-        if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
+        if (currentTab.Equals(StatusConstant.AppointmentStatus.Processing))
         {
-            conditionfilter.PageSize = listAppointmentPatientForDoctorProcessing.PageSize;
-            conditionfilter.PageNumber = listAppointmentPatientForDoctorProcessing.PageNumber;
+            condition.Data = conditionFilter3;
         }
-        if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
+        if (currentTab.Equals(StatusConstant.AppointmentStatus.Diagnosed))
         {
-            conditionfilter.PageSize = listAppointmentPatientForDoctorDiagnosed.PageSize;
-            conditionfilter.PageNumber = listAppointmentPatientForDoctorDiagnosed.PageNumber;
+            condition.Data = conditionFilter4;
         }
 
         try
@@ -664,7 +658,7 @@ public class DoctorFEService
             var token = await _localStorage.GetItemAsStringAsync("token");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsJsonAsync(query, conditionfilter);
+            var response = await client.PostAsJsonAsync(query, condition);
 
             if (response.IsSuccessStatusCode)
             {
@@ -672,107 +666,24 @@ public class DoctorFEService
 
                 if (result == null)
                 {
-                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
-                    {
-                        ErrorMessage = "Lỗi dữ liệu!";
-                    }
-                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
-                    {
-                        ErrorMessage2 = "Lỗi dữ liệu!";
-                    }
-                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
-                    {
-                        ErrorMessage3 = "Lỗi dữ liệu!";
-                    }
-                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
-                    {
-                        ErrorMessage4 = "Lỗi dữ liệu!";
-                    }
+                    list.Message = "Lỗi dữ liệu!";
                 }
                 else
                 {
-                    //ErrorMessage = result.Message;
-                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
-                    {
-                        listAppointmentPatientForDoctorWaiting = result.Data ?? new PagedResponse<List<AppointmentPatientForDoctorVM>>();
-                    }
-                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
-                    {
-                        listAppointmentPatientForDoctorTurned = result.Data ?? new PagedResponse<List<AppointmentPatientForDoctorVM>>();
-                    }
-                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
-                    {
-                        listAppointmentPatientForDoctorProcessing = result.Data ?? new PagedResponse<List<AppointmentPatientForDoctorVM>>();
-                    }
-                    if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
-                    {
-                        listAppointmentPatientForDoctorDiagnosed = result.Data ?? new PagedResponse<List<AppointmentPatientForDoctorVM>>();
-                    }
+                    list = result;
                 }
             }
             else
             {
-                if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
-                {
-                    ErrorMessage = response.StatusCode.ToString();
-                }
-                if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
-                {
-                    ErrorMessage2 = response.StatusCode.ToString();
-                }
-                if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
-                {
-                    ErrorMessage3 = response.StatusCode.ToString();
-                }
-                if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
-                {
-                    ErrorMessage4 = response.StatusCode.ToString();
-                }
+                list.Message = response.StatusCode.ToString();
             }
         }
         catch (Exception ex)
         {
-            if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
-            {
-                ErrorMessage = "Thất bại!";
-                Console.WriteLine(ex.Message);
-            }
-            if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
-            {
-                ErrorMessage2 = "Thất bại!";
-                Console.WriteLine(ex.Message);
-            }
-            if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
-            {
-                ErrorMessage3 = "Thất bại!";
-                Console.WriteLine(ex.Message);
-            }
-            if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
-            {
-                ErrorMessage4 = "Thất bại!";
-                Console.WriteLine(ex.Message);
-            }
+            list.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
         }
-        if (condition.status.Equals(StatusConstant.AppointmentStatus.Waiting))
-        {
-            isLoaded = true;
-            NotifyStateChanged();
-        }
-        if (condition.status.Equals(StatusConstant.AppointmentStatus.Turned))
-        {
-            isLoaded2 = true;
-            NotifyStateChanged();
-        }
-        if (condition.status.Equals(StatusConstant.AppointmentStatus.Processing))
-        {
-            isLoaded3 = true;
-            NotifyStateChanged();
-        }
-        if (condition.status.Equals(StatusConstant.AppointmentStatus.Diagnosed))
-        {
-            isLoaded4 = true;
-            NotifyStateChanged();
-        }
-        
+        isLoaded = true;
+        NotifyStateChanged();
     }
 }

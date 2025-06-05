@@ -61,7 +61,7 @@
                         <tbody>
                             <!-- Dòng 1 -->
                             @{
-                                var i = 1;
+                                var i = 1 + ((receptionistService.list2.Data.PageNumber-1) * receptionistService.list2.Data.PageSize);
                             }
                             @foreach (var item in receptionistService.list2.Data!.Data!.OrderByDescending(p=>p.EndDate))
                             {

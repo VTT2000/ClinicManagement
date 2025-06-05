@@ -116,7 +116,7 @@
                         <tbody>
                             <!-- Dòng 1 -->
                             @{
-                                var i = 1;
+                                var i = 1 + ((technicianService.list.Data.PageNumber-1) * technicianService.list.Data.PageSize);
                             }
                             @foreach (var item in technicianService.list.Data!.Data!)
                             {
