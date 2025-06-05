@@ -66,9 +66,9 @@
                         <tbody>
                             <!-- Dòng 1 -->
                             @{
-                                var i = 1 + ((receptionistService.list.Data.PageNumber-1) * receptionistService.list.Data.PageSize);
+                                var i = 1 + ((receptionistService.list.Data!.PageNumber-1) * receptionistService.list.Data.PageSize);
                             }
-                            @foreach (var item in receptionistService.list.Data.Data.OrderBy(p => p.Status))
+                            @foreach (var item in receptionistService.list.Data.Data!.OrderBy(p => p.Status))
                             {
                                 <tr>
                                     <td>@i</td>
@@ -140,7 +140,7 @@
         const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
         var pages = new List<int>();
 
-        if (list.TotalPages <= 7)
+        if (list!.TotalPages <= 7)
         {
             for (int i = 1; i <= list.TotalPages; i++) pages.Add(i);
         }
@@ -164,7 +164,7 @@
     private async Task SelectPage(int page)
     {
         var list = receptionistService.list.Data;
-        if (page >= 1 && page <= list.TotalPages && page != list.PageNumber)
+        if (page >= 1 && page <= list!.TotalPages && page != list.PageNumber)
         {
             list.PageNumber = page;
             await SearchCondition();
@@ -210,4 +210,6 @@
         // Hủy lắng nghe khi component bị hủy
         receptionistService.OnChange -= StateHasChanged;
     }
+
+    // cải thiện code trang này phần tạo và chỉnh sửa
 }
