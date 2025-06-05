@@ -4,20 +4,29 @@
     <BlazoredToasts Position="Blazored.Toast.Configuration.ToastPosition.BottomRight"  />
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                
+            <AuthorizeRouteView RouteData="@routeData">
                 <NotAuthorized>
-                    <div class="text-center">
-                        <h3>Bạn không có quyền truy cập vào trang này!</h3>
-                        <NavLink href="/login">Login</NavLink>
+                    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+                        <div class="text-center">
+                            <h1 class="display-1 fw-bold text-danger">403</h1>
+                            <h3 class="mb-4">Bạn không có quyền truy cập vào trang này!</h3>
+                            <p class="text-muted mb-4">Vui lòng đăng nhập bằng tài khoản có quyền hoặc liên hệ quản trị
+                                viên.</p>
+                            <a href="/" class="btn btn-primary btn-lg">Quay về trang chủ</a>
+                        </div>
                     </div>
                 </NotAuthorized>
-               
             </AuthorizeRouteView>
         </Found>
-
         <NotFound>
-            <p>Không tìm thấy trang.</p>
+            <div class="container d-flex justify-content-center align-items-center min-vh-100">
+                <div class="text-center">
+                    <h1 class="display-1 fw-bold text-warning">404</h1>
+                    <h3 class="mb-4">Không tìm thấy trang</h3>
+                    <p class="text-muted mb-4">Rất tiếc, trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.</p>
+                    <a href="/" class="btn btn-primary btn-lg">Quay về trang chủ</a>
+                </div>
+            </div>
         </NotFound>
     </Router>
 </CascadingAuthenticationState>

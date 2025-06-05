@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 //using CaptonseProject.Models;
-
+using web_api_base.ViewModel;
 namespace CaptonseProject.Controllers
 {
     [Route("api/[controller]")]
@@ -18,13 +13,29 @@ namespace CaptonseProject.Controllers
             _patientService = patientService;
         }
 
-        [Authorize(Roles = RoleConstant.Receptionist)]
-        [HttpGet("GetByNameForReceptionistAsync/{searchKey}")]
-        public async Task<IActionResult> GetByNameForReceptionistAsync([FromRoute]string searchKey)
+        [HttpGet("GetProfilePatient")]
+        public async Task<ActionResult> GetProfilePatient(int id)
         {
-            var result = await _patientService.GetByNameForReceptionistAsync(searchKey);
+            // Simulate some data retrieval logic
+            var patients = await _patientService.GetProfilePatientById(id);
+            if (patients == null)
+            {
+                return NotFound("Patient not found");
+            }
+            return Ok(patients);
+        }
+
+        [HttpPut("UpdateProfilePatient")]
+        public async Task<ActionResult> UpdateProfilePatient(int id, [FromForm] UpdateProfilePatientVM patient, IFormFile file)
+        {
+            var result = await _patientService.UpdatePatientById(id, patient, file);
+            if (result == null)
+            {
+                return NotFound("Patient not found");
+            }
             return Ok(result);
         }
 
-   }
+      
+    }
 }

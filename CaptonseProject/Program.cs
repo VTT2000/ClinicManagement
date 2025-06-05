@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Blazored.LocalStorage;
 using Blazored.Toast;
+using web_api_base.Service_FE;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
@@ -15,6 +16,7 @@ using Microsoft.OpenApi.Models;
 using web_api_base.Models.ClinicManagement;
 using web_api_base.Pages.Receptionist;
 using web_api_base.Service_FE.Services;
+using web_api_base.Models.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -105,6 +107,9 @@ builder.Services.AddHttpClient("LocalApi", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5208"); // Đặt URL cơ sở của API
 });
+
+// Đọc cấu hình API settings
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
 
 // Cấu hình State Management và Custom Auth Provider
