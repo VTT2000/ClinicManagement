@@ -19,6 +19,8 @@ public partial class User
 
     public string? ImageUrl { get; set; }
 
+    public virtual ICollection<DiagnosesService> DiagnosesServices { get; set; } = new List<DiagnosesService>();
+
     public virtual Doctor? Doctor { get; set; }
 
     public virtual Patient? Patient { get; set; }

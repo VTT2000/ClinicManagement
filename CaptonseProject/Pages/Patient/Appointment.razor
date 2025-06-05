@@ -1,0 +1,129 @@
+@page "/appointment"
+@layout MainLayout
+@attribute [AllowAnonymous]
+
+<style>
+  .header-section {
+    background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
+    padding: 50px 0;
+    text-align: center;
+  }
+
+  .form-section {
+    padding: 50px 0;
+  }
+
+  .btn-register {
+    background-color: #6f42c1;
+    border: none;
+  }
+
+  .btn-register:hover {
+    background-color: #5a32a3;
+  }
+</style>
+
+<!-- Header Section -->
+<div class="header-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 text-md-start text-center">
+        <h1>We help people to get appointment online</h1>
+        <p class="text-muted">
+          Lorem Media is a full-service social media agency. We offer businesses innovative solutions that deliver the
+          right type of audience to you in the most effective strategies possible. We strive to develop a community
+          around your business, polishing your branding, and improving your public relations.
+        </p>
+      </div>
+      <div class="col-md-6 text-center">
+        <!-- Placeholder for the image (you can replace this with an actual image) -->
+        <img src="images/appoinment.png" alt="Appointment Illustration"
+          class="img-fluid" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Form Section -->
+<div class="form-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <h2 class="text-center mb-4">Appointment</h2>
+        <form>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="firstName" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="firstName" placeholder="First Name" required />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="lastName" placeholder="Last Name" required />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" placeholder="Email" required />
+          </div>
+          <div class="mb-3">
+            <label for="mobile" class="form-label">Mobile Number</label>
+            <input type="tel" class="form-control" id="mobile" placeholder="Mobile Number" required />
+          </div>
+          <div class="mb-3">
+            <label for="nic" class="form-label">NIC</label>
+            <input type="text" class="form-control" id="nic" placeholder="NIC" required />
+          </div>
+          <div class="mb-3">
+            <label for="dob" class="form-label">Date of Birth</label>
+            <input type="date" class="form-control" id="dob" required />
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="gender" class="form-label">Gender</label>
+              <select class="form-select" id="gender" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="appointmentDate" class="form-label">Appointment Date</label>
+              <input type="date" class="form-control" id="appointmentDate" required />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="appointmentTime" class="form-label">Appointment Time</label>
+            <input type="time" class="form-control" id="appointmentTime" required />
+          </div>
+          <div class="mb-3">
+            <label for="department" class="form-label">Department</label>
+            <select class="form-select" id="department" required>
+              <option value="" disabled selected>Select Department</option>
+              <option value="cardiology">Cardiology</option>
+              <option value="neurology">Neurology</option>
+              <option value="pediatrics">Pediatrics</option>
+              <option value="orthopedics">Orthopedics</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="doctor" class="form-label">Doctor Name</label>
+            <select class="form-select" id="doctor" required>
+              <option value="" disabled selected>Select Doctor</option>
+              <option value="dr-smith">Dr. Smith</option>
+              <option value="dr-jones">Dr. Jones</option>
+              <option value="dr-lee">Dr. Lee</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <textarea class="form-control" id="address" rows="3" placeholder="Address" required></textarea>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="btn btn-register btn-lg text-white">Register</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

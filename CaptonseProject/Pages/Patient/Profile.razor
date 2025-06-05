@@ -1,0 +1,318 @@
+
+@page "/profile"
+@using Microsoft.AspNetCore.Components.Forms
+@using web_api_base.Service_FE
+@layout MainLayout
+@inject IJSRuntime JSRuntime
+@inject ProfileService ProfileService
+
+
+<style>
+    .profile-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #6f42c1;
+        position: relative;
+    }
+
+    .profile-card {
+        max-width: 600px;
+        margin: 0 auto;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .profile-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .profile-label {
+        color: #495057;
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .profile-value {
+        font-size: 1.1rem;
+    }
+
+    .image-upload-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .image-upload-button {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: #6f42c1;
+        color: white;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        border: 2px solid white;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+     
+  /* CSS cho toast */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+  }
+  
+  .toast {
+    min-width: 250px;
+    background-color: white;
+    color: #212529;
+    border-radius: 4px;
+    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,.1);
+    max-width: 350px;
+    overflow: hidden;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    animation: fade-in 0.3s;
+  }
+  
+  .toast-header {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    color: #6c757d;
+    border-bottom: 1px solid rgba(0,0,0,.05);
+  }
+  
+  .toast-body {
+    padding: 0.75rem;
+  }
+  
+  .toast.success .toast-header {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+  }
+  
+  .toast.error .toast-header {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+  }
+  
+  @@keyframes fade-in {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Profile content -->
+<div class="container py-5">
+    <div class="profile-card card p-4">
+        <div class="text-center mb-4">
+            <div class="image-upload-container">
+                @if (isUploading)
+                {
+                    <div class="loading-overlay">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                <img src="@imageUrl" alt="Profile Image" class="profile-img mb-3"
+                    onerror="this.src='https://via.placeholder.com/150?text=No+Image';" />
+                <div class="image-upload-button" @onclick="OpenFileSelector" title="Change profile picture">
+                    <i class="bi bi-pencil-fill"></i>
+                </div>
+                <InputFile id="fileInput" OnChange="HandleFileSelected" class="file-input" accept="image/*" />
+            </div>
+            <h2 class="mt-2 mb-1">@UserProfile.FullName</h2>
+            <p class="text-muted">@UserProfile.Email</p>
+        </div>
+
+        <div class="profile-section">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <p class="profile-label">Date of Birth</p>
+                    <p class="profile-value">@UserProfile.DOB.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <p class="profile-label">Phone</p>
+                    <p class="profile-value">@UserProfile.Phone</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <p class="profile-label">Address</p>
+            <p class="profile-value">@UserProfile.Address</p>
+        </div>
+
+        <div class="profile-section">
+            <p class="profile-label">Account Created At</p>
+            <p class="profile-value">@UserProfile.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</p>
+        </div> 
+
+        <div class="text-center">
+            <a href="/edit-profile" class="btn btn-primary px-4">Edit Profile</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ProfilePatientVM UserProfile { get; set; } = new ProfilePatientVM();
+    private string imageUrl = "";
+    private bool isUploading = false;
+
+    protected override async Task OnInitializedAsync()
+    {   
+        await ProfileService.LoadUserProfile();
+        UserProfile = ProfileService.CurrentProfile;
+        imageUrl = UserProfile.ImageUrl;
+
+    }
+
+    private async Task OpenFileSelector()
+    {
+        var element = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "fileInput");
+        if (element != null)
+        {
+            await element.InvokeVoidAsync("click");
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            // Hiển thị trạng thái đang tải
+            isUploading = true;
+            StateHasChanged();
+
+            // Kiểm tra kích thước file (tối đa 2MB)
+            long maxFileSize = 2 * 1024 * 1024;
+            if (file.Size > maxFileSize)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "File size should be less than 2MB");
+                isUploading = false;
+                StateHasChanged();
+                return;
+            }
+
+            // Mô phỏng việc tải lên (đổi thành API thực tế)
+            await Task.Delay(1000);
+
+            // Hiển thị ảnh đã chọn
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream(maxFileSize).ReadAsync(buffer);
+            UserProfile.ImageUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+            // Trong thực tế, bạn sẽ gửi file lên server:
+            // var content = new MultipartFormDataContent();
+            // var fileContent = new StreamContent(file.OpenReadStream(maxFileSize));
+            // fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            // content.Add(fileContent, "file", file.Name);
+            // var response = await HttpClient.PostAsync("api/users/upload-avatar", content);
+            // if (response.IsSuccessStatusCode)
+            // {
+            // var result = await response.Content.ReadFromJsonAsync<UploadResult>();
+            // UserProfile.ImageUrl = result.ImageUrl;
+            // }
+
+            await JSRuntime.InvokeVoidAsync("toast", "Profile picture updated successfully", "success");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("toast", $"Error: {ex.Message}", "error");
+        }
+        finally
+        {
+            isUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    public class UserProfileModel
+    {
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string ImageUrl { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+
+}
+
+<script>
+    window.toast = function (message, type = 'success') {
+        // Tạo toast element
+        const toastContainer = document.getElementById('toast-container') || createToastContainer();
+        const toastElement = document.createElement('div');
+        toastElement.className = `toast ${type}`;
+        toastElement.innerHTML = `
+        <div class="toast-header">
+            <strong class="me-auto">${type === 'success' ? 'Success' : 'Error'}</strong>
+            <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+        <div class="toast-body">${message}</div>
+    `;
+
+        // Thêm vào container và hiển thị
+        toastContainer.appendChild(toastElement);
+
+        // Thêm Bootstrap toast initialization nếu cần
+        if (typeof bootstrap !== 'undefined') {
+            new bootstrap.Toast(toastElement).show();
+        } else {
+            // Fallback nếu không có Bootstrap
+            setTimeout(() => {
+                toastElement.remove();
+            }, 3000);
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.position = 'fixed';
+            container.style.top = '20px';
+            container.style.right = '20px';
+            container.style.zIndex = '1050';
+            document.body.appendChild(container);
+            return container;
+        }
+    };
+</script>

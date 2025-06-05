@@ -1,9 +1,25 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@using web_api_base.ViewModel;
+@using web_api_base.Service_FE
 @using System.Security.Claims
+@implements IDisposable
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject ILoginService LoginService
+@inject ProfileService ProfileService
+
+@if (isLoading)
+{
+    <div class="loading-overlay">
+        <div class="spinner-container">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="header">
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
@@ -56,7 +72,19 @@
                         <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="userDropdown">
                             <!-- User Info -->
                             <li class="px-3 py-2 d-flex align-items-center user-info-header">
-                                <img src="images/user-avatar.png" alt="User Avatar" class="user-avatar me-2" />
+                                @if (isLoadingAvatar)
+                                {
+                                    <div class="avatar-loading me-2">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading avatar...</span>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img src="@imageUrl" alt="User Avatar" class="user-avatar me-2" 
+                                         onerror="this.src='https://via.placeholder.com/40?text=User';" />
+                                }
                                 <div>
                                     <h6 class="mb-0">@username</h6>
                                     <small class="text-muted">@userRole</small>
@@ -92,6 +120,48 @@
 </div>
 
 <style>
+    /* Loading overlay for the whole component */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: 1050;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .spinner-container {
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Avatar loading placeholder */
+    .avatar-loading {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Animation for elements appearing */
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
     .custom-dropdown {
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -101,7 +171,6 @@
         min-width: 220px;
         background-color: #ffffff;
     }
-
 
     .user-info-header {
         background-color: #f8f9fa;
@@ -151,22 +220,108 @@
     private bool isAuthenticated;
     private string username;
     private string userRole;
+    private string imageUrl = "";
+    private ProfilePatientVM profilePatientVM = new ProfilePatientVM();
+    
+    // Trạng thái loading
+    private bool isLoading = true;
+    private bool isLoadingAvatar = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        isAuthenticated = user.Identity?.IsAuthenticated ?? false;
-
-        if (isAuthenticated)
+        try
         {
-            // Lấy username từ claim "name" hoặc "sub"
-            username = user.FindFirst(c => c.Type == "Name")?.Value
-            ?? user.FindFirst(c => c.Type == "sub")?.Value
-            ?? "User";
-            // Lấy role từ claim "role"
-            userRole = user.FindFirst(c => c.Type == ClaimTypes.Role)?.Value ?? "";
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            isAuthenticated = user.Identity?.IsAuthenticated ?? false;
+
+            if (isAuthenticated)
+            {
+                // Lấy username từ claim "name" hoặc "sub"
+                username = user.FindFirst(c => c.Type == "Name")?.Value
+                ?? user.FindFirst(c => c.Type == "sub")?.Value
+                ?? "User";
+                
+                // Lấy role từ claim "role"
+                userRole = user.FindFirst(c => c.Type == ClaimTypes.Role)?.Value ?? "";
+                
+                // Tải thông tin profile
+                await LoadProfileData();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error initializing component: {ex.Message}");
+        }
+        finally
+        {
+            // Tắt loading chính khi hoàn tất khởi tạo
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadProfileData()
+    {
+        try
+        {
+            isLoadingAvatar = true;
+            await ProfileService.LoadUserProfile();
+            imageUrl = ProfileService.imageUrl;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading profile data: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingAvatar = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            // Cập nhật imageUrl từ ProfileService nếu khác
+            if (ProfileService.imageUrl != imageUrl)
+            {
+                imageUrl = ProfileService.imageUrl;
+                // Gọi StateHasChanged để cập nhật UI nếu có thay đổi
+                await InvokeAsync(StateHasChanged);
+            }
+
+            // Chỉ khởi tạo các thành phần Bootstrap khi lần render đầu tiên
+            if (firstRender)
+            {
+                // Đăng ký sự kiện OnChange của ProfileService để cập nhật hình ảnh khi thay đổi
+                ProfileService.OnChange += UpdateImageUrl;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Xử lý ngoại lệ nếu có
+            Console.Error.WriteLine($"Error in OnAfterRenderAsync: {ex.Message}");
+        }
+    }
+
+    // Phương thức cập nhật imageUrl và UI khi ProfileService thay đổi
+    private void UpdateImageUrl()
+    {
+        try
+        {
+            isLoadingAvatar = true;
+            imageUrl = ProfileService.imageUrl;
+            // Gọi InvokeAsync để đảm bảo StateHasChanged được gọi trên UI thread
+            InvokeAsync(() => {
+                isLoadingAvatar = false;
+                StateHasChanged();
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error updating image URL: {ex.Message}");
+            isLoadingAvatar = false;
         }
     }
 
@@ -181,15 +336,33 @@
     }
 
     private async Task Logout()
-    {      
-        await LoginService.LogoutAsync();
-        // Thông báo trạng thái đăng xuất
-        if (AuthenticationStateProvider is CustomAuthStateProvider customAuthStateProvider)
+    {
+        try
         {
-            await customAuthStateProvider.MarkUserAsLoggedOut();
-        }
+            isLoading = true; // Hiển thị loading khi đăng xuất
+            await LoginService.LogoutAsync();
+            
+            // Thông báo trạng thái đăng xuất
+            if (AuthenticationStateProvider is CustomAuthStateProvider customAuthStateProvider)
+            {
+                await customAuthStateProvider.MarkUserAsLoggedOut();
+            }
 
-        // Chuyển hướng về trang đăng nhập
-        Navigation.NavigateTo("/login", true);
+            // Chuyển hướng về trang đăng nhập
+            Navigation.NavigateTo("/login", true);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in Logout: {ex.Message}");
+            isLoading = false; // Tắt loading nếu lỗi
+            // Fallback nếu có lỗi
+            Navigation.NavigateTo("/login", true);
+        }
+    }
+
+    public void Dispose()
+    {
+        // Hủy đăng ký sự kiện khi component bị hủy
+        ProfileService.OnChange -= UpdateImageUrl;
     }
 }

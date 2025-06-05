@@ -195,8 +195,15 @@ public class UserService : IUserService
         //Tạo token cho user
         var token = _JwtAuthService.GenerateToken(userCheckLogin);
         UserLoginResultVM usLoginResult = new UserLoginResultVM();
+        UserInfo userInfo = new UserInfo()
+        {
+          UserId = userCheckLogin.UserId,
+          FullName = userCheckLogin.FullName,
+          Email = userCheckLogin.Email,
+          Role = userCheckLogin.Role,
+        };
         usLoginResult.AccessToken = token;
-        usLoginResult.User = userCheckLogin;
+        usLoginResult.User = userInfo;
         result.Data = usLoginResult;
       }
       //Luu thông tin người dùng vào cookie

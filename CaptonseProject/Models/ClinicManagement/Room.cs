@@ -8,4 +8,6 @@ public partial class Room
     public int RoomId { get; set; }
 
     public string RoomName { get; set; } = null!;
+
+    public virtual ICollection<DiagnosesService> DiagnosesServices { get; set; } = new List<DiagnosesService>();
 }

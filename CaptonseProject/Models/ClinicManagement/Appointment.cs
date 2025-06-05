@@ -11,9 +11,11 @@ public partial class Appointment
 
     public int? DoctorId { get; set; }
 
-    public DateTime AppointmentDate { get; set; }
-
     public string? Status { get; set; }
+
+    public DateOnly? AppointmentDate { get; set; }
+
+    public TimeOnly? AppointmentTime { get; set; }
 
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
 

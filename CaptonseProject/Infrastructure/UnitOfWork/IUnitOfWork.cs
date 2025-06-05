@@ -2,6 +2,7 @@ using web_api_base.Models.ClinicManagement;
 public interface IUnitOfWork : IAsyncDisposable
 {
   public IUserRepository _userRepository { get; }
+  public IPatientRepository _patientRepository { get; }
   Task<int> SaveChangesAsync();
 }
 
@@ -11,6 +12,9 @@ public class UnitOfWork : IUnitOfWork
 
 
   public IUserRepository _userRepository { get; }
+
+  public IPatientRepository _patientRepository { get; }
+
   private readonly ClinicContext _context;
 
 
