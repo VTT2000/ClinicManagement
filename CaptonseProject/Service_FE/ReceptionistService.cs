@@ -41,13 +41,100 @@ public class ReceptionistService
         };
     }
 
+    public async Task<HTTPResponseClient<ReceptionistPatientInfoVM>> GetPatientForReceptionistAsync2(int patientID)
+    {
+        string query = $"api/Patient/GetPatientForReceptionistAsync2";
+        HTTPResponseClient<ReceptionistPatientInfoVM> kq = new HTTPResponseClient<ReceptionistPatientInfoVM>
+        {
+            Data = new ReceptionistPatientInfoVM()
+        };
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, patientID);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<ReceptionistPatientInfoVM>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+    }
+
+    public async Task<HTTPResponseClient<PagedResponse<List<ReceptionistSelectedPatientVM>>>> GetAllPatientForReceptionistAsync(PagedResponse<ReceptionistConditionFilterForSelectedPatient> pagedResponse)
+    {
+        string query = $"api/Patient/GetAllPatientForReceptionistAsync";
+        HTTPResponseClient<PagedResponse<List<ReceptionistSelectedPatientVM>>> kq = new HTTPResponseClient<PagedResponse<List<ReceptionistSelectedPatientVM>>>()
+        {
+            Data = new PagedResponse<List<ReceptionistSelectedPatientVM>>()
+            {
+                Data = new List<ReceptionistSelectedPatientVM>(),
+                PageNumber = pagedResponse.PageNumber,
+                PageSize = pagedResponse.PageSize
+            }
+        };
+        try
+        {
+            var client = _httpClientFactory.CreateClient("LocalApi");
+            var token = await _localStorage.GetItemAsStringAsync("token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsJsonAsync(query, pagedResponse);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<PagedResponse<List<ReceptionistSelectedPatientVM>>>>();
+
+                if (result == null)
+                {
+                    kq.Message = "Lỗi dữ liệu!";
+                }
+                else
+                {
+                    kq = result;
+                }
+            }
+            else
+            {
+                kq.Message = response.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            kq.Message = "Thất bại!";
+            Console.WriteLine(ex.Message);
+        }
+        return kq;
+    }
+
     public async Task GetAllAppointmentPatientAsync2()
     {
         string query = $"api/Appointment/GetAllAppointmentPatientAsync";
         PagedResponse<ConditionFilterPatientForAppointmentReceptionist> conditionFilter = new PagedResponse<ConditionFilterPatientForAppointmentReceptionist>()
         {
             Data = condition,
-            PageNumber = list.Data.PageNumber,
+            PageNumber = list.Data!.PageNumber,
             PageSize = list.Data.PageSize
         };
         try
@@ -55,7 +142,7 @@ public class ReceptionistService
             var client = _httpClientFactory.CreateClient("LocalApi");
             var token = await _localStorage.GetItemAsStringAsync("token");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            
+
             var response = await client.PostAsJsonAsync(query, conditionFilter);
 
             if (response.IsSuccessStatusCode)
@@ -381,7 +468,7 @@ public class ReceptionistService
         PagedResponse<ReceptionistConditionFilterWorkScheduleDoctor> conditionFilter = new PagedResponse<ReceptionistConditionFilterWorkScheduleDoctor>()
         {
             Data = condition2,
-            PageNumber = list2.Data.PageNumber,
+            PageNumber = list2.Data!.PageNumber,
             PageSize = list2.Data.PageSize
         };
         try
@@ -498,87 +585,5 @@ public class ReceptionistService
             Console.WriteLine(ex.Message);
         }
         return kq;
-    }
-
-    public async Task<dynamic> GetDoctorByNameForReceptionistAsync(string searchKey)
-    {
-        if (string.IsNullOrWhiteSpace(searchKey))
-        {
-            return new List<DoctorSearchedForCreateAppointmentVM>();
-        }
-        string query = $"api/Doctor/GetByNameForReceptionistAsync/{searchKey}";
-        try
-        {
-            var client = _httpClientFactory.CreateClient("LocalApi");
-            var token = await _localStorage.GetItemAsStringAsync("token");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            var response = await client.GetAsync(query);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<DoctorSearchedForCreateAppointmentVM>>>();
-                if (result == null)
-                {
-                    // ErrorMessage = "Lỗi dữ liệu!";
-                }
-                else
-                {
-                    //ErrorMessage = result.Message;
-                    return result.Data ?? new List<DoctorSearchedForCreateAppointmentVM>();
-                }
-            }
-            else
-            {
-                // ErrorMessage = response.StatusCode.ToString();
-            }
-        }
-        catch (Exception ex)
-        {
-            // ErrorMessage = "Thất bại!";
-            Console.WriteLine(ex.Message);
-        }
-        return new List<DoctorSearchedForCreateAppointmentVM>();
-    }
-
-    public async Task<List<PatientSearchedForCreateAppointmentVM>> GetPatientByNameForReceptionistAsync(string searchKey)
-    {
-        if (string.IsNullOrWhiteSpace(searchKey))
-        {
-            return new List<PatientSearchedForCreateAppointmentVM>();
-        }
-        string query = $"api/Patient/GetByNameForReceptionistAsync/{searchKey}";
-        try
-        {
-            var client = _httpClientFactory.CreateClient("LocalApi");
-            var token = await _localStorage.GetItemAsStringAsync("token");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            
-            var response = await client.GetAsync(query);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<HTTPResponseClient<List<PatientSearchedForCreateAppointmentVM>>>();
-                if (result == null)
-                {
-                    // ErrorMessage = "Lỗi dữ liệu!";
-                }
-                else
-                {
-                    //ErrorMessage = result.Message;
-                    return result.Data ?? new List<PatientSearchedForCreateAppointmentVM>();
-                }
-            }
-            else
-            {
-                // ErrorMessage = response.StatusCode.ToString();
-            }
-        }
-        catch (Exception ex)
-        {
-            // ErrorMessage = "Thất bại!";
-            Console.WriteLine(ex.Message);
-        }
-        return new List<PatientSearchedForCreateAppointmentVM>();
     }
 }

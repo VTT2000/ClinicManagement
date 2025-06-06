@@ -19,14 +19,6 @@ namespace CaptonseProject.Controllers
         }
 
         [Authorize(Roles = RoleConstant.Receptionist)]
-        [HttpGet("GetByNameForReceptionistAsync/{searchKey}")]
-        public async Task<IActionResult> GetByNameForReceptionistAsync([FromRoute] string searchKey)
-        {
-            var result = await _doctorService.GetByNameForReceptionistAsync(searchKey);
-            return Ok(result);
-        }
-
-        [Authorize(Roles = RoleConstant.Receptionist)]
         [HttpPost("GetAllDoctorForSelectedDoctorAsync")]
         public async Task<IActionResult> GetAllDoctorForSelectedDoctorAsync([FromBody] PagedResponse<ReceptionistConditionFIlterForSelectedDoctor> pagedResponse)
         {

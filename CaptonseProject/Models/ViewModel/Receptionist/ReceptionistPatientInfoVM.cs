@@ -1,5 +1,5 @@
 namespace web_api_base.Models.ViewModel.Receptionist;
-public class PatientSearchedForCreateAppointmentVM
+public class ReceptionistPatientInfoVM
 {
     public int? PatientId { get; set; }
 

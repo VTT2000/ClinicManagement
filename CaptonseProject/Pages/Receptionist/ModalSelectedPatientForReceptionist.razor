@@ -13,8 +13,9 @@
                     <div class="row align-items-center">
                         <div class="col-md-12">
                             <div class="input-group">
-                                <input @bind="condition.Data!.NameDoctor" type="text" class="form-control" placeholder="Tìm kiếm theo tên bác sĩ" />
-                                <input @bind="condition.Data.NameSpecialization" type="text" class="form-control" placeholder="Tìm kiếm theo tên chuyên môn" />
+                                <input @bind="condition.Data!.NamePatient" type="text" class="form-control" placeholder="Tìm kiếm theo tên bệnh nhân" />
+                                <input @bind="condition.Data!.DOB" type="date" class="form-control" />
+                                <input @bind="condition.Data.Phone" type="text" class="form-control" placeholder="Tìm kiếm theo số điện thoại" />
                                 <button @onclick="()=>SearchCondition()" class="btn btn-secondary" type="button">
                                     <i class="bi bi-search"></i>
                                 </button>
@@ -47,7 +48,9 @@
                                         <thead>
                                             <tr>
                                                 <th>Số thứ tự</th>
-                                                <th>Tên bác sĩ</th>
+                                                <th>Tên bệnh nhân</th>
+                                                <th>Ngày sinh</th>
+                                                <th>Số điện thoại</th>
                                                 <th>Hành động</th>
                                             </tr>
                                         </thead>
@@ -61,10 +64,12 @@
                                             {
                                                 <tr>
                                                     <td>@i</td>
-                                                    <td>@(item.FullName)</td>
+                                                    <td>@item.NamePatient</td>
+                                                    <td>@item.DOB</td>
+                                                    <td>@item.Phone</td>
                                                     <td>
                                                         <div class="btn-group">
-                                                            <button @onclick="()=>SeletedItem(item.DoctorId)" class="btn btn-sm btn-outline-primary">
+                                                            <button @onclick="()=>SeletedItem(item.PatientId)" class="btn btn-sm btn-outline-primary">
                                                                 Chọn
                                                             </button>
                                                         </div>
@@ -127,8 +132,8 @@
 
 
     private bool? isLoaded;
-    private PagedResponse<ReceptionistConditionFIlterForSelectedDoctor> condition = new PagedResponse<ReceptionistConditionFIlterForSelectedDoctor>();
-    private HTTPResponseClient<PagedResponse<List<ReceptionistSelectedDoctorVM>>> list = new HTTPResponseClient<PagedResponse<List<ReceptionistSelectedDoctorVM>>>();
+    private PagedResponse<ReceptionistConditionFilterForSelectedPatient> condition = new PagedResponse<ReceptionistConditionFilterForSelectedPatient>();
+    private HTTPResponseClient<PagedResponse<List<ReceptionistSelectedPatientVM>>> list = new HTTPResponseClient<PagedResponse<List<ReceptionistSelectedPatientVM>>>();
     
 
     private List<int> GetPageNumbersToDisplay()
@@ -166,7 +171,7 @@
         condition.PageSize = list.Data!.PageSize;
         condition.PageNumber = list.Data!.PageNumber;
         isLoaded = false;
-        list = await receptionistService.GetAllDoctorForSelectedDoctorAsync(condition);
+        list = await receptionistService.GetAllPatientForReceptionistAsync(condition);
         isLoaded = true;
     }
 
@@ -177,12 +182,12 @@
 
     private void LoadDataAsDefault(){
         isLoaded = null;
-        condition = new PagedResponse<ReceptionistConditionFIlterForSelectedDoctor>(){
-            Data = new ReceptionistConditionFIlterForSelectedDoctor()
+        condition = new PagedResponse<ReceptionistConditionFilterForSelectedPatient>(){
+            Data = new ReceptionistConditionFilterForSelectedPatient()
         };
-        list = new HTTPResponseClient<PagedResponse<List<ReceptionistSelectedDoctorVM>>>(){
-            Data = new PagedResponse<List<ReceptionistSelectedDoctorVM>>(){
-                Data = new List<ReceptionistSelectedDoctorVM>(),
+        list = new HTTPResponseClient<PagedResponse<List<ReceptionistSelectedPatientVM>>>(){
+            Data = new PagedResponse<List<ReceptionistSelectedPatientVM>>(){
+                Data = new List<ReceptionistSelectedPatientVM>(),
                 PageNumber = 1,
                 PageSize = 10,
                 TotalPages = 0,

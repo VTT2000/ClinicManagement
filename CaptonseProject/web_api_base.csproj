@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Tắt các cảnh báo -->
-    <!-- <NoWarn>CS8618;CS1998;CS8625;CS8604;CS8600;CS8622;CS8603;CS8602;CS8601;CS0414</NoWarn>  -->
+    <!-- <NoWarn>$(NoWarn);CS0000-CS9999</NoWarn>  -->
   </PropertyGroup>
 
   <ItemGroup>

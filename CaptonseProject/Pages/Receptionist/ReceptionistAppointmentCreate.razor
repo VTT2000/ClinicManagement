@@ -1,0 +1,295 @@
+@page "/receptionist/create-appointment"
+
+@layout AdminLayout
+@inject ReceptionistService receptionistService
+@inject IToastService ToastService
+
+@* Nội dung ở đây *@
+<div class="container">
+    <EditForm Model="@appointmentReceptionistCreateVM" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <h3>Thông tin bệnh nhân</h3>
+        <div class="col-md-12">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1"
+                    value="false" checked @onchange="IsPatientOldOnChanged">
+                <label class="form-check-label" for="inlineRadio1">Bệnh nhân mới</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2"
+                    value="true" @onchange="IsPatientOldOnChanged">
+                <label class="form-check-label" for="inlineRadio2">Bệnh nhân cũ</label>
+            </div>
+        </div>
+        @if (IsPatientOld)
+        {
+            <div class="col-md-12">
+                <label class="form-label me-2">Bệnh nhân:</label>
+                @if(!infoPatient.StatusCode.HasValue){
+                    <button class="btn btn-sm btn-primary" type="button" @onclick="ShowModal">
+                        <i class="bi bi-plus-circle me-2"></i>Chọn bệnh nhân
+                    </button>
+                }
+                else{
+                    if(infoPatient.StatusCode == StatusCodes.Status200OK){
+                        <span>@infoPatient.Data!.FullName</span>
+                    }
+                    else{
+                        <span>@infoPatient.Message</span>
+                    }
+                    <button @onclick="SetInfoSelectedItemAsNull" type="button" class="ms-2 btn btn-sm btn-danger" >
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </button>
+                }
+            </div>
+        }
+        <div class="col-md-6">
+            <label class="form-label">Họ và tên</label>
+            <input type="text" class="form-control" placeholder="Nhập họ và tên" readonly="@IsPatientOld"
+            @bind="appointmentReceptionistCreateVM.PatientFullName" >
+            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.PatientFullName)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Ngày sinh</label>
+            <input type="date" class="form-control" readonly="@IsPatientOld"
+            @bind="appointmentReceptionistCreateVM.Dob">
+            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Dob)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Số điện thoại</label>
+            <input type="tel" class="form-control" placeholder="Nhập số điện thoại" readonly="@IsPatientOld"
+            @bind="appointmentReceptionistCreateVM.Phone" >
+            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Phone)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Địa chỉ</label>
+            <input type="text" class="form-control" placeholder="Nhập địa chỉ" readonly="@IsPatientOld"
+            @bind="appointmentReceptionistCreateVM.Address">
+            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Address)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" placeholder="Nhập email" readonly="@IsPatientOld"
+            @bind="appointmentReceptionistCreateVM.Email">
+            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.Email)" />
+        </div>
+        @if (!IsPatientOld){
+            <div class="col-md-6">
+                <label class="form-label">Mật khẩu</label>
+                <div class="input-group">
+                    <input type="@(!showPassword ? "text" : "password")" class="form-control" 
+                    placeholder="Nhập mật khẩu" readonly="@IsPatientOld"
+                    @bind="appointmentReceptionistCreateVM.PasswordHash" />
+                    <button class="btn btn-outline-secondary" type="button" @onclick="TogglePasswordVisibility">
+                        <i class="bi bi-@(showPassword ? "eye-slash" : "eye")"></i>
+                    </button>
+                    <ValidationMessage For="@(() => appointmentReceptionistCreateVM.PasswordHash)" />
+                    @code{
+                        private bool showPassword = true;
+                        private void TogglePasswordVisibility()
+                        {
+                            showPassword = !showPassword;
+                        }
+                    }
+                </div>
+            </div>
+        }
+    </div>
+    <div class="row mb-3">
+        <h3>Thông tin bác sĩ</h3>
+        <div class="col-md-12">
+            <label class="form-label me-2">Bác sĩ:</label>
+            @if(!infoDoctor.StatusCode.HasValue){
+                <button class="btn btn-sm btn-primary" type="button" @onclick="ShowModal2">
+                    <i class="bi bi-plus-circle me-2"></i>Chọn bác sĩ
+                </button>
+            }
+            else{
+                if(infoDoctor.StatusCode == StatusCodes.Status200OK){
+                    <span>@infoDoctor.Data!.FullName</span>
+                }
+                else{
+                    <span>@infoDoctor.Message</span>
+                }
+                <button @onclick="SetInfoSelectedItemAsNull2" type="button" class="ms-2 btn btn-sm btn-danger" >
+                    <i class="bi bi-x-circle me-2"></i>Hủy
+                </button>
+            }
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Họ và tên</label>
+            <input type="text" class="form-control" placeholder="Nhập họ và tên" readonly="true"
+            @bind="infoDoctor.Data!.FullName">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Chuyên môn</label>
+            <input type="text" class="form-control" placeholder="Nhập chuyên môn" readonly="true"
+            @bind="infoDoctor.Data!.Specialization">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <h3>Thông tin lịch khám</h3>
+        <div class="col-md-6">
+            <label class="form-label">Ngày khám</label>
+            <input type="date" class="form-control" @bind="appointmentReceptionistCreateVM.AppointmentDate">
+            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.AppointmentDate)" />
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" @bind="appointmentReceptionistCreateVM.Status">
+                <option value="@StatusConstant.AppointmentStatus.Booked" >@StatusConstant.AppointmentStatus.Booked</option>
+                <option value="@StatusConstant.AppointmentStatus.Waiting" >@StatusConstant.AppointmentStatus.Waiting</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Giờ khám</label>
+            <input @onfocus="()=>LoadTimeOptionsAsync()" list="available-times" type="time" class="form-control" @bind="appointmentReceptionistCreateVM.AppointmentTime">
+            <ValidationMessage For="@(() => appointmentReceptionistCreateVM.AppointmentTime)" />
+            <datalist id="available-times">
+                @foreach (var time in timeOptions)
+                {
+                    <option value="@time">@time</option>
+                }
+            </datalist>
+            <span class="form-text text-muted fst-italic">
+                Ghi chú: Chọn đồng hồ để gợi ý giờ khám (chỉ có khi đã chọn bác sĩ) và nếu không có gợi ý giờ khám thì do đầy lịch cần thương lượng giờ khám với bác sĩ đã chọn hoặc chọn ngày khác.
+            </span>
+        </div>
+        
+    </div>
+    <div class="d-flex justify-content-between my-2">
+        <a href="/receptionist" class="btn btn-secondary">Trở về</a>
+        <button type="submit" class="btn btn-primary w-25">Lưu</button>
+    </div>
+    </EditForm>
+</div>
+
+<ModalSelectedPatientForReceptionist IsVisible="@isModalVisible" OnSeletedItem="OnSeletedItem" OnClose="HideModal" />
+<ModalSelectedDoctorForReceptionist IsVisible="@isModalVisible2" OnSeletedItem="OnSeletedItem2" OnClose="HideModal2" />
+
+@code {
+    private bool IsPatientOld = false;
+    private AppointmentReceptionistCreateVM appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+    
+    private HTTPResponseClient<ReceptionistPatientInfoVM> infoPatient = new HTTPResponseClient<ReceptionistPatientInfoVM>(){
+        Data = new ReceptionistPatientInfoVM()    
+    };
+    private bool isModalVisible = false;
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
+    private async Task OnSeletedItem(int itemID){
+        appointmentReceptionistCreateVM.PatientId = itemID;
+        await SetInfoSelectedItem();
+    }
+    private async Task SetInfoSelectedItem(){
+        if(!appointmentReceptionistCreateVM.PatientId.HasValue || appointmentReceptionistCreateVM.PatientId.Value == 0){
+            infoPatient = new HTTPResponseClient<ReceptionistPatientInfoVM>(){
+                Data = new ReceptionistPatientInfoVM()
+            };
+            appointmentReceptionistCreateVM.PatientFullName = string.Empty;
+            appointmentReceptionistCreateVM.Dob = null;
+            appointmentReceptionistCreateVM.Phone = null;
+            appointmentReceptionistCreateVM.Address = null;
+            appointmentReceptionistCreateVM.Email = string.Empty;
+            appointmentReceptionistCreateVM.PasswordHash = string.Empty;
+        }
+        else{
+            infoPatient = await receptionistService.GetPatientForReceptionistAsync2(appointmentReceptionistCreateVM.PatientId.Value);
+            appointmentReceptionistCreateVM.PatientFullName = infoPatient.Data!.FullName;
+            appointmentReceptionistCreateVM.Dob = infoPatient.Data.Dob;
+            appointmentReceptionistCreateVM.Phone = infoPatient.Data.Phone;
+            appointmentReceptionistCreateVM.Address = infoPatient.Data.Address;
+            appointmentReceptionistCreateVM.Email = infoPatient.Data.Email;
+            appointmentReceptionistCreateVM.PasswordHash = infoPatient.Data.PasswordHash;
+        }
+    }
+    private async Task SetInfoSelectedItemAsNull(){
+        appointmentReceptionistCreateVM.PatientId = null;
+        await SetInfoSelectedItem();
+    }
+    
+
+    private HTTPResponseClient<ReceptionistSelectedDoctorVM> infoDoctor = new HTTPResponseClient<ReceptionistSelectedDoctorVM>(){
+        Data = new ReceptionistSelectedDoctorVM()
+    };
+    private bool isModalVisible2 = false;
+    private void ShowModal2()
+    {
+        isModalVisible2 = true;
+    }
+    private void HideModal2()
+    {
+        isModalVisible2 = false;
+    }
+    private async Task OnSeletedItem2(int itemID){
+        appointmentReceptionistCreateVM.DoctorId = itemID;
+        await SetInfoSelectedItem2();
+    }
+    private async Task SetInfoSelectedItem2(){
+        if(!appointmentReceptionistCreateVM.DoctorId.HasValue || appointmentReceptionistCreateVM.DoctorId.Value == 0){
+            infoDoctor = new HTTPResponseClient<ReceptionistSelectedDoctorVM>(){
+                Data = new ReceptionistSelectedDoctorVM()
+            };
+        }
+        else{
+            infoDoctor = await receptionistService.GetDoctorSelectedByIdAsync(appointmentReceptionistCreateVM.DoctorId.Value);
+        }
+    }
+    private async Task SetInfoSelectedItemAsNull2(){
+        appointmentReceptionistCreateVM.DoctorId = null;
+        await SetInfoSelectedItem2();
+    }
+
+    private List<TimeOnly> timeOptions = new List<TimeOnly>();
+
+    private async Task LoadTimeOptionsAsync(){
+        if(appointmentReceptionistCreateVM.DoctorId != null){
+            timeOptions = await receptionistService.GetAllFreeTimeAppointmentForDoctor(appointmentReceptionistCreateVM.AppointmentDate, appointmentReceptionistCreateVM.DoctorId.Value);
+        }
+        else{
+            timeOptions = new List<TimeOnly>();
+        }
+    }
+
+    private void IsPatientOldOnChanged(ChangeEventArgs e)
+    {
+        IsPatientOld = bool.Parse(e.Value?.ToString() ?? "false");
+        appointmentReceptionistCreateVM.PatientId = null;
+        appointmentReceptionistCreateVM.PatientFullName = string.Empty;
+        appointmentReceptionistCreateVM.Dob = null;
+        appointmentReceptionistCreateVM.Phone = null;
+        appointmentReceptionistCreateVM.Address = null;
+        appointmentReceptionistCreateVM.Email = string.Empty;
+        appointmentReceptionistCreateVM.PasswordHash = string.Empty;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Xử lý khi form hợp lệ
+        Console.WriteLine(JsonSerializer.Serialize(appointmentReceptionistCreateVM));
+        var result = await receptionistService.CreateAppointmentAsync(appointmentReceptionistCreateVM);
+        if(result){
+            string chuoi = 
+                appointmentReceptionistCreateVM.AppointmentDate.ToLongDateString() + " " + 
+                appointmentReceptionistCreateVM.PatientFullName + " " +
+                appointmentReceptionistCreateVM.Phone;
+            appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+            await SetInfoSelectedItem();
+            await SetInfoSelectedItem2();
+
+            ToastService.ShowSuccess("Tạo lịch khám thành công! " + chuoi);
+        }
+        else{
+            ToastService.ShowError("Tạo lịch khám thất bại!");
+        }
+    }
+
+    protected override async Task OnInitializedAsync(){
+        await base.OnInitializedAsync();
+    }
+}
