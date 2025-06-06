@@ -74,29 +74,44 @@ var Issuer = builder.Configuration["jwt:Issuer"];
 var Audience = builder.Configuration["jwt:Audience"];
 // Thêm dịch vụ Authentication vào ứng dụng, sử dụng JWT Bearer làm phương thức xác thực
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-{        
-        // Thiết lập các tham số xác thực token
-        options.TokenValidationParameters = new TokenValidationParameters()
+{
+    // Thiết lập các tham số xác thực token
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        // Kiểm tra và xác nhận Issuer (nguồn phát hành token)
+        ValidateIssuer = true,
+        ValidIssuer = Issuer, // Biến `Issuer` chứa giá trị của Issuer hợp lệ
+                              // Kiểm tra và xác nhận Audience (đối tượng nhận token)
+        ValidateAudience = true,
+        ValidAudience = Audience, // Biến `Audience` chứa giá trị của Audience hợp lệ
+                                  // Kiểm tra và xác nhận khóa bí mật được sử dụng để ký token
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(privateKey)),
+        // Sử dụng khóa bí mật (`privateKey`) để tạo SymmetricSecurityKey nhằm xác thực chữ ký của token
+        // Giảm độ trễ (skew time) của token xuống 0, đảm bảo token hết hạn chính xác
+        ClockSkew = TimeSpan.Zero,
+        // Xác định claim chứa vai trò của user (để phân quyền)
+        RoleClaimType = ClaimTypes.Role,
+        // Xác định claim chứa tên của user
+        NameClaimType = ClaimTypes.Name,
+        // Kiểm tra thời gian hết hạn của token, không cho phép sử dụng token hết hạn
+        ValidateLifetime = true
+    };
+        
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
         {
-            // Kiểm tra và xác nhận Issuer (nguồn phát hành token)
-            ValidateIssuer = true, 
-            ValidIssuer = Issuer, // Biến `Issuer` chứa giá trị của Issuer hợp lệ
-            // Kiểm tra và xác nhận Audience (đối tượng nhận token)
-            ValidateAudience = true,
-            ValidAudience = Audience, // Biến `Audience` chứa giá trị của Audience hợp lệ
-            // Kiểm tra và xác nhận khóa bí mật được sử dụng để ký token
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(privateKey)), 
-            // Sử dụng khóa bí mật (`privateKey`) để tạo SymmetricSecurityKey nhằm xác thực chữ ký của token
-            // Giảm độ trễ (skew time) của token xuống 0, đảm bảo token hết hạn chính xác
-            ClockSkew = TimeSpan.Zero, 
-            // Xác định claim chứa vai trò của user (để phân quyền)
-            RoleClaimType = ClaimTypes.Role, 
-            // Xác định claim chứa tên của user
-            NameClaimType = ClaimTypes.Name, 
-            // Kiểm tra thời gian hết hạn của token, không cho phép sử dụng token hết hạn
-            ValidateLifetime = true
-        };
+            // Cho phép token từ query string nếu là WebSocket (SignalR)
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 // Thêm dịch vụ Authorization để hỗ trợ phân quyền người dùng
 builder.Services.AddAuthorization();
@@ -163,8 +178,10 @@ builder.Services.AddScoped<ReceptionistService>();
 builder.Services.AddScoped<DoctorFEService>();
 builder.Services.AddScoped<RoomServiceFE>();
 builder.Services.AddScoped<TechnicianService>();
-builder.Services.AddScoped<ProfileService>(); 
+builder.Services.AddScoped<ProfileService>();
 builder.Services.AddBlazoredToast();
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -200,6 +217,8 @@ app.MapControllers();
 
 app.MapBlazorHub(); // SignalR hub cho Blazor Server
 app.MapFallbackToPage("/_Host"); // Trang mặc định cho Blazor
+
+app.MapHub<ServiceHub>("/hub/service"); // Đăng ký route cho Hub
 
 app.Run();
 
