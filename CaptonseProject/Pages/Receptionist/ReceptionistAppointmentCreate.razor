@@ -273,7 +273,7 @@
         // Xử lý khi form hợp lệ
         Console.WriteLine(JsonSerializer.Serialize(appointmentReceptionistCreateVM));
         var result = await receptionistService.CreateAppointmentAsync(appointmentReceptionistCreateVM);
-        if(result){
+        if(result.Data){
             string chuoi = 
                 appointmentReceptionistCreateVM.AppointmentDate.ToLongDateString() + " " + 
                 appointmentReceptionistCreateVM.PatientFullName + " " +
@@ -282,10 +282,10 @@
             await SetInfoSelectedItem();
             await SetInfoSelectedItem2();
 
-            ToastService.ShowSuccess("Tạo lịch khám thành công! " + chuoi);
+            ToastService.ShowSuccess("Tạo lịch khám thành công!\n" + chuoi);
         }
         else{
-            ToastService.ShowError("Tạo lịch khám thất bại!");
+            ToastService.ShowError("Tạo lịch khám thất bại!\n" + result.Message);
         }
     }
 

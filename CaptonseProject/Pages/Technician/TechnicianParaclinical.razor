@@ -267,7 +267,9 @@
     protected override async Task OnInitializedAsync()
     {
         technicianService.OnChange += StateHasChanged;
+        await SearchRequest();
         await SetInfoRoomID();
+        await SetInfoService();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

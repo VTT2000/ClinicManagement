@@ -507,6 +507,10 @@ public class ReceptionistService
     public async Task<dynamic> CreateAppointmentAsync(AppointmentReceptionistCreateVM appointmentReceptionistCreateVM)
     {
         string query = $"api/Appointment/CreateAppointmentFromReceptionist";
+        HTTPResponseClient<bool> kq = new HTTPResponseClient<bool>()
+        {
+            Data = false
+        };
         try
         {
             var client = _httpClientFactory.CreateClient("LocalApi");
@@ -521,25 +525,24 @@ public class ReceptionistService
 
                 if (result == null)
                 {
-                    // ErrorMessage = "Lỗi dữ liệu!";
+                    kq.Message = "Lỗi dữ liệu!";
                 }
                 else
                 {
-                    //ErrorMessage = result.Message;
-                    return result.Data;
+                    kq = result;
                 }
             }
             else
             {
-                Console.WriteLine(response.StatusCode + "/" + response.ReasonPhrase);
+                kq.Message = response.StatusCode.ToString();
             }
         }
         catch (Exception ex)
         {
-            // ErrorMessage = "Thất bại!";
+            kq.Message = "Thất bại!";
             Console.WriteLine(ex.Message);
         }
-        return false;
+        return kq;
     }
 
     public async Task<dynamic> GetAllDoctorForSelectedDoctorAsync(PagedResponse<ReceptionistConditionFIlterForSelectedDoctor> pagedResponse)

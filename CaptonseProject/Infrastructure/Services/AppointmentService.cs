@@ -11,7 +11,7 @@ public interface IAppointmentService
     public Task<dynamic> ChangeStatusWaitingForPatient(int appointmentId);
     public Task<dynamic> GetAllFreeTimeAppointmentForDoctor(DateOnly date, int doctorId);
     public Task<dynamic> UpdateStatusAppointmentForDoctor(int appointmentId, string status);
-    public Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);
+    public Task<dynamic> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item);
     public Task<dynamic> GetStatusAppointmentForDoctorAsync(int appointmentID);
     public Task<dynamic> IsChangeStatusAppointmentToDiagnosedAsync(int appointmentID);
 }
@@ -353,9 +353,12 @@ public class AppointmentService : IAppointmentService
     }
 
 
-    public async Task<HTTPResponseClient<bool>> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item)
+    public async Task<dynamic> CreateAppointmentFromReceptionist(AppointmentReceptionistCreateVM item)
     {
-        HTTPResponseClient<bool> result = new HTTPResponseClient<bool>();
+        HTTPResponseClient<bool> result = new HTTPResponseClient<bool>()
+        {
+            Data = false
+        };
         await _unitOfWork.BeginTransaction();
         try
         {
@@ -410,9 +413,9 @@ public class AppointmentService : IAppointmentService
             }
             else
             {
-                result.Message = "Thất bại";
+                result.Message = "Ngày đặt và giờ đặt lịch khám phải lớn hơn thời gian hiện tại và nằm trong lịch làm việc của bác sĩ!";
                 result.StatusCode = StatusCodes.Status400BadRequest;
-                result.Data = true;
+                result.Data = false;
             }
         }
         catch (Exception ex)
