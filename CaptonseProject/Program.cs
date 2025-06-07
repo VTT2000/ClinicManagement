@@ -17,6 +17,7 @@ using web_api_base.Models.ClinicManagement;
 
 using web_api_base.Service_FE.Services;
 using web_api_base.Models.Configuration;
+using Microsoft.AspNetCore.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,13 +119,24 @@ builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
 // Cấu hình HttpClient để gọi API trong cùng project
+// builder.Services.AddHttpClient("LocalApi", client =>
+// {
+//     client.BaseAddress = new Uri("http://localhost:5208"); // Đặt URL cơ sở của API
+// });
+
 builder.Services.AddHttpClient("LocalApi", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5208"); // Đặt URL cơ sở của API
+    var config = builder.Configuration.GetSection("ApiSettings");
+    var apiBaseUrl = config.GetValue<string>("ApiBaseUrl");
+
+    if (string.IsNullOrWhiteSpace(apiBaseUrl))
+        throw new Exception("Missing ApiBaseUrl in configuration.");
+
+    client.BaseAddress = new Uri(apiBaseUrl);
 });
 
 // Đọc cấu hình API settings
-builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
+// builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
 
 // Cấu hình State Management và Custom Auth Provider
