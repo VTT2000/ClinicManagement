@@ -6,12 +6,22 @@
 # dotenv files
 .env
 
+# Configuration files with sensitive data
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.Local.json
+appsettings.secrets.json
+
 # User-specific files
 *.rsuser
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

@@ -1,6 +1,6 @@
 public interface IAdminService
 {
-   
+  
 }
 
 public class AdminService : IAdminService
@@ -15,4 +15,5 @@ public class AdminService : IAdminService
     }
 
     // Implement methods for admin functionalities here
+
 }
