@@ -33,9 +33,9 @@ namespace CaptonseProject.Controllers
         [HttpPost("Login")]
         public async Task<HTTPResponseClient<UserLoginResultVM>> Login([FromBody] UserLoginVM userLogin)
         {
-       
+
             var result = await _userService.Login(userLogin);
-           
+
             return result;
         }
 
@@ -48,7 +48,7 @@ namespace CaptonseProject.Controllers
         }
 
 
-           
+
         [HttpGet("GetAllStaff")]
         public async Task<ActionResult<HTTPResponseClient<IEnumerable<User>>>> GetAllStaff()
         {
@@ -62,7 +62,7 @@ namespace CaptonseProject.Controllers
             var result = await _userService.GetAllUserIsPatientAsync();
             return result;
         }
-        
+
 
         [Authorize]
         [HttpGet("/user/GetProfile")]
@@ -101,7 +101,20 @@ namespace CaptonseProject.Controllers
             }
             return Ok(user);
         }
-
+        
+        [HttpGet("GetAllDoctors")]
+        public async Task<IActionResult> GetAllDoctors(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10
+        )
+        {
+            var doctors = await _userService.GetAllDoctor(pageSize, pageNumber);
+            if (doctors == null)
+            {
+                return NotFound("Không tìm thấy bác sĩ nào.");
+            }
+            return Ok(doctors);
+        }
 
     }
 }

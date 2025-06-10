@@ -1,5 +1,5 @@
 public class HTTPResponseClient<T> {
-    public int? StatusCode {get;set;}
+    public int? StatusCode { get; set; } = 200;
     public string? Message { get; set; }
     
     public DateTime? DateTime {get;set;}

@@ -1,21 +1,16 @@
 @page "/"
 @using Microsoft.AspNetCore.Components.Authorization
+@using web_api_base.ViewModel
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient HttpClient
+
+@inject IHttpClientFactory httpClientFactory
+@inject IJSRuntime JSRuntime
+
+@inject IGetDoctorService GetDoctorService
+
 
 @layout MainLayout
-
-
-@* <AuthorizeView Roles="Admin">
-  <Authorized>
-    <div>Admin view</div>
-  </Authorized>
-</AuthorizeView>
-
-<AuthorizeView Roles="Bệnh nhân">
-  <Authorized>
-    <div>Bệnh nhân view</div>
-  </Authorized>
-</AuthorizeView> *@
 
 <div class="container-fluid">
   <!-- Header Section -->
@@ -53,7 +48,7 @@
         your business, polishing your branding and improving your public relations.</p>
       <p>Social Media is now one of the most powerful marketing tools with the ability to communicate with a target
         audience in real time.</p>
-      <p>It’s 2025 time to sink or swim.</p>
+      <p>It's 2025 time to sink or swim.</p>
       <p>We are your Social Media Marketing Agency.</p>
       <button class="btn btn-primary">See More</button>
     </div>
@@ -84,22 +79,48 @@
       <h2>Our Doctors</h2>
     </div>
     <div class="col-12">
-      <div class="d-flex justify-content-center gap-4 flex-wrap">
-        @for (int i = 0; i < 12; i++) // Hiển thị 12 bác sĩ
+      @if (isLoadingDoctors)
+      {
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading doctors...</span>
+          </div>
+          <p class="mt-2">Đang tải danh sách bác sĩ...</p>
+        </div>
+      }
+      else if (doctors == null || doctors.Count == 0)
+      {
+        <div class="text-center">
+          <p class="text-muted">Không có bác sĩ nào để hiển thị.</p>
+        </div>
+      }
+      else
+      {
+        <div class="d-flex justify-content-center gap-4 flex-wrap">
+          @foreach (var doctor in doctors)
+          {
+            <div class="doctor-card text-center">
+              <img src="@doctor.ImageUrl" 
+                   alt="@doctor.FullName" 
+                   class="img-fluid rounded-circle mb-3"
+                   onerror="this.src='images/home5.png';" />
+              <h6 class="fw-bold">@doctor.FullName</h6>
+              <p class="text-muted">@(doctor.Specialization ?? "MEDICAL DOCTOR")</p>
+            </div>
+          }
+        </div>
+        
+        @if (totalDoctors > doctors.Count)
         {
-          <div class="doctor-card text-center">
-            <img src="images/home5.png" alt="Doctor Image" class="img-fluid rounded-circle mb-3" />
-            <h6 class="fw-bold">Silva A.D.M.P</h6>
-            <p class="text-muted">MEDICAL DOCTOR</p>
+          <div class="text-center mt-4">
+            <button class="btn btn-outline-primary" @onclick="LoadDoctors">
+              Xem thêm bác sĩ (@(totalDoctors - doctors.Count) còn lại)
+            </button>
           </div>
         }
-      </div>
+      }
     </div>
   </div>
-
-  <style>
-
-  </style>
 
   <!-- Contact Section -->
   <div class="row py-5">
@@ -131,8 +152,58 @@
       </form>
     </div>
   </div>
-
 </div>
+
+
+
+@code {
+  private List<DoctorDTO> doctors = new List<DoctorDTO>();
+  private bool isLoadingDoctors = true;
+  private int currentPage = 1;
+  private int pageSize = 12; // Hiển thị 12 bác sĩ như yêu cầu ban đầu
+  private int totalDoctors = 0;
+
+  protected override async Task OnInitializedAsync()
+  {
+    await LoadDoctors();
+
+  }
+
+  private async Task LoadDoctors()
+  {
+    try
+    {
+      isLoadingDoctors = true;
+
+      var result = await GetDoctorService.LoadDoctorsAsync(); 
+      
+      if (result.StatusCode == 200) // Giả sử 200 là mã trạng thái thành công
+      {
+        doctors = result.Data;
+        totalDoctors = result.Data.Count; 
+      }
+      else
+      {
+      
+        doctors = new List<DoctorDTO>();
+      }
+      
+
+    }
+    catch (Exception ex)
+    {
+      await JSRuntime.InvokeVoidAsync("console.error", $"Lỗi khi tải bác sĩ: {ex.Message}");
+      doctors = new List<DoctorDTO>();
+    }
+    finally
+    {
+      isLoadingDoctors = false;
+    }
+  }
+
+
+}
+
 
 <style>
   /* Service */
@@ -165,6 +236,11 @@
   /* Doctor Card Styles */
   .doctor-card {
     width: 150px;
+    transition: transform 0.3s ease;
+  }
+
+  .doctor-card:hover {
+    transform: translateY(-5px);
   }
 
   .doctor-card img {
@@ -210,8 +286,10 @@
   .contact-form button:hover {
     background: linear-gradient(to right, #2575fc, #6a11cb);
   }
+
+  /* Loading styles */
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
 </style>
-
-@code {
-
-}

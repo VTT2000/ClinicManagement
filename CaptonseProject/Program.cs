@@ -118,11 +118,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
-// Cấu hình HttpClient để gọi API trong cùng project
-// builder.Services.AddHttpClient("LocalApi", client =>
-// {
-//     client.BaseAddress = new Uri("http://localhost:5208"); // Đặt URL cơ sở của API
-// });
+//Cấu hình HttpClient để gọi API trong cùng project
+builder.Services.AddHttpClient("LocalApi", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5208"); // Đặt URL cơ sở của API
+});
 
 builder.Services.AddHttpClient("LocalApi", client =>
 {
@@ -184,10 +184,11 @@ builder.Services.AddScoped<IDiagnosisServiceService, DiagnosisServiceService>();
 
 //service FE
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IGetDoctorService, GetDoctorService>();
 
 //service FE
 builder.Services.AddScoped<ReceptionistService>();
-builder.Services.AddScoped<DoctorFEService>();
+
 builder.Services.AddScoped<RoomServiceFE>();
 builder.Services.AddScoped<TechnicianService>();
 builder.Services.AddScoped<ProfileService>();

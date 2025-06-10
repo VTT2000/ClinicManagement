@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using web_api_base.Helper;
 using web_api_base.Models.ClinicManagement;
 using web_api_base.Models.ViewModel;
@@ -23,7 +24,7 @@ public interface IUserService
   Task<dynamic> GetProfileUser(string authorization);
   Task<dynamic> ChangePassword(ChangePasswordVM model, string authorization);
 
-
+  Task<HTTPResponseClient<List<DoctorDTO>>> GetAllDoctor(int pageSize, int pageIndex);
 }
 
 public class UserService : IUserService
@@ -39,7 +40,7 @@ public class UserService : IUserService
     _context = context;
   }
 
-  public async Task<dynamic> AdminCreateUser(AdminRegisterUserVM newUser,  string imageUrl = null)
+  public async Task<dynamic> AdminCreateUser(AdminRegisterUserVM newUser, string imageUrl = null)
   {
     //Kiểm tra role của người dùng
     if (newUser.Role != RoleConstant.Admin &&
@@ -116,15 +117,15 @@ public class UserService : IUserService
     {
       //Rollback transaction
       await _unitOfWork.RollBack();
-       // Nếu có lỗi và đã upload ảnh, xóa file ảnh để không rác hệ thống
-        if (!string.IsNullOrEmpty(imageUrl))
+      // Nếu có lỗi và đã upload ảnh, xóa file ảnh để không rác hệ thống
+      if (!string.IsNullOrEmpty(imageUrl))
+      {
+        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imageUrl.TrimStart('/'));
+        if (File.Exists(filePath))
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imageUrl.TrimStart('/'));
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
+          File.Delete(filePath);
         }
+      }
       return new HTTPResponseClient<UserLoginResultVM>
       {
         Message = ex.Message,
@@ -374,5 +375,55 @@ public class UserService : IUserService
       return null;
     }
     return user;
+  }
+
+  public async Task<HTTPResponseClient<List<DoctorDTO>>> GetAllDoctor(int pageSize, int pageIndex)
+  {
+    var result = new HTTPResponseClient<List<DoctorDTO>>();
+    try
+    {
+      //Sử dụng Include để join bảng Doctor với User
+      var doctors = await _context.Doctors
+      .Include(d => d.User) // lấy doctor Join bảng user  thông qua navigation property
+      .Where(d => d.User != null) //Đảm bảo có thông tin User
+      .OrderBy(d => d.User.FullName) //Sắp xếp theo tên
+      .Skip(pageSize * (pageIndex - 1)) //Phân trang - Bỏ qua số lượng bản ghi đã lấy
+      .Take(pageSize) //Lấy số lượng bản ghi theo pageSize
+      .ToListAsync();
+
+      //Chuyển đổi sang DTO
+      var doctorDtos = doctors.Select(d => new DoctorDTO
+      {
+        DoctorId = d.DoctorId,
+        FullName = d.User.FullName,
+        Email = d.User.Email,
+        Specialization = d.Specialization,
+        CreatedAt = DateTime.Now,
+        ImageUrl = d.User.ImageUrl
+      }).ToList();
+
+      //Lấy tổng số bác sĩ để tính phân trang
+      var totalCount = await _context.Doctors
+        .Include(d => d.User)
+        .Where(d => d.User != null)
+        .CountAsync();
+
+      //Lấy tổng trang
+      var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+      result.Data = doctorDtos;
+      result.StatusCode = StatusCodes.Status200OK;
+      result.DateTime = DateTime.UtcNow;
+      result.StatusCode = 200;
+      result.Message = $"Lấy danh sách bác sĩ thành công. Trang {pageIndex}/{totalPages} - Tổng {totalCount} bác sĩ";
+    }
+    catch (Exception ex)
+    {
+      result.Message = ex.Message;
+      result.Data = null;
+      result.DateTime = DateTime.UtcNow;
+      result.StatusCode = 500;
+    }
+    return result;
   }
 }
