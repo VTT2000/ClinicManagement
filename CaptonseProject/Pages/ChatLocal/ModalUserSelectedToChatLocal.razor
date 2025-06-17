@@ -1,0 +1,320 @@
+@inject ChatLocalServiceFE chatLocalServiceFE
+
+<!-- Modal.razor -->
+<div class="modal fade @(IsVisible ? "show d-block" : "")" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg" @onclick:stopPropagation>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chọn người vào cuộc trò chuyện</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-12">
+                            <div class="input-group">
+                                <input @bind="pagedResponseSearchText.Data!.Name" type="text" class="form-control" placeholder="Tìm kiếm theo tên" />
+                                <select @onchange="OnIsRoleChanged" class="form-select">
+                                    <option selected="@(string.IsNullOrWhiteSpace(pagedResponseSearchText.Data.Role))" value="">Tất cả vai trò</option>
+                                    <option selected="@(pagedResponseSearchText.Data.Role!.Equals(RoleConstant.Doctor))" value="@RoleConstant.Doctor">@RoleConstant.Doctor</option>
+                                    <option selected="@(pagedResponseSearchText.Data.Role!.Equals(RoleConstant.Receptionist))" value="@RoleConstant.Receptionist">@RoleConstant.Receptionist</option>
+                                </select>
+                                <button @onclick="SearchInputKey" class="btn btn-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @if (isLoaded.HasValue && !isLoaded.Value)
+                    {
+                        <div class="d-flex justify-content-center my-5">
+                            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (!(list.StatusCode.HasValue && list.StatusCode.Value == StatusCodes.Status200OK) && !string.IsNullOrWhiteSpace(list.Message))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            @list.Message
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Bảng hiển thị danh sách người dùng -->
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover table-bordered">
+                                        @* gắn dữ liệu ở đây *@
+                                        <thead>
+                                            <tr>
+                                                <th>Số thứ tự</th>
+                                                <th>Tên nhân viên</th>
+                                                <th>Vai trò</th>
+                                                <th>Hành động</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <!-- Dòng 1 -->
+                                            @{
+                                                var i = 1 + ((list.Data!.PageNumber-1) * list.Data.PageSize);
+                                            }
+                                            @foreach (var item in list.Data.Data!)
+                                            {
+                                                <tr>
+                                                    <td>@i</td>
+                                                    <td>@(item.Name)</td>
+                                                    <td>@(item.Role)</td>
+                                                    <td>
+                                                        <div class="btn-group">
+                                                            <button @onclick="()=>SeletedItem(item)" class="btn btn-sm btn-outline-primary">
+                                                                Chọn
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                i++;
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Phân trang -->
+                                <nav aria-label="Page navigation" class="mt-4">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item @(list.Data!.PageNumber == 1 ? "disabled" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(list.Data!.PageNumber - 1)">Trước</a>
+                                        </li>
+
+                                        @foreach (var page in GetPageNumbersToDisplay())
+                                        {
+                                            if (page == -1)
+                                            {
+                                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                            }
+                                            else
+                                            {
+                                                <li class="page-item @(page == list.Data!.PageNumber ? "active" : "")">
+                                                    <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(page)">@(page)</a>
+                                                </li>
+                                            }
+                                        }
+
+                                        <li class="page-item @(list.Data!.PageNumber == list.Data!.TotalPages ? "disabled" : "")">
+                                            <a class="page-link" style="cursor: pointer;" @onclick="() => SelectPage(list.Data!.PageNumber + 1)">Sau</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                                
+                            </div>
+                        </div>
+                    }
+                    <h3>Danh sách thuốc hiện tại</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-bordered">
+                                    @* gắn dữ liệu ở đây *@
+                                    <thead>
+                                        <tr>
+                                            <th>Số thứ tự</th>
+                                            <th>Tên nhân viên</th>
+                                            <th>Vai trò</th>
+                                            <th>Hành động</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <!-- Dòng 1 -->
+                                        @{
+                                            var st = 1;
+                                        }
+                                        @foreach (var item in listTemp)
+                                        {
+                                            <tr>
+                                                <td>@st</td>
+                                                <td>@(item.Name)</td>
+                                                <td>@(item.Role)</td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button @onclick="()=>DeletedItem(item)" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i> Xóa
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            st++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <input @bind="roomName" type="text" class="form-control" placeholder="Nhập tên phòng" />
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger mt-3">@errorMessage</div>
+                    }
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" @onclick="SaveInfoSelected0">Lưu</button>
+                @* <button class="btn btn-secondary" @onclick="Close">Đóng</button> *@
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+    [Parameter]
+    public EventCallback SaveInfoSelected {get;set;}
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    private PagedResponse<ConditionFilterUserSelectedForChatBoxLocal> pagedResponseSearchText = new PagedResponse<ConditionFilterUserSelectedForChatBoxLocal>(){
+        Data = new ConditionFilterUserSelectedForChatBoxLocal(){
+            HasSkipSearcher = true, Name = string.Empty, Role = string.Empty
+        }
+    };
+    private bool? isLoaded;
+    private HTTPResponseClient<PagedResponse<List<UserSelectdVMForChatBoxLocal>>> list = new HTTPResponseClient<PagedResponse<List<UserSelectdVMForChatBoxLocal>>>(){
+        Data = new PagedResponse<List<UserSelectdVMForChatBoxLocal>>(){
+            Data = new List<UserSelectdVMForChatBoxLocal>(),
+            PageSize = 10, PageNumber = 1, TotalPages = 0, TotalRecords = 0
+        }
+    };
+
+    private string roomName {get;set;} = string.Empty;
+    private string errorMessage {get;set;} = string.Empty;
+
+    private List<UserSelectdVMForChatBoxLocal> listTemp = new List<UserSelectdVMForChatBoxLocal>();
+
+
+    private void OnIsRoleChanged(ChangeEventArgs e)
+    {
+        pagedResponseSearchText.Data!.Role = e.Value?.ToString();
+    }
+
+    private List<int> GetPageNumbersToDisplay()
+    {
+        const int range = 2; // Số trang hiển thị trước và sau trang hiện tại
+        var pages = new List<int>();
+        if (list.Data!.TotalPages <= 7)
+        {
+            for (int i = 1; i <= list.Data!.TotalPages; i++) pages.Add(i);
+        }
+        else
+        {
+            pages.Add(1);
+            if (list.Data!.PageNumber > range + 2) pages.Add(-1); // dấu "..."
+            for (int i = Math.Max(2, list.Data!.PageNumber - range); i <= Math.Min(list.Data!.TotalPages - 1, list.Data!.PageNumber + range); i++)
+            {
+                pages.Add(i);
+            }
+            if (list.Data!.PageNumber < list.Data!.TotalPages - range - 1) pages.Add(-1); // dấu "..."
+            pages.Add(list.Data!.TotalPages);
+        }
+        return pages;
+    }
+
+    private async Task SelectPage(int page)
+    {
+        if (page >= 1 && page <= list.Data!.TotalPages && page != list.Data!.PageNumber)
+        {
+            list.Data!.PageNumber = page;
+            await SearchInputKey();
+        }
+    }
+
+    private async Task SearchInputKey(){
+        pagedResponseSearchText.PageSize = list.Data!.PageSize;
+        pagedResponseSearchText.PageNumber = list.Data!.PageNumber;
+        isLoaded = false;
+        list = await chatLocalServiceFE.GetAllUserForChatBoxLocal(pagedResponseSearchText);
+        isLoaded = true;
+    }
+
+    private void SeletedItem(UserSelectdVMForChatBoxLocal item){
+        if(!listTemp.Contains(item)){
+            listTemp.Add(item);
+        }
+    }
+
+    private void DeletedItem(UserSelectdVMForChatBoxLocal item){
+        if(listTemp.Contains(item)){
+            listTemp.Remove(item);
+        }
+    }
+
+    private void LoadDataAsDefault(){
+        isLoaded = null;
+        pagedResponseSearchText = new PagedResponse<ConditionFilterUserSelectedForChatBoxLocal>(){
+            Data = new ConditionFilterUserSelectedForChatBoxLocal(){
+                HasSkipSearcher = true, Name = string.Empty, Role = string.Empty
+            }
+        };
+        list = new HTTPResponseClient<PagedResponse<List<UserSelectdVMForChatBoxLocal>>>(){
+            Data = new PagedResponse<List<UserSelectdVMForChatBoxLocal>>(){
+                Data = new List<UserSelectdVMForChatBoxLocal>(),
+                PageSize = 10, PageNumber = 1, TotalPages = 0, TotalRecords = 0
+            }
+        };
+        roomName = string.Empty;
+        errorMessage = string.Empty;
+        listTemp = new List<UserSelectdVMForChatBoxLocal>();
+    }
+
+    private async Task SaveInfoSelected0()
+    {
+        if(listTemp.Count > 1){
+            if(string.IsNullOrWhiteSpace(roomName)){
+                errorMessage = "Tên phòng không đc để trống nếu cuộc trò chuyện có ít nhất 2 người!";
+                return;
+            }
+        }
+        else 
+        if(listTemp.Count == 0){
+            errorMessage = "Chọn ít nhất 1 người trò chuyện với bạn!";
+            return;
+        }
+
+        ChatBoxLocalCreateVM item = new ChatBoxLocalCreateVM();
+        item.RoomName = roomName;
+        foreach(var i in listTemp){
+            if(!string.IsNullOrWhiteSpace(i.Name)){
+                item.MemberJoined.Add(i.Name);
+            }
+        }
+
+        var result = await chatLocalServiceFE.CreateChatRoom(item);
+
+        if(result.Data){
+            errorMessage = "Tạo cuộc trò chuyện thành công!";
+            await SaveInfoSelected.InvokeAsync();
+            await Close();
+        }
+        else{
+            errorMessage = result.Message ?? "";
+        }
+    }
+    private async Task Close()
+    {
+        LoadDataAsDefault();
+        await OnClose.InvokeAsync();
+    }
+
+    protected override async Task OnInitializedAsync(){
+        LoadDataAsDefault();
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync(){
+        await base.OnParametersSetAsync();
+    }
+}

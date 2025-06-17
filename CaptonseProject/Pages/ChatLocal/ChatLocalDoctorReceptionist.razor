@@ -1,0 +1,174 @@
+@page "/chatlocal/doctor-receptionist"
+
+@layout AdminLayout
+@inject ChatLocalServiceFE chatLocalServiceFE
+@inject IToastService toastService
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <div class="col-2 h-100 overflow-y-auto">
+            @foreach(var item in chatBoxLocalVMs.Data!){
+                <div class="btn-group w-100" role="group" aria-label="Basic example">
+                    <button @onclick="()=>SelectRoom(item.ChatID)"type="button" class="@GetChatIDselected(item.ChatID)">@item.RoomName</button>
+                    <button @onclick="()=>DeleteRoom(item.ChatID)" type="button" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                </div>
+            }
+        </div>
+        <div class="col-10 h-100">
+            <div class="mb-2 d-flex justify-content-end">
+                <button @onclick="ShowModal" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i> Tạo cuộc trò chuyện
+                </button>
+            </div>
+            <textarea @bind="@MessageBoxChat" class="form-control h-75" readonly="true"></textarea>
+            <div class="d-flex my-2">
+                <textarea @bind="@sendVM.Message" rows="2" class="form-control" placeholder="Tin nhắn gửi..." />
+                <button @onclick="SendMessage" class="ms-2 btn btn-primary w-25" >Gửi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ModalUserSelectedToChatLocal IsVisible="@isModalVisible" OnClose="HideModal" SaveInfoSelected="SaveInfoSelected" />
+
+
+@code{
+    MemberChatLocalSendVM sendVM = new MemberChatLocalSendVM();
+    private string GetChatIDselected(Guid chatID) => sendVM.ChatID == chatID ? "btn btn-sm btn-outline-primary active" : "btn btn-sm btn-outline-primary";
+    private HTTPResponseClient<List<ChatBoxLocalVM>> chatBoxLocalVMs = new HTTPResponseClient<List<ChatBoxLocalVM>>(){
+        Data = new List<ChatBoxLocalVM>()
+    };
+    private HTTPResponseClient<List<MemberChatLocalVM>> memberChatLocalVMs = new HTTPResponseClient<List<MemberChatLocalVM>>(){
+        Data = new List<MemberChatLocalVM>()
+    };
+    private string MessageBoxChat = string.Empty;
+    private async Task SetChatIDselected(Guid chatID)
+    {
+        sendVM.ChatID = chatID;
+        await LoadDataAsDefault2();
+    }
+    
+    private bool isModalVisible = false;
+    private void ShowModal()
+    {
+        isModalVisible = true;
+    }
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
+    
+    private async Task SelectRoom(Guid chatId){
+        sendVM.ChatID = chatId;
+        await LoadDataAsDefault2();
+    }
+
+    private async Task DeleteRoom(Guid chatId){
+        var result = await chatLocalServiceFE.DeleteChatRoom(chatId);
+        if(result.Data){
+            toastService.ShowSuccess("Xóa cuộc trò chuyện thành công!");
+            if(chatId.CompareTo(sendVM.ChatID) == 0){
+                sendVM.ChatID = null;
+            }
+            // goi hub
+            await chatLocalServiceFE.SendMessageAsync1("ReceivedChangeListChat");
+        }
+        else{
+            toastService.ShowError("Xóa cuộc trò chuyện thất bại!");
+        }
+        
+    }
+
+    private async Task SaveInfoSelected(){
+        await chatLocalServiceFE.SendMessageAsync1("ReceivedChangeListChat");
+    }
+
+    private async Task SendMessage(){
+        if(sendVM.ChatID.HasValue){
+            if(string.IsNullOrWhiteSpace(sendVM.Message)){
+                toastService.ShowWarning("Tin nhắn gửi đang không có nội dung!");
+            }
+            else{
+                sendVM.CreatedAt = DateTime.Now;
+                var result = await chatLocalServiceFE.SendMessageChatRoom(sendVM);
+                if(result.Data){
+                    @* toastService.ShowSuccess("Gửi tin nhắn thành công!"); *@
+                    sendVM.Message = string.Empty;
+                    // gọi hub
+                    await chatLocalServiceFE.SendMessageAsync1("ReceivedChangeMessageBox");
+                }
+                else{
+                    toastService.ShowError("Gửi tin nhắn thất bại!");
+                }
+            }
+        }
+        else{
+            toastService.ShowWarning("Chưa có đoạn chat nào để gửi tin nhắn!");
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await chatLocalServiceFE.ConnectAsync();
+        await LoadDataAsDefault1();
+        await LoadDataAsDefault2();
+        OnReceivedEvent();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task LoadDataAsDefault1(){
+        chatBoxLocalVMs = await chatLocalServiceFE.GetAllChatRoom();
+    }
+
+    private async Task LoadDataAsDefault2(){
+        if(!sendVM.ChatID.HasValue){
+            if(chatBoxLocalVMs.Data!.Count > 0){
+                sendVM.ChatID = chatBoxLocalVMs.Data.First().ChatID;
+            }
+            else{
+                MessageBoxChat = string.Empty;
+            }
+        }
+        else{
+            if(chatBoxLocalVMs.Data!.Count > 0){
+                if(!chatBoxLocalVMs.Data.Any(p=>p.ChatID.Equals(sendVM.ChatID))){
+                    sendVM.ChatID = chatBoxLocalVMs.Data.First().ChatID;
+                }
+                memberChatLocalVMs = await chatLocalServiceFE.GetAllMessageChatFromChatRoom(sendVM.ChatID.Value);
+                if(memberChatLocalVMs.StatusCode == StatusCodes.Status200OK){
+                    MessageBoxChat = string.Empty;
+                    foreach(var i in memberChatLocalVMs.Data ?? new List<MemberChatLocalVM>()){
+                        MessageBoxChat += (i.NameMember + " ("+ (i.CreatedAt.HasValue ? i.CreatedAt.Value.ToString("g") : "") +"): " + i.Message + "\n");
+                    }
+                }
+            }
+            else{
+                sendVM.ChatID = null;
+                MessageBoxChat = string.Empty;
+            }
+        }
+    }
+
+    private void OnReceivedEvent(){
+        chatLocalServiceFE.OnEvent1("ReceivedChangeListChat", async () =>
+        {
+            await LoadDataAsDefault1();
+            await LoadDataAsDefault2();
+            await InvokeAsync(StateHasChanged);
+        });
+
+        chatLocalServiceFE.OnEvent1("ReceivedChangeMessageBox", async () =>
+        {
+            await LoadDataAsDefault2();
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task Dispose()
+    {
+        await chatLocalServiceFE.DisconnectAsync();
+    }
+}

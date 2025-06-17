@@ -18,6 +18,7 @@ using web_api_base.Models.ClinicManagement;
 using web_api_base.Service_FE.Services;
 using web_api_base.Models.Configuration;
 using Microsoft.AspNetCore.Components;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,15 +99,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         // Kiểm tra thời gian hết hạn của token, không cho phép sử dụng token hết hạn
         ValidateLifetime = true
     };
-        
+
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
-            // Cho phép token từ query string nếu là WebSocket (SignalR)
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+            // Danh sách các hub cần cho phép token qua query string
+            var allowedHubPaths = new[]
+            {
+                "/hub/chatlocal",
+                "/hub/service"
+            };
+            if (!string.IsNullOrEmpty(accessToken) &&
+                allowedHubPaths.Any(hubPath => path.StartsWithSegments(hubPath)))
             {
                 context.Token = accessToken;
             }
@@ -124,11 +131,9 @@ builder.Services.AddCascadingAuthenticationState();
 //     client.BaseAddress = new Uri("http://localhost:5208"); // Đặt URL cơ sở của API
 // });
 
+var apiBaseUrl = builder.Configuration["ApiSettings:ApiBaseUrl"];
 builder.Services.AddHttpClient("LocalApi", client =>
 {
-    var config = builder.Configuration.GetSection("ApiSettings");
-    var apiBaseUrl = config.GetValue<string>("ApiBaseUrl");
-
     if (string.IsNullOrWhiteSpace(apiBaseUrl))
         throw new Exception("Missing ApiBaseUrl in configuration.");
 
@@ -182,6 +187,25 @@ builder.Services.AddScoped<IMedicineService, MedicineService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IDiagnosisServiceService, DiagnosisServiceService>();
 
+// Cấu hình Redis
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    if (string.IsNullOrWhiteSpace(apiBaseUrl))
+        throw new Exception("Missing ApiBaseUrl in configuration.");
+    return ConnectionMultiplexer.Connect(apiBaseUrl); // ví dụ: "localhost:6379"
+});
+// Kết nối Redis
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var redisConnection = builder.Configuration["Redis:ConnectionString"];
+    if (string.IsNullOrWhiteSpace(redisConnection))
+        throw new Exception("Missing Redis:ConnectionString in configuration.");
+    return ConnectionMultiplexer.Connect(redisConnection);
+});
+
+//service BE
+builder.Services.AddScoped<IChatLocalServiceBE, ChatLocalServiceBE>();
+
 //service FE
 builder.Services.AddScoped<ILoginService, LoginService>();
 
@@ -191,9 +215,22 @@ builder.Services.AddScoped<DoctorFEService>();
 builder.Services.AddScoped<RoomServiceFE>();
 builder.Services.AddScoped<TechnicianService>();
 builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<ChatLocalServiceFE>();
 builder.Services.AddBlazoredToast();
 
 builder.Services.AddSignalR();
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .SetIsOriginAllowed(_ => true); // hoặc chỉ cho domain frontend cụ thể
+    });
+});
 
 var app = builder.Build();
 
@@ -203,7 +240,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseCors();
 
 app.UseHttpsRedirection();
 
@@ -231,6 +268,7 @@ app.MapBlazorHub(); // SignalR hub cho Blazor Server
 app.MapFallbackToPage("/_Host"); // Trang mặc định cho Blazor
 
 app.MapHub<ServiceHub>("/hub/service"); // Đăng ký route cho Hub
+app.MapHub<ChatLocalHub>("/hub/chatlocal");
 
 app.Run();
 
