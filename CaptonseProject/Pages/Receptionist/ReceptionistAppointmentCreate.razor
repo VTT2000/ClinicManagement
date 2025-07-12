@@ -266,6 +266,8 @@
         appointmentReceptionistCreateVM.Address = null;
         appointmentReceptionistCreateVM.Email = string.Empty;
         appointmentReceptionistCreateVM.PasswordHash = string.Empty;
+
+        StateHasChanged();
     }
 
     private async Task HandleValidSubmit()
@@ -279,6 +281,7 @@
                 appointmentReceptionistCreateVM.PatientFullName + " " +
                 appointmentReceptionistCreateVM.Phone;
             appointmentReceptionistCreateVM = new AppointmentReceptionistCreateVM();
+            IsPatientOld = false;
             await SetInfoSelectedItem();
             await SetInfoSelectedItem2();
 
