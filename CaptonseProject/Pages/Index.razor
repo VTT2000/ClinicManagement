@@ -67,11 +67,19 @@
     </div>
     <div class="col-12">
       <div class="d-flex justify-content-center gap-4 flex-wrap">
+        @{
+          List<dynamic> nameSer = new List<dynamic>
+          {
+            new { Name = "Blood Test", Image = "images/service_paraclinical/service_paraclinicial_1.jpg" },
+            new { Name = "Breath Test", Image = "images/service_paraclinical/service_paraclinicial_2.jpg" },
+            new { Name = "Urine Test", Image = "images/service_paraclinical/service_paraclinicial_3.jpg" }
+          };
+        }
         @for (int i = 0; i < 3; i++) // Hiển thị 3 dịch vụ
         {
           <div class="service-card text-center">
-            <img src="images/home4.png" alt="Service Image" class="img-fluid rounded mb-3" />
-            <h5 class="fw-bold">NEUROSCIENCES</h5>
+            <img src="@nameSer[i].Image" alt="Service Image" class="img-fluid rounded mb-3" />
+            <h5 class="fw-bold">@nameSer[i].Name</h5>
           </div>
         }
       </div>
@@ -85,12 +93,23 @@
     </div>
     <div class="col-12">
       <div class="d-flex justify-content-center gap-4 flex-wrap">
-        @for (int i = 0; i < 12; i++) // Hiển thị 12 bác sĩ
+        @{
+          List<dynamic> lstDoctor = new List<dynamic>
+          {
+            new { Name = "Nguyễn Văn Bác sĩ A", Image = "images/doctor/img_doctor_1.jpg", Spec = "Internal Medicine" },
+            new { Name = "Nguyễn Văn Bác sĩ B", Image = "images/doctor/img_doctor_2.jpg" , Spec = "Surgery" },
+            new { Name = "Nguyễn Văn Bác sĩ C", Image = "images/doctor/img_doctor_3.jpg", Spec = "Neurology" },
+            new { Name = "Nguyễn Văn Bác sĩ D", Image = "images/doctor/img_doctor_4.jpg", Spec = "Pediatrics" },
+            new { Name = "Nguyễn Văn Bác sĩ E", Image = "images/doctor/img_doctor_5.jpg", Spec = "Ophthalmology" },
+            new { Name = "Nguyễn Văn Bác sĩ F", Image = "images/doctor/img_doctor_6.jpg", Spec = "Obstetrics" }
+          };
+        }
+        @for (int i = 0; i < 6; i++) // Hiển thị 12 bác sĩ
         {
           <div class="doctor-card text-center">
-            <img src="images/home5.png" alt="Doctor Image" class="img-fluid rounded-circle mb-3" />
-            <h6 class="fw-bold">Silva A.D.M.P</h6>
-            <p class="text-muted">MEDICAL DOCTOR</p>
+            <img src="@lstDoctor[i].Image" alt="Doctor Image" class="img-fluid rounded-circle mb-3" />
+            <h6 class="fw-bold">@lstDoctor[i].Name</h6>
+            <p class="text-muted">@lstDoctor[i].Spec</p>
           </div>
         }
       </div>
